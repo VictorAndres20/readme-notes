@@ -1,0 +1,1475 @@
+# Maven dependencies and PROPERTIES
+At END of this document
+###############################################################################################
+
+# Create project
+# Start project with Spring Tool Suite
+1. Spring Starter Project (2.1.4)
+2. Type MAVEN
+3. JAR
+4. JPA, WEB
+# By Spirng Initializr
+1. https://start.spring.io/
+2. SAME STEPS ABOVE
+3. Import project on IDE
+
+# application.properties config src/main/resources
+server.port=8090
+server.error.whitelabel.enabled=false
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+												org.postgresql.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/agendamiento?useSSL=false // Maybe change SSL true
+							 jdbc:postgresql://localhost:5432/agendamiento?useSSL=false
+spring.datasource.username=root
+spring.datasource.password=pass
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+													 org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+-#Hibernate<4.x>
+spring.jpa.hibernate.naming.strategy=org.hibernate.cfg.ImproveNamingStrategy
+
+# Package structure
+
+src/
+	main/
+		java/
+			com.somename.app
+				configuration
+				controller
+				converter
+				entity
+				model
+				repository
+				service			
+
+###############################################################################################
+
+# Create Entity and Model
+Always create Entity with his Model, VERY IMPORTANT
+
+1. Entity
+package com.vitisystems.SpringBootAPIexample.entity;
+
+import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Table(name="profesion")
+@Entity
+public class Profesion implements Serializable {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY) // For dont use hibernate_sequence and Column is Auto_increment or asosiated to a SEQUENCE
+	@GeneratedValue(strategy = GenerationType.AUTO) // Use hibernate_seq, spring.jpa.hibernate.ddl-auto=update
+	@Column(name="cod_profesion")
+	private int codigo;
+	
+	@Column(name="nom_profesion")
+	private String nombre;
+	
+	@Column(name="val_hora")
+	private double valorHora;
+	
+	public Profesion(){}
+
+	public Profesion(int codigo, String nombre, double valorHora){
+		super();
+		this.codigo = codigo;
+		this.nombre = nombre;
+		this.valorHora = valorHora;
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public double getValorHora() {
+		return valorHora;
+	}
+
+	public void setValorHora(double valorHora) {
+		this.valorHora = valorHora;
+	}	
+}
+
+2. Model
+package com.vitisystems.SpringBootAPIexample.model;
+
+import com.vitisystems.SpringBootAPIexample.entity.Profesion;
+
+public class ProfesionModel {
+	
+	private int codigo;
+	private String nombre;
+	private double valorHora;
+	
+	public ProfesionModel(){}
+	
+	public ProfesionModel(int codigo, String nombre, double valorHora) {
+		super();
+		this.codigo = codigo;
+		this.nombre = nombre;
+		this.valorHora = valorHora;
+	}
+	
+	public ProfesionModel(Profesion profesion){
+		this.codigo = profesion.getCodigo();
+		this.nombre = profesion.getNombre();
+		this.valorHora = profesion.getValorHora();		
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public double getValorHora() {
+		return valorHora;
+	}
+
+	public void setValorHora(double valorHora) {
+		this.valorHora = valorHora;
+	}
+	
+}
+
+# Create Repository Interface. Here is the Bridge to App - ORM - DB
+package com.vitisystems.SpringBootAPIexample.repository;
+
+import java.io.Serializable;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.vitisystems.SpringBootAPIexample.entity.Profesion;
+
+@Repository("profesionrepo")
+public interface ProfesionRepo extends JpaRepository<Profesion, Serializable>{
+	public abstract Profesion findByCodigo(int codigo);
+	public abstract List<Profesion> findByValorHora(double valorHora);
+	public abstract Profesion findByValorHoraAndNombre (double valorHora,String nombre);
+}
+
+# Create Converter
+package com.vitisystems.SpringBootAPIexample.converter;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.stereotype.Component;
+import com.vitisystems.SpringBootAPIexample.entity.Profesion;
+import com.vitisystems.SpringBootAPIexample.model.ProfesionModel;
+
+@Component("profesionconvert")
+public class ProfesionConverter {
+	public List<ProfesionModel> convertList(List<Profesion> profesiones)
+	{
+		List<ProfesionModel> profesionesm=new ArrayList<>();
+		for(Profesion profesion : profesiones)
+		{
+			profesionesm.add(new ProfesionModel(profesion));
+		}
+		return profesionesm;
+	}
+}
+
+# Create service, Where you develop queries and all retrives and interection with database
+package com.vitisystems.SpringBootAPIexample.service;
+
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import com.vitisystems.SpringBootAPIexample.converter.ProfesionConverter;
+import com.vitisystems.SpringBootAPIexample.entity.Profesion;
+import com.vitisystems.SpringBootAPIexample.model.ProfesionModel;
+import com.vitisystems.SpringBootAPIexample.repository.ProfesionRepo;
+
+@Service("profesionservice")
+public class ProfesionService {
+	
+	@Autowired
+	@Qualifier("profesionrepo")
+	private ProfesionRepo repo;
+	
+	@Autowired
+	@Qualifier("profesionconvert")
+	private ProfesionConverter converter;
+	
+	private static final Log logger=LogFactory.getLog(ProfesionService.class);
+	
+	public boolean crear(Profesion profesion)
+	{
+		try
+		{
+			logger.info("CREANDO PROFESION");
+			repo.save(profesion);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public boolean actualizar(Profesion profesion)
+	{
+		try
+		{
+			repo.save(profesion);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public boolean eliminar(int codigo)
+	{
+		try
+		{
+			Profesion profesion=repo.findByCodigo(codigo);
+			repo.delete(profesion);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public List<ProfesionModel> listar()
+	{
+		List<ProfesionModel> profesionesm=converter.convertList(repo.findAll());
+		return profesionesm;
+	}
+	
+	public List<ProfesionModel> listarPorValorHora(double valorHora)
+	{
+		List<ProfesionModel> profesionesm=converter.convertList(repo.findByValorHora(valorHora));
+		return profesionesm;
+	}
+	
+	public ProfesionModel findByCodigo(int codigo)
+	{
+		try
+		{
+			return new ProfesionModel(repo.findByCodigo(codigo));
+		}
+		catch(Exception e)
+		{
+			return null;
+		}
+		
+	}
+	
+	public ProfesionModel findByValorHoraAndNombre(double valorHora, String nombre)
+	{
+		try
+		{
+			return new ProfesionModel(repo.findByValorHoraAndNombre(valorHora, nombre));
+		}
+		catch(Exception e)
+		{
+			return null;
+		}
+		
+	}
+}
+
+# Create Controller
+package com.vitisystems.SpringBootAPIexample.controller;
+
+import java.util.List;
+import javax.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.vitisystems.SpringBootAPIexample.entity.Profesion;
+import com.vitisystems.SpringBootAPIexample.model.ProfesionModel;
+import com.vitisystems.SpringBootAPIexample.service.ProfesionService;
+
+@RestController
+@RequestMapping("/v1")
+public class ProfesionController {
+	
+	@Autowired
+	@Qualifier("profesionservice")
+	private ProfesionService service;
+	
+	@GetMapping(path= {"","/"})
+	public String presentation()
+	{
+		return "Presentación API REST con Sptring Boot";
+	}
+	
+	@PutMapping("/profesion")
+	public boolean agregarNota(@RequestBody @Valid Profesion profesion)
+	{
+		return service.crear(profesion);
+	}
+	
+	@PostMapping("/profesion")
+	public boolean actualizarProfesion(@RequestBody @Valid Profesion profesion)
+	{
+		return service.actualizar(profesion);
+	}
+	
+	@DeleteMapping("/profesion/{codigo}")
+	public boolean borrarProfesion(@PathVariable("codigo") int codigo)
+	{
+		return service.eliminar(codigo);
+	}
+	
+	@GetMapping("/profesiones")
+	public List<ProfesionModel> listar()
+	{
+		return service.listar();
+	}
+	
+	@GetMapping("/profesiones/{valorHora}")
+	public List<ProfesionModel> listarPorValorH(@PathVariable("valorHora") double valorHora)
+	{
+		return service.listarPorValorHora(valorHora);
+	}
+	
+	@GetMapping("/profesion/{codigo}")
+	public ProfesionModel obtenerByCodigo(@PathVariable("codigo") int codigo)
+	{
+		return service.findByCodigo(codigo);
+	}
+	
+	@GetMapping("/profesion/{valorHora}/{nombre}")
+	public ProfesionModel obtenerByValorAndNombre(@PathVariable("valorHora") double valorHora,@PathVariable("nombre") String nombre)
+	{
+		return service.findByValorHoraAndNombre(valorHora, nombre);
+	}
+
+}
+
+###############################################################################################
+
+# Entities, Models and Services with Relationships
+# EXAMPLE ciudad -n----1-> departamento
+# Repository, Converter and Controller are the same structure and logic
+
+1. Entities
+------------
+DPARTAMENTO
+------------
+package com.novopangea.adhdfl5.adhdfl5.entity;
+
+import java.io.Serializable;
+import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="departamento")
+public class Departamento implements Serializable{
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="cod_departamento",unique=true,nullable=false)
+	private int codigo;
+	
+	@Column(name="nom_departamento")
+	private String nombre;
+	
+	@OneToMany(mappedBy="departamento",cascade=CascadeType.ALL,fetch=FetchType.LAZY,targetEntity=Ciudad.class)
+	private List<Ciudad> ciudades;
+	
+	public Departamento(){}
+
+	public Departamento(int codigo, String nombre, List<Ciudad> ciudades) {
+		super();
+		this.codigo = codigo;
+		this.nombre = nombre;
+		this.ciudades=ciudades;
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public List<Ciudad> getCiudades() {
+		return ciudades;
+	}
+
+	public void setCiudades(List<Ciudad> ciudades) {
+		this.ciudades = ciudades;
+	}
+}
+
+------
+CIUDAD
+------
+package com.novopangea.adhdfl5.adhdfl5.entity;
+
+import java.io.Serializable;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Entity
+@Table(name="ciudad")
+public class Ciudad implements Serializable{
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name="cod_ciudad",nullable=false,unique=true)
+	private int codigo;
+	
+	@Column(name="nom_ciudad")
+	private String nombre;
+	
+	@Transient //This not will be mapped because is a relationship column, but we will need this atribute
+	private int codigoDep;
+	
+	@ManyToOne(fetch=FetchType.LAZY,targetEntity=Departamento.class)
+	@JoinColumn(name="cod_departamento",nullable=false)
+	private Departamento departamento;
+	
+	public Ciudad(){}
+
+	public Ciudad(int codigo, String nombre, int codigoDep) {
+		super();
+		this.codigo = codigo;
+		this.nombre = nombre;
+		this.codigoDep=codigoDep;
+	}
+	
+	public Ciudad(int codigo, String nombre,Departamento departamento){
+		this.codigo = codigo;
+		this.nombre = nombre;
+		this.codigoDep=departamento.getCodigo();
+		this.departamento=departamento;
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public Departamento getDepartamento() {
+		return departamento;
+	}
+
+	public void setDepartamento(Departamento departamento) {
+		this.departamento = departamento;
+	}
+
+	public int getCodigoDep() {
+		return codigoDep;
+	}
+
+	public void setCodigoDep(int codigoDep) {
+		this.codigoDep = codigoDep;
+	}	
+}
+
+**EXPLAIN FETCH TYPES**
+LAZY = fetch when needed
+EAGER = fetch immediately
+
+2. Models
+------------------
+DepartamentoModel
+------------------
+package com.novopangea.adhdfl5.adhdfl5.model;
+
+import com.novopangea.adhdfl5.adhdfl5.entity.Departamento;
+
+public class DepartamentoModel {
+	
+	private int codigo;
+	private String nombre;
+	
+	public DepartamentoModel(){}
+
+	public DepartamentoModel(int codigo, String nombre) {
+		super();
+		this.codigo = codigo;
+		this.nombre = nombre;
+	}
+	
+	public DepartamentoModel(Departamento departamento) {
+		this.codigo = departamento.getCodigo();
+		this.nombre = departamento.getNombre();
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}	
+}
+
+------------------
+CiudadModel
+------------------
+package com.novopangea.adhdfl5.adhdfl5.model;
+
+import com.novopangea.adhdfl5.adhdfl5.entity.Ciudad;
+import com.novopangea.adhdfl5.adhdfl5.entity.Departamento;
+
+/**
+ * Modelo para la entidad Ciudad
+ * @author Victor Andres Pedraza Leon - Novopangea 2019
+ *
+ */
+public class CiudadModel {
+	
+	private int codigo;
+	private String nombre;
+	private int codigoDep;
+	private DepartamentoModel departamento;
+	
+	public CiudadModel(){}
+
+	public CiudadModel(int codigo, String nombre, DepartamentoModel departamento) {
+		super();
+		this.codigo = codigo;
+		this.nombre = nombre;
+		this.codigoDep=departamento.getCodigo();
+		this.departamento=departamento;
+	}
+	
+	public CiudadModel(Ciudad ciudad) {
+		this.codigo = ciudad.getCodigo();
+		this.nombre = ciudad.getNombre();
+		this.codigoDep=ciudad.getDepartamento().getCodigo();
+		this.departamento=new DepartamentoModel(ciudad.getDepartamento());
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public DepartamentoModel getDepartamento() {
+		return departamento;
+	}
+
+	public void setDepartamento(DepartamentoModel departamento) {
+		this.departamento = departamento;
+	}
+
+	public int getCodigoDep() {
+		return codigoDep;
+	}
+
+	public void setCodigoDep(int codigoDep) {
+		this.codigoDep = codigoDep;
+	}	
+}
+
+3. Services
+-------------------
+DepartamentoService
+-------------------
+package com.novopangea.adhdfl5.adhdfl5.service;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import com.novopangea.adhdfl5.adhdfl5.converter.DepartamentoCoverter;
+import com.novopangea.adhdfl5.adhdfl5.entity.Departamento;
+import com.novopangea.adhdfl5.adhdfl5.model.DepartamentoModel;
+import com.novopangea.adhdfl5.adhdfl5.repository.DepartamentoRepository;
+
+/**
+ * Servicio de Departamento, es aquí donde se interactua con la base de datos
+ * @author Victor Andres Pedraza Leon - Novopangea 2019
+ *
+ */
+@Service("departamentoservice")
+public class DepartamentoService {
+	
+	/**
+	 * Repositorio Departamento para el uso del JPA y Hibernate con la entidad Departamento
+	 */
+	@Autowired
+	@Qualifier("departamentorepository")
+	private DepartamentoRepository repo;
+	
+	/**
+	 * Convertidor de Entidad a Modelo para la entidad Departamento
+	 */
+	@Autowired
+	@Qualifier("departamentoconverter")
+	private DepartamentoCoverter converter;
+	
+	/**
+	 * 
+	 * @param departamento
+	 * @return
+	 */
+	public boolean crear(Departamento departamento)
+	{
+		try
+		{
+			repo.save(departamento);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public boolean actualizar(Departamento departamento)
+	{
+		try
+		{
+			repo.save(departamento);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public boolean eliminar(int codigo)
+	{
+		try
+		{
+			Departamento departamento=repo.findByCodigo(codigo);
+			repo.delete(departamento);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public List<DepartamentoModel> listar()
+	{
+		return converter.list(repo.findAll());
+	}
+}
+
+-------------------
+CiudadService
+-------------------
+package com.novopangea.adhdfl5.adhdfl5.service;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import com.novopangea.adhdfl5.adhdfl5.converter.CiudadConverter;
+import com.novopangea.adhdfl5.adhdfl5.entity.Ciudad;
+import com.novopangea.adhdfl5.adhdfl5.model.CiudadModel;
+import com.novopangea.adhdfl5.adhdfl5.repository.CiudadRepository;
+import com.novopangea.adhdfl5.adhdfl5.repository.DepartamentoRepository;
+
+@Service("ciudadservice")
+public class CiudadService {
+	
+	@Autowired
+	@Qualifier("ciudadrepository")
+	private CiudadRepository repo;
+	
+	@Autowired
+	@Qualifier("departamentorepository")
+	private DepartamentoRepository repoDep;
+	
+	@Autowired
+	@Qualifier("ciudadconverter")
+	private CiudadConverter converter;
+	
+	public boolean crear(Ciudad ciudad)
+	{
+		try
+		{
+			ciudad.setDepartamento(repoDep.findByCodigo(ciudad.getCodigoDep()));
+			repo.save(ciudad);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public boolean actualizar(Ciudad ciudad)
+	{
+		try
+		{
+			ciudad.setDepartamento(repoDep.findByCodigo(ciudad.getCodigoDep()));
+			repo.save(ciudad);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public boolean eliminar(int codigo)
+	{
+		try
+		{
+			Ciudad ciudad=repo.findByCodigo(codigo);
+			repo.delete(ciudad);
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
+	public List<CiudadModel> listar()
+	{
+		return converter.lista(repo.findAll());
+	}
+}
+
+###############################################################################################
+
+# JpaQueries and Custom Queries
+
+import java.io.Serializable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.novopangea.adhdfl5.adhdfl5.entity.Adulto;
+
+@Repository("adultorepository")
+public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
+	
+	public abstract Adulto findByCodigo(int codigo);
+	
+	public abstract Adulto findByNombre(String nombre);
+	
+	public abstract Adulto findByTelefono(String telefono);
+	
+	public abstract Adulto findByCorreo(String correo);
+	
+	@Query("SELECT a FROM Adulto a WHERE a.correo=:correo OR a.telefono=:telefono")
+	public Adulto findByTelefonoAndCorreo(@Param("telefono")String telefono, @Param("correo")String correo);
+	
+	@Query("SELECT a FROM Adulto a WHERE a.nombre=:nombre OR a.correo=:correo OR a.telefono=:telefono")
+	public Adulto findByNombreAndTelefonoAndCorreo(@Param("nombre")String nombre, @Param("telefono")String telefono, @Param("correo")String correo);
+
+	@Query("SELECT p FROM Adulto p WHERE p.direccion LIKE :direccion%")
+	public List<Adulto> findByDireccionStarts(String direccion);
+}
+
+###############################################################################################
+
+# Spring Boot Security with JWT
+1. Maven dependencies
+		<dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+      </dependency>
+
+		<!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
+		<dependency>
+		  <groupId>io.jsonwebtoken</groupId>
+		  <artifactId>jjwt</artifactId>
+		  <version>0.9.0</version>
+		</dependency>
+
+2. Create Package com.name.app.configuration and inside create class Usuario
+package com.vitisystems.SpringBootAPIexample.configuration;
+
+public class Usuario {
+	
+	private String usuario;
+	private String pass;
+	
+	public String getUsuario() {
+		return usuario;
+	}
+	public void setUsuario(String usuario) {
+		this.usuario = usuario;
+	}
+	public String getPass() {
+		return pass;
+	}
+	public void setPass(String pass) {
+		this.pass = pass;
+	}
+}
+
+3. Create Entity Usuario, if this is not created or verify columns
+package com.vitisystems.SpringBootAPIexample.entity;
+
+import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="usuario")
+public class Usuario implements Serializable{
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Column(name="cod_usuario")
+	private int codigo;
+	
+	@Column(name="nom_usuario")
+	private String usuario;
+	
+	@Column(name="pass_usuario")
+	private String pass;
+	
+	@Column(name="rol_usuario")
+	private int rol;
+	
+	@Column(name="act_usuario")
+	private int activo;
+	
+	public Usuario(){}
+
+	public Usuario(int codigo, String usuario, String pass, int rol, int activo) {
+		super();
+		this.codigo = codigo;
+		this.usuario = usuario;
+		this.pass = pass;
+		this.rol = rol;
+		this.activo = activo;
+	}
+
+	public int getCodigo() {
+		return codigo;
+	}
+
+	public void setCodigo(int codigo) {
+		this.codigo = codigo;
+	}
+
+	public String getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(String usuario) {
+		this.usuario = usuario;
+	}
+
+	public String getPass() {
+		return pass;
+	}
+
+	public void setPass(String pass) {
+		this.pass = pass;
+	}
+
+	public int getRol() {
+		return rol;
+	}
+
+	public void setRol(int rol) {
+		this.rol = rol;
+	}
+
+	public int getActivo() {
+		return activo;
+	}
+
+	public void setActivo(int activo) {
+		this.activo = activo;
+	}
+}
+
+4. Create Repository for Usuario with less this method
+package com.vitisystems.SpringBootAPIexample.repository;
+
+import java.io.Serializable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.vitisystems.SpringBootAPIexample.entity.Usuario;
+
+@Repository("usuariorepo")
+public interface UsuarioRepository extends JpaRepository<Usuario, Serializable>{
+	public abstract Usuario findByUsuario(String usuario);
+}
+
+5. Create Service for Usuario implementing UserDetailsService with less this method
+package com.vitisystems.SpringBootAPIexample.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.vitisystems.SpringBootAPIexample.entity.Usuario;
+import com.vitisystems.SpringBootAPIexample.repository.UsuarioRepository;
+
+@Service("usuarioserv")
+public class UsuarioService implements UserDetailsService {
+	
+	@Autowired
+	@Qualifier("usuariorepo")
+	private UsuarioRepository repo;
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		BCryptPasswordEncoder encoder = passwordEncoder();
+		/** GET USER FROM DATABASE*/
+		Usuario usuario=repo.findByUsuario(username);
+		
+		/** ENCRYPT PASS with MD5 OR any other, here is withou encrypt, you may use one*/
+		User userd=new User(usuario.getUsuario(),encoder.encode(usuario.getPass()),this.buildGrants(usuario));
+		return userd;
+	}
+	
+	public List<GrantedAuthority> buildGrants(Usuario usuario)
+	{
+		List<GrantedAuthority> authsg=new ArrayList<GrantedAuthority>();
+		authsg.add(new SimpleGrantedAuthority(String.valueOf(usuario.getRol())));
+		return authsg;
+	}	
+	
+	@Bean
+	public BCryptPasswordEncoder passwordEncoder() {
+	    return new BCryptPasswordEncoder();
+	}
+}
+
+6. Create on configuration Package, JwtUtil.class
+package com.vitisystems.SpringBootAPIexample.configuration;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collections;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.security.Key;
+import io.jsonwebtoken.impl.crypto.MacProvider;
+
+public class JwtUtil {
+
+	static Key secret = MacProvider.generateKey();
+	
+	public static void addAuthentication(HttpServletResponse res, String username)
+	{
+		String token=Jwts.builder()
+				.setSubject(username)
+				.signWith(SignatureAlgorithm.HS512, "Qw34r5*")
+				.compact();
+		res.addHeader("Authorization", "Bearer "+token);
+		try {
+			PrintWriter out = res.getWriter();
+			res.setContentType("application/json");
+			res.setCharacterEncoding("UTF-8");
+			out.print("{\"id\":\"1\",\"data\":\"Login realizado\"}");
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		/** MAY BE ADD MORE HEADERS*/
+	}
+	
+	public static void unsuccessAuthentication(HttpServletResponse res)
+	{
+		res.addHeader("Authorization", "ERROR");
+		try {
+			PrintWriter out = res.getWriter();
+			res.setContentType("application/json");
+			res.setCharacterEncoding("UTF-8");
+			out.print("{\"id\":\"-1\",\"data\":\"Credenciales incorrectas\"}");
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static Authentication getAuthentication(HttpServletRequest req)
+	{
+		String token=req.getHeader("Authorization");
+		if(token!=null)
+		{
+			String user=Jwts.parser()
+					.setSigningKey("Qw34r5*")
+					.parseClaimsJws(token.replace("Bearer", ""))
+					.getBody()
+					.getSubject();
+			return user != null ? new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList()) : null;
+		}
+		return null;
+	}
+}
+
+7. Create on configuration Package, LoginFilter.class
+package com.vitisystems.SpringBootAPIexample.configuration;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class LoginFilter extends AbstractAuthenticationProcessingFilter {
+
+	public LoginFilter(String url, AuthenticationManager authManager) {
+		super(new AntPathRequestMatcher(url));
+		setAuthenticationManager(authManager);
+	}
+
+	@Override
+	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+			throws AuthenticationException, IOException, ServletException {
+		InputStream body=request.getInputStream();
+		//Usuario class on this package
+		Usuario usuario=new ObjectMapper().readValue(body, Usuario.class);
+		return getAuthenticationManager().authenticate(
+				new UsernamePasswordAuthenticationToken(
+						usuario.getUsuario(),usuario.getPass(),Collections.emptyList()
+						)
+				);
+	}
+
+	@Override
+	protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+			Authentication auth) throws IOException, ServletException {
+		JwtUtil.addAuthentication(response, auth.getName());
+	}
+
+	@Override
+	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+			AuthenticationException failed) throws IOException, ServletException {
+		JwtUtil.unsuccessAuthentication(response);
+	}
+}
+
+8. Create on configuration Package, JwtFilter.class
+package com.vitisystems.SpringBootAPIexample.configuration;
+
+import java.io.IOException;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.GenericFilterBean;
+
+public class JwtFilter extends GenericFilterBean{
+
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		Authentication authentication=JwtUtil.getAuthentication((HttpServletRequest) request);
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		chain.doFilter(request,response);		
+	}
+}
+
+9. Create on configuration Package, WebSecurity class
+package com.vitisystems.SpringBootAPIexample.configuration;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.vitisystems.SpringBootAPIexample.service.UsuarioService;
+
+@Configuration
+@EnableWebSecurity
+public class WebSecurity extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	@Qualifier("usuarioserv")
+	private UsuarioService service;
+	
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.userDetailsService(service);
+	}
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.csrf().disable().authorizeRequests()
+		.antMatchers("/login").permitAll() // api.com/login NO AUTHENTICATE TOKEN NEEDED
+		//.antMatchers("/login","/other/url").permitAll() //If you need more url without AUTHENTICATE TOKEN		
+		.anyRequest().authenticated() // Any other URL AUTHENTICATE TOKEN NEEDED
+		.and()
+		.addFilterBefore(new LoginFilter("/login",authenticationManager()), UsernamePasswordAuthenticationFilter.class)
+		.addFilterBefore(new JwtFilter(),UsernamePasswordAuthenticationFilter.class);
+	}
+}
+
+10. Login sending POST method with atributes User.class on configuration Package, in this example use
+{
+	"usuario":"some",
+	"pass":"some123"
+}
+
+TOKEN will be on response header 'Authorization', just get it at frontend
+
+###############################################################################################
+
+# Cors error
+1. 
+package com.novopangea.adhdfl5.adhdfl5;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+@SpringBootApplication
+public class Adhdfl5Application {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Adhdfl5Application.class, args);
+	}
+	
+	/**
+	 * 
+	 * CORS Handler
+	 */
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurerAdapter() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+			}
+		};
+	}
+}
+
+2. If You are using a WebSecurityConfigurerAdapter son class
+
+@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		// Some http code
+		
+		/*When Error Cors appear on login*/
+		http.cors();
+	}
+
+###############################################################################################
+
+# Example ResponserRest
+package com.novopangea.adhdfl5.adhdfl5.response;
+
+import java.util.List;
+import org.springframework.stereotype.Component;
+
+/**
+ * Formato de respuesta para el Frontend
+ * @author Victor Andres Pedraza Leon - Novopangea 2019
+ *
+ * @param <T> - Clase o Modelo a la que va a pertenecer la respuesta
+ */
+@Component("responserest")
+public class ResponseRest<T> {
+	
+	private int codigoRes;
+	private String name;
+	private T object;
+	private List<T> list;
+	
+	public int getCodigoRes() {
+		return codigoRes;
+	}
+	public void setCodigoRes(int codigoRes) {
+		this.codigoRes = codigoRes;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public T getObject() {
+		return object;
+	}
+	public void setObject(T object) {
+		this.object = object;
+	}
+	public List<T> getList() {
+		return list;
+	}
+	public void setList(List<T> list) {
+		this.list = list;
+	}
+	
+	public void reset(String name)
+	{
+		this.codigoRes=-1;
+		this.name=name;
+		this.object=null;
+		this.list=null;
+	}
+	
+	public void reset(int codigo,String name)
+	{
+		this.codigoRes=codigo;
+		this.name=name;
+		this.object=null;
+		this.list=null;
+	}
+}
+
+###############################################################################################
+
+# Pagination on Spring Boot like urlapi.com/profesiones?page=0&size=10
+# Using SELECT profesion.nom_profesion,profesion.val_hora FROM profesion LIMIT <startPOS>,<recordsQuantity>
+
+1. application.properties add
+spring.data.rest.page-param-name=page
+spring.data.rest.limit-param-name=limit
+spring.data.rest.sort-param-name=sort
+spring.data.rest.default-page-size=5
+spring.data.rest.max-page-size=20
+
+2. Repository add extends PagingAndSortingRepository<Class,Serializable>
+package com.vitisystems.SpringBootAPIexample.repository;
+
+import java.io.Serializable;
+import java.util.List;
++import org.springframework.data.domain.Page;
++import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.stereotype.Repository;
+import com.vitisystems.SpringBootAPIexample.entity.Profesion;
+
+@Repository("profesionrepo")
+public interface ProfesionRepo extends JpaRepository<Profesion, Serializable>,+ PagingAndSortingRepository<Profesion, Serializable>{
+	public abstract Profesion findByCodigo(int codigo);
+	public abstract List<Profesion> findByValorHora(double valorHora);
+	public abstract Profesion findByValorHoraAndNombre (double valorHora,String nombre);
+	+public abstract Page<Profesion> findAll(Pageable pageable);
+}
+
+3. Service add
+import org.springframework.data.domain.Page;
+...
+	public List<ProfesionModel> findByPage(Pageable pageable)
+	{
+		return converter.convertList(repo.findAll(pageable).getContent());
+	}
+
+4. Controller
+import org.springframework.data.domain.Page;
+...
+	@GetMapping("/profesiones")
+	public List<ProfesionModel> listar(Pageable pageable)
+	{
+		return service.findByPage(pageable);
+	}
+
+###############################################################################################
+
+# Use Entities on different project
+If you create a project to generate Entities and import it
+on Spring Boot as maven dependnecy, you need to Specify this on MainApp
+```
+@EntityScan("com.group.id.entities") // THIS to scan all @Entity annotation
+@SpringBootApplication
+public class PetsappCoreApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(PetsappCoreApplication.class, args);
+	}
+
+}
+```
+###############################################################################################
+
+# Propeties
+  <properties>
+	  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	  <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	  <java.version>1.8</java.version>
+	  <jaxb-api.version>2.2.11</jaxb-api.version>
+  </properties>
+
+# MAVEN Dependencies
+  <dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		**IF YOU USE MySQL 5.x**
+		<!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+		<dependency>
+			 <groupId>mysql</groupId>
+			 <artifactId>mysql-connector-java</artifactId>
+			 <version>5.1.38</version>
+		</dependency>
+
+		**IF YOU USE PostgreQL**
+		<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.2.8</version>
+		</dependency>
+
+		
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		    <version>2.9.4</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
+		<dependency>
+		    <groupId>javax.xml.bind</groupId>
+		    <artifactId>jaxb-api</artifactId>
+		    <version>${jaxb-api.version}</version>
+		    <scope>runtime</scope>
+		</dependency>		
+			
+	</dependencies>

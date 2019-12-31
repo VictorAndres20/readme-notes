@@ -1,0 +1,336 @@
+--# Bloque anónimo
+
+DO
+$BODY$
+DECLARE
+	t INTEGER:=1;
+	var VARCHAR(7):='World';
+BEGIN
+	RAISE NOTICE 'Hello % %',var,t;
+END;
+$BODY$;
+
+--#########################################################################################
+
+--# Create Function In plpgsql functions are procedures too
+
+--# RETURN
+
+CREATE OR REPLACE FUNCTION sf_helloworld()
+RETURNS VARCHAR(30)
+AS $hello$
+DECLARE
+	var VARCHAR(30):='Hola '||1;
+BEGIN
+	return var;
+END; $hello$
+LANGUAGE plpgsql;
+
+--# VOID dont return
+CREATE OR REPLACE FUNCTION sp_helloworld()
+RETURNS void
+AS $hello$
+DECLARE
+	var VARCHAR(30):='Hola '||1;
+BEGIN
+	RAISE NOTICE '%',var;
+END; $hello$
+LANGUAGE plpgsql;
+
+--#########################################################################################
+
+--# Use VOID Functions
+
+DO $$
+BEGIN
+	PERFORM sf_helloworld();
+END; $$
+
+--#########################################################################################
+
+--# USE FUNCTION with return
+
+--# WITH ANOMINUS BLOCK
+
+DO
+$BODY$
+DECLARE
+	t INTEGER:=1;
+	var VARCHAR(7):='World';
+BEGIN
+	RAISE NOTICE '%',sf_helloworld();
+END;
+$BODY$;
+
+--# WITH SELECT
+
+SELECT sf_helloworld() AS resultado;
+
+--#########################################################################################
+
+--# Using LOOP
+
+CREATE OR REPLACE FUNCTION sf_helloworld()
+RETURNS VARCHAR(30)
+AS $hello$
+DECLARE
+	var VARCHAR(30):='Hola ';
+	conter INTEGER:=1;
+BEGIN
+	LOOP
+		IF(conter>4) THEN
+			exit;
+		END IF;
+		var:=var||conter||' ';
+		conter:=conter+1;
+	END LOOP;
+	return var;
+END; $hello$
+LANGUAGE plpgsql;
+
+--#########################################################################################
+
+# Using WHILE
+
+CREATE OR REPLACE FUNCTION sf_helloworld()
+RETURNS VARCHAR(30)
+AS $hello$
+DECLARE
+	var VARCHAR(30):='Hola ';
+	conter INTEGER:=1;
+BEGIN
+   WHILE(conter<5) LOOP
+		var:=var||conter||' ';
+		conter:=conter+1;
+	END LOOP;
+   return var;
+END; $hello$
+LANGUAGE plpgsql;
+
+--#########################################################################################
+
+--# Explicit Cursor on plpgsql
+
+cursor_sql CURSOR
+FOR
+SELECT CIUDAD.nom_ciudad, COUNT(PRESTAMO.cod_prestamo) AS total
+FROM PRESTAMO, CIUDAD, USUARIO
+WHERE CIUDAD.cod_ciudad=USUARIO.cod_ciudad AND PRESTAMO.cod_usuario=USUARIO.cod_usuario
+GROUP BY CIUDAD.nom_ciudad;
+
+--#########################################################################################
+
+--# Using FOR
+
+CREATE OR REPLACE FUNCTION sp_lxc()
+RETURNS void
+AS $$
+DECLARE
+	cursor_sql CURSOR
+	FOR
+	SELECT CIUDAD.nom_ciudad, COUNT(PRESTAMO.cod_prestamo) AS total
+	FROM PRESTAMO, CIUDAD, USUARIO
+	WHERE CIUDAD.cod_ciudad=USUARIO.cod_ciudad AND PRESTAMO.cod_usuario=USUARIO.cod_usuario
+	GROUP BY CIUDAD.nom_ciudad;
+BEGIN
+	FOR registro IN cursor_sql LOOP
+		RAISE NOTICE '%: %',registro.nom_ciudad,registro.total;
+	END LOOP;
+END; $$
+LANGUAGE plpgsql;
+
+--#########################################################################################
+
+--# Implicit cursors
+
+CREATE OR REPLACE FUNCTION sf_lxu(usuarioCod INTEGER)
+RETURNS VARCHAR(100)
+AS $$
+DECLARE
+	nameUser VARCHAR(40);
+	total INTEGER;
+BEGIN
+	SELECT USUARIO.nom_usuario, COUNT(PRESTAMO.cod_prestamo) AS total
+	INTO nameUser,total
+	FROM PRESTAMO, USUARIO
+	WHERE USUARIO.cod_usuario=usuarioCod AND PRESTAMO.cod_usuario=USUARIO.cod_usuario
+	GROUP BY USUARIO.nom_usuario;
+	return nameUser||': '||total;
+END; $$
+LANGUAGE plpgsql;
+
+--#########################################################################################
+
+--# Cursor with params
+
+cur_films2 CURSOR (year integer) FOR SELECT * FROM film WHERE release_year = year
+
+--# Example
+
+-- Cursor param
+CREATE OR REPLACE FUNCTION f_vxvxfpc(codPago INTEGER)
+RETURNS SETOF RECORD
+AS $FUNCTION$
+DECLARE
+	cursor_vxvxfp CURSOR(codPagoC INTEGER)
+	FOR
+	SELECT VENDEDOR.nom_vendedor::VARCHAR(100) AS nombre, F_PAGO.nom_f_pago::VARCHAR(100) AS pago, SUM(FACTURA.val_factura)::INTEGER AS total
+	FROM F_PAGO,FACTURA,CLIENTE,VENDEDOR
+	WHERE F_PAGO.cod_f_pago=codPagoC AND FACTURA.cod_cliente=CLIENTE.cod_cliente AND CLIENTE.cod_f_pago=F_PAGO.cod_f_pago AND CLIENTE.cod_vendedor=VENDEDOR.cod_vendedor
+	GROUP BY VENDEDOR.nom_vendedor,F_PAGO.nom_f_pago;
+BEGIN
+	FOR registro IN cursor_vxvxfp(codPago)
+	LOOP
+		RETURN NEXT registro;
+	END LOOP;
+END; $FUNCTION$
+LANGUAGE plpgsql;
+
+-- USE IT ON SELECT
+SELECT * FROM f_vxvxfpc(1) AS (Vendedor VARCHAR(100),Pago VARCHAR(100),Total INTEGER);
+
+--#########################################################################################
+
+--# Function return RECORD
+
+--Create function
+CREATE OR REPLACE FUNCTION VXC()
+RETURNS SETOF RECORD
+AS $PROCEDURE$
+DECLARE
+	registro RECORD;
+	cursor_cxv CURSOR FOR
+	SELECT 
+	cliente.nom_cliente::text as nombre, sum(factura.val_factura)::integer as ventas
+	FROM
+	cliente, factura
+	where cliente.cod_cliente = factura.cod_cliente 
+	GROUP BY nombre;
+
+BEGIN
+	FOR registro IN cursor_cxv LOOP
+		RETURN NEXT registro;
+	END LOOP;
+
+END;
+$PROCEDURE$
+LANGUAGE plpgsql;
+
+-- Call fucntion
+SELECT * FROM VXC() AS (nombre TEXT, total INTEGER);
+
+--#########################################################################################
+
+--# Create TRIGGER on tow steps
+https://www.postgresql.org/docs/9.1/sql-createtrigger.html
+https://e-mc2.net/es/disparadores-triggers-en-postgresql
+
+--1. Create FUNCTION
+
+CREATE OR REPLACE FUNCTION tf_update_saldo()
+RETURNS TRIGGER
+AS $PROCEDURE$
+DECLARE
+	actualCuenta cuenta.sal_cuenta%TYPE;
+	newValRetiro movimiento.val_movimiento%TYPE;
+	nameInfo cuenta.nom_cuneta%TYPE;
+	saldoInfo cuenta.sal_cuenta%TYPE;
+BEGIN
+        IF(NEW.cod_t_movimiento=1 AND NEW.val_movimiento>0) THEN
+                --Se consdigna dinero
+                UPDATE cuenta SET sal_cuenta=sal_cuenta+NEW.val_movimiento
+                WHERE cod_cuenta=NEW.cod_cuenta;
+                RAISE NOTICE 'La cuenta se ha actializado con la consignación';					 
+        ELSIF(NEW.cod_t_movimiento=2 AND NEW.val_movimiento<0) THEN
+                --Se retira dinero
+                --Obtener saldo actual y comparar para saber si tiene fondos suficientes,
+                -- es decir, que el saldo que se quiere retirar no exceda el saldo en la cuenta
+                SELECT sal_cuenta INTO actualCuenta FROM cuenta WHERE cod_cuenta=NEW.cod_cuenta;
+                --Volver positivo el retiro
+                newValRetiro:=(NEW.val_movimiento*-1);
+                IF(newValRetiro>actualCuenta) THEN
+			RAISE NOTICE 'Fondos insuficientes';
+                ELSE
+			UPDATE cuenta SET sal_cuenta=sal_cuenta-NEW.val_movimiento
+			WHERE cod_cuenta=NEW.cod_cuenta;
+			RAISE NOTICE 'La cuenta se ha actualizado con el retiro';
+                END IF;                
+        ELSIF(NEW.cod_t_movimiento=3 AND NEW.val_movimiento=0) THEN
+                --Se consulta saldo
+		SELECT nom_cuneta,sal_cuenta INTO nameInfo,saldoInfo FROM cuenta WHERE cod_cuenta=NEW.cod_cuenta;
+		RAISE NOTICE 'Información de la cuenta';
+		RAISE NOTICE 'Nombre: %',nameInfo;
+		RAISE NOTICE 'Saldo: %',saldoInfo;
+        ELSE
+                RAISE NOTICE 'No es un movimiento permitido';					 
+        END IF;
+	RETURN NULL;
+END; $PROCEDURE$
+LANGUAGE plpgsql;
+
+--2. Create TRIGGER using the function as the procedure
+
+CREATE OR REPLACE TRIGGER
+AFTER INSERT ON MOVIMIENTO
+FOR EACH ROW
+EXECUTE PROCEDURE tf_update_saldo();
+
+--#########################################################################################
+
+--# Example Trigger CONTROL of POSITION WHEN trigger execute with pg_trigger_depth() 
+
+1. Create Function that returns trigger
+CREATE OR REPLACE FUNCTION tf_update_cuenta_robo()
+RETURNS TRIGGER
+AS $functionTrigger$
+DECLARE
+BEGIN
+    IF(pg_trigger_depth()=1) THEN
+	INSERT INTO audi_cuenta VALUES(NEW.cod_cuenta,OLD.sal_cuenta,NEW.sal_cuenta,current_date,inet_server_addr());
+	RAISE NOTICE 'SE ejecuta trigger robo con número: %',pg_trigger_depth();
+    ELSE
+        RAISE NOTICE 'SE ejecuta trigger robo con número: % Sin AUDITAR',pg_trigger_depth();
+    END IF;
+    RETURN NULL;
+END; $functionTrigger$
+LANGUAGE plpgsql;
+
+2. Create trigger
+CREATE TRIGGER au_cuenta
+AFTER UPDATE ON cuenta
+FOR EACH ROW
+EXECUTE PROCEDURE tf_update_cuenta_robo();
+
+--#########################################################################################
+
+-- CHARGE FUNCTIONS dblink
+CREATE EXTENSION dblink;
+
+-- Use dblink to get data and insert
+DO $$
+DECLARE
+	rtaConn VARCHAR(10);
+BEGIN
+   --Connect
+   rtaConn:=(SELECT dblink_connect('myconn','hostaddr=192.168.0.9 port=5432 dbname=dblink user=postgres password=passwd'));
+   RAISE NOTICE '%',rtaConn;
+   DELETE FROM prueba;
+   INSERT INTO prueba(cod_prueba,nom_prueba)
+   SELECT * FROM dblink('myconn','SELECT cod_prueba,nom_prueba FROM public.prueba')
+   AS (cod_prueba INTEGER,nom_prueba VARCHAR(20));
+   --Disconnect
+   PERFORM dblink_disconnect('myconn');
+END; $$
+LANGUAGE plpgsql;
+
+--#########################################################################################
+
+-- View
+CREATE VIEW vs_vista1 
+AS
+SELECT * FROM factura;  
+
+-- Select
+SELECT * FROM vs_vista1;
+
+--#########################################################################################

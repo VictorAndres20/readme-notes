@@ -1,0 +1,1867 @@
+/*LINKS
+*/
+//ic_launcher generator
+https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html#foreground.type=clipart&foreground.clipart=android&foreground.space.trim=1&foreground.space.pad=0.25&foreColor=rgba(96%2C%20125%2C%20139%2C%200)&backColor=rgb(68%2C%20138%2C%20255)&crop=0&backgroundShape=square&effects=none&name=ic_launcher
+
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+<android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp">
+
+                    <android.support.design.widget.TextInputEditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/etEmailLoginForm"
+                        android:textAlignment="center"
+                        android:hint="Email:"
+                        android:maxLines="1"
+                        android:inputType="textEmailAddress"/>
+
+
+                </android.support.design.widget.TextInputLayout>
+
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for portrait or landscape orientation
+*/
+//PORTRAIT
+public class MainActivity extends ActionBarActivity {
+
+@Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //CÓDIGO //CÓDIGO
+        }
+}
+
+//LANDSCAPE
+public class MainActivity extends ActionBarActivity {
+
+@Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);    
+        //CÓDIGO //CÓDIGO
+        }
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+
+/*
+	CLAS FOR SQLite handler ************************************************
+*/
+
+
+public class DatabaseHandler extends SQLiteOpenHelper {
+ 
+    // All Static variables
+    // Database Version
+    private static final int DATABASE_VERSION = 1;
+ 
+    // Database Name
+    private static final String DATABASE_NAME = "contactsManager";
+ 
+    // Contacts table name
+    private static final String TABLE_CONTACTS = "contacts";
+ 
+    // Contacts Table Columns names
+    private static final String KEY_ID = "id";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_PH_NO = "phone_number";
+	 private static final String KEY_IMAGE_CONTACT = "image";
+
+	 String CREATE_CONTACTS_TABLE = "CREATE TABLE contacts (id INTEGER PRIMARY KEY AUTOINCREMENT
+												, name TEXT, phone_number TEXT, image BLOB)"";
+ 
+    public DatabaseHandler(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+ 
+    // Creating Tables
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        
+        db.execSQL(CREATE_CONTACTS_TABLE);
+    }
+ 
+    // Upgrading database
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop older table if existed
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONTACTS);
+ 
+        // Create tables again
+        onCreate(db);
+    }
+
+ /**
+     * All CRUD(Create, Read, Update, Delete) Operations
+     */
+ 
+    // Adding new contact
+    public void addContact(Contact contact) {
+        SQLiteDatabase db = this.getWritableDatabase();
+ 
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, contact.getName()); // Contact Name
+        values.put(KEY_PH_NO, contact.getPhoneNumber()); // Contact Phone
+		  //insertImage
+        Bitmap bitmap = contact.getImage();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 0 , baos);
+        byte[] blob = baos.toByteArray();
+        values.put(KEY_IMAGE_CONTACT, blob); // Contact Image
+ 
+        // Inserting Row
+        db.insert(TABLE_CONTACTS, null, values);
+        db.close(); // Closing database connection
+    }
+ 
+    // Getting single contact
+    Contact getContact(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+ 
+        Cursor cursor = db.query(TABLE_CONTACTS, new String[] { KEY_ID,
+                KEY_NAME, KEY_PH_NO }, KEY_ID + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+ 
+        Contact contact = new Contact(Integer.parseInt(cursor.getString(0)),
+                cursor.getString(1), cursor.getString(2));
+        // return contact
+        return contact;
+    }
+     
+    // Getting All Contacts
+    public List<Contact> getAllContacts() {
+        List<Contact> contactList = new ArrayList<Contact>();
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + TABLE_CONTACTS;
+ 
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+ 
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                Contact contact = new Contact();
+                contact.setID(Integer.parseInt(cursor.getString(0)));
+                contact.setName(cursor.getString(1));
+                contact.setPhoneNumber(cursor.getString(2));
+					 //Getting image contact
+                byte[] blob = cursor.getBlob(3);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(blob,0,blob.length);
+
+                contact.setImage(bitmap);
+                // Adding contact to list
+                contactList.add(contact);
+            } while (cursor.moveToNext());
+        }
+ 
+        // return contact list
+        return contactList;
+    }
+ 
+    // Updating single contact
+    public int updateContact(Contact contact) {
+        SQLiteDatabase db = this.getWritableDatabase();
+ 
+        ContentValues values = new ContentValues();
+        values.put(KEY_NAME, contact.getName());
+        values.put(KEY_PH_NO, contact.getPhoneNumber());
+ 
+        // updating row
+        return db.update(TABLE_CONTACTS, values, KEY_ID + " = ?",
+                new String[] { String.valueOf(contact.getID()) });
+    }
+ 
+    // Deleting single contact
+    public void deleteContact(Contact contact) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_CONTACTS, KEY_ID + " = ?",
+                new String[] { String.valueOf(contact.getID()) });
+        db.close();
+    }
+
+	// check if contact exist by name
+    public boolean checkContactExistByName(String name) {
+		  boolean exist = false;
+        List<Contact> contactList = new ArrayList<Contact>();
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + TABLE_CONTACTS;
+ 
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+ 
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                Contact contact = new Contact();
+                contact.setID(Integer.parseInt(cursor.getString(0)));
+                contact.setName(cursor.getString(1));
+                contact.setPhoneNumber(cursor.getString(2));
+                // Adding contact to list
+                contactList.add(contact);
+            } while (cursor.moveToNext());
+        }
+		 for(int x=0;x<contactList.size();x++)
+		 {
+			 if(contactList.get(x).getName().equals(name))
+			 {
+					exist=true;
+			 }
+		 }
+ 
+        // return boolean
+        return exist;
+    }
+ 
+ 
+    // Getting contacts Count
+    public int getContactsCount() {
+        String countQuery = "SELECT  * FROM " + TABLE_CONTACTS;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+        cursor.close();
+ 
+        // return count
+        return cursor.getCount();
+    }
+ 
+}
+
+//Delete whole DATABASE
+context.deleteDataBase("data base name");  -> documentation
+getApplicationContext().deleteDatabase(db.getDatabaseName());  -> example
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+
+/*
+	XML FOR ActionBar handler ************************************************
+*/
+
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinatorLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+ 
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+ 
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    </android.support.design.widget.AppBarLayout>
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for Snackbar -> add design support library dependency. -> compile 'com.android.support:design:23.0.1'
+	https://www.androidhive.info/2015/09/android-material-design-snackbar-example/
+*/
+
+Snackbar snackbar = Snackbar
+        .make(view, "No internet connection!", Snackbar.LENGTH_LONG)
+        .setAction("RETRY", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+            }
+        });
+ 
+// Changing message text color
+snackbar.setActionTextColor(Color.RED);
+ 
+// Changing action button text color
+View sbView = snackbar.getView();
+TextView textView = (TextView) sbView.findViewById(android.support.design.R.id.snackbar_text);
+textView.setTextColor(Color.YELLOW);
+snackbar.show();
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for Simple ListView 
+	https://www.tutorialspoint.com/android/android_list_view.htm
+*/
+
+package com.example.ListDisplay;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.Menu;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+public class MainActivity extends AppCompatActivity {
+
+    private ListView lvTasks;
+    private TaskHandler taskHandler;
+    private CustomAdapter adapter;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        taskHandler = new TaskHandler();
+        lvTasks = (ListView)findViewById(R.id.lvItems);
+        List<Task> list = new ArrayList<>();
+        list.add(new Task("PRIMER",0,0));
+        list.add(new Task("SEGUNDO",0,0));
+        list.add(new Task("TERCERO",0,0));
+        list.add(new Task("CUARTO",0,0));
+
+        adapter = new CustomAdapter(getApplicationContext(),list);
+        lvTasks.setAdapter(adapter);
+
+    }
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for CustomListView  
+	http://abhiandroid.com/ui/listview
+	Youtube: Android studio:create custom adapter for lisview very easy
+*/
+
+//FIRST XML for the view of item in listView.
+
+layout_listview.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#838383">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvItemName"
+        android:layout_marginTop="5sp"
+        android:layout_marginLeft="10sp"
+        android:textColor="#ffffff"
+        android:text="NAME"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvItemProgess"
+        android:layout_marginTop="0sp"
+        android:layout_marginLeft="10sp"
+        android:layout_marginBottom="10sp"
+        android:textColor="#ffffff"
+        android:text="NAME %"
+        android:textSize="15sp"/>
+
+</LinearLayout>
+
+//SECOND Create class for CustomAdapter
+
+import android.content.Context;
+import android.media.Image;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.util.zip.Inflater;
+
+public class CustomAdapter extends BaseAdapter{
+
+    Context context;
+    List<Task> tasksList;
+
+    public CustomAdapter(Context applicationContext, List<Task> tasksList) {
+        this.context = applicationContext;
+        this.tasksList = tasksList;
+
+    }
+
+    @Override
+    public int getCount() {
+        return this.tasksList.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return tasksList.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int i, View view, ViewGroup viewGroup) {
+        view = View.inflate(context,R.layout.layout_listview, null);
+        TextView taskName = (TextView) view.findViewById(R.id.tvItemName);
+        TextView taskProgress = (TextView) view.findViewById(R.id.tvItemProgess);
+
+        taskName.setText(tasksList.get(i).getName());
+        taskProgress.setText(String.valueOf(tasksList.get(i).getAchivementProgress())+" %");
+
+        view.setTag(tasksList.get(i).getId());
+
+        return view;
+    }
+}
+//THIRD Code for Activity where the list is
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.ListView;
+
+public class MainActivity extends AppCompatActivity {
+
+    private ListView lvTasks;
+    private CustomAdapter adapter;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+      
+        lvTasks = (ListView)findViewById(R.id.lvItems);
+        List<Task> list = new ArrayList<>();
+        list.add(new Task("PRIMER",0,0));
+        list.add(new Task("SEGUNDO",0,0));
+        list.add(new Task("TERCERO",0,0));
+        list.add(new Task("CUARTO",0,0));
+
+        adapter = new CustomAdapter(getApplicationContext(),list);
+        lvTasks.setAdapter(adapter);
+		  lvTasks.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(getApplicationContext(),""+view.getTag(),Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for internal and external files  
+	https://developer.android.com/guide/topics/data/data-storage.html?hl=es-419
+	http://www.sgoliver.net/blog/ficheros-en-android-ii-memoria-externa-tarjeta-sd/
+	http://www.sgoliver.net/blog/ficheros-en-android-i-memoria-interna/
+*/
+
+//INTERNAL
+
+/* write */
+try
+{
+    OutputStreamWriter fout=
+        new OutputStreamWriter(
+            openFileOutput("prueba_int.txt", Context.MODE_PRIVATE));
+ 
+    fout.write("Texto de prueba.");
+    fout.close();
+}
+catch (Exception ex)
+{
+    Log.e("Ficheros", "Error al escribir fichero a memoria interna");
+}
+
+/* read */
+try
+{
+    BufferedReader fin =
+        new BufferedReader(
+            new InputStreamReader(
+                openFileInput("prueba_int.txt")));
+ 
+    String texto = fin.readLine();
+    fin.close();
+}
+catch (Exception ex)
+{
+    Log.e("Ficheros", "Error al leer fichero desde memoria interna");
+}
+
+//EXTERNAL
+
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+/* Checks if external storage is available for read and write */
+boolean sdDisponible = false;
+boolean sdAccesoEscritura = false;
+ 
+//Comprobamos el estado de la memoria externa (tarjeta SD)
+String estado = Environment.getExternalStorageState();
+ 
+if (estado.equals(Environment.MEDIA_MOUNTED))
+{
+    sdDisponible = true;
+    sdAccesoEscritura = true;
+}
+else if (estado.equals(Environment.MEDIA_MOUNTED_READ_ONLY))
+{
+    sdDisponible = true;
+    sdAccesoEscritura = false;
+}
+else
+{
+    sdDisponible = false;
+    sdAccesoEscritura = false;
+}
+
+/* write*/
+try
+{
+    File ruta_sd = Environment.getExternalStorageDirectory();
+ 
+    File f = new File(ruta_sd.getAbsolutePath(), "prueba_sd.txt");
+ 
+    OutputStreamWriter fout =
+        new OutputStreamWriter(
+            new FileOutputStream(f));
+ 
+    fout.write("Texto de prueba.");
+    fout.close();
+}
+catch (Exception ex)
+{
+    Log.e("Ficheros", "Error al escribir fichero a tarjeta SD");
+}
+
+/* read */
+try
+{
+    File ruta_sd = Environment.getExternalStorageDirectory();
+ 
+    File f = new File(ruta_sd.getAbsolutePath(), "prueba_sd.txt");
+ 
+    BufferedReader fin =
+        new BufferedReader(
+            new InputStreamReader(
+                new FileInputStream(f)));
+ 
+    String texto = fin.readLine();
+    fin.close();
+}
+catch (Exception ex)
+{
+    Log.e("Ficheros", "Error al leer fichero desde tarjeta SD");
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE setting image from existing image.
+	https://es.stackoverflow.com/questions/41707/cargar-una-imagen-desde-la-galeria-android
+*/
+
+private static final int PICK_IMAGE = 100;
+ImageView foto_gallery;
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    foto_gallery = (ImageView)findViewById(R.id.foto_gallery);
+
+    foto_gallery.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            openGallery();
+        }
+    });
+}
+
+private void openGallery(){
+    Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+    startActivityForResult(gallery, PICK_IMAGE);
+}
+
+@Override
+protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    if(resultCode == RESULT_OK && requestCode == PICK_IMAGE){
+        Uri imageUri = data.getData();
+        foto_gallery.setImageURI(imageUri);
+    }
+    }
+    }
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE setting image from camera shot.
+*/
+
+private static final int CAMERA_REQUEST=123;
+ImageView foto_gallery;
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    foto_gallery = (ImageView)findViewById(R.id.foto_gallery);
+
+    foto_gallery.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            openCamera();
+        }
+    });
+}
+
+private void openCamera(){
+    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent,CAMERA_REQUEST);
+}
+
+@Override
+protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    if(resultCode == RESULT_OK && requestCode == CAMERA_REQUEST){
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            foto_galery.setImageBitmap(photo);
+        }
+    }
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for get and set BITMAP 
+*/
+
+//Get BITMAP from ImageView
+Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+
+//Set BOTMAP for a ImageView
+imageView.setImageBitmap(bitmap);
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+
+
+/*
+	CODE for Canvas simple
+*/
+
+public class PaintProgressBar extends View {
+
+    public PaintProgressBar(Context context) {
+        super(context);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+
+        Paint paint = new Paint();
+        paint.setColor(Color.GREEN);
+        paint.setAntiAlias(true);
+
+        canvas.drawRect(0,0,50,this.getHeight(),paint);
+    }
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CLASS for SplashActivity
+*/
+
+public class SplashActivity extends Activity {
+
+    private final int SPLASH_DURATION=4000;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent i = new Intent(SplashActivity.this,MainActivity.class);
+                startActivity(i);
+                finish();
+            };
+        },SPLASH_DURATION);
+    }
+
+
+}
+
+//IMPORTANT MANIFEST
+
+<activity android:name=".SplashActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for PopupMenu android widget
+*/
+
+//First create Package in /res/menu and the file xml menu
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/itemAccesorys"
+            android:icon="@mipmap/fab_basket_black"
+            android:title="Acesories"
+            />
+
+        <item
+            android:id="@+id/itemClothes"
+            android:icon="@mipmap/fab_tshirt_black"
+            android:title="Clothes"
+            />
+
+        <item
+            android:id="@+id/itemFood"
+            android:icon="@mipmap/fab_fork_spoon_black"
+            android:title="Food"
+            />
+
+        <item
+            android:id="@+id/itemMedical"
+            android:icon="@mipmap/fab_pill_black"
+            android:title="Medical"
+            />
+
+        <item
+            android:id="@+id/itemToys"
+            android:icon="@mipmap/fab_tennis_ball_black"
+            android:title="Toys"
+            />
+
+    </group>
+
+    <item android:title="Settings">
+
+        <menu>
+
+            <item
+                android:id="@+id/itemLogout"
+                android:icon="@mipmap/fab_paw_off_black"
+                android:title="Sing out"/>
+
+
+        </menu>
+
+    </item>
+
+</menu>
+
+//SECOND in the class where the menu is, implement this code
+
+
+    private ImageView bMenuUserActivity;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_user_maps);
+        
+        bMenuUserActivity = (ImageView)findViewById(R.id.bMenuUserMaps);
+        bMenuUserActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onclickMenuUserMapsActivity();
+            }
+        });
+
+    }
+
+    //OnclickMenuUserMapsActivity
+    public void onclickMenuUserMapsActivity()
+    {
+        PopupMenu popMenu = new PopupMenu(getApplicationContext(),bMenuUserActivity);
+        popMenu.getMenuInflater().inflate(R.menu.menu_user_maps_activity,popMenu.getMenu());
+        popMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+
+                if(menuItem.getTitle().equals("Acesories"))
+                {
+
+                }
+                else if(menuItem.getTitle().equals("Clothes"))
+                {
+
+                }
+                else if(menuItem.getTitle().equals("Food"))
+                {
+
+                }
+                else if(menuItem.getTitle().equals("Medical"))
+                {
+
+                }
+                else if(menuItem.getTitle().equals("Toys"))
+                {
+
+                }
+                else if(menuItem.getTitle().equals("Sing out"))
+                {
+
+                }
+
+                return true;
+            }
+        });
+        popMenu.show();
+    }
+
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for launch GoogleMaps app
+*/
+
+public void launchGoogleMapsApp()
+    {
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse("geo:47.4925,19.0513"));
+        Intent chooser = Intent.createChooser(i,"Launch Maps");
+        startActivity(chooser);
+
+    }
+
+//To launch with an specific address
+public void launchGoogleMaps()
+{
+	if(ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) !=
+                                PackageManager.PERMISSION_GRANTED &&
+                                ActivityCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                                        PackageManager.PERMISSION_GRANTED)
+                        {
+                            ActivityCompat.requestPermissions(AgendaActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+                        }
+                        else
+                        {
+                            Intent i = new Intent(Intent.ACTION_VIEW);
+                            Address ad = getLocationFromString(address);
+                            String geoLoc="geo:"+String.valueOf(ad.getLatitude())+","+String.valueOf(ad.getLongitude());
+                            i.setData(Uri.parse(geoLoc));
+                            Intent chooser = Intent.createChooser(i,"Launch Maps");
+                            startActivity(chooser);
+                        }
+}
+
+public Address getLocationFromString(String stringLocation) {
+        Address address = null;
+        if (stringLocation.equalsIgnoreCase("")) {
+            Toast.makeText(getApplicationContext(), "Nothing to search", Toast.LENGTH_SHORT).show();
+        } else {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                            PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            } else {
+                Geocoder geocoder = new Geocoder(this);
+                try {
+                    List<Address> addressesList = geocoder.getFromLocationName(stringLocation, 3);
+                    if (geocoder.isPresent()) {
+                        address = addressesList.get(0);
+
+
+                    } else {
+                        Toast.makeText(getApplicationContext(), "no present", Toast.LENGTH_SHORT).show();
+                    }
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "ERROR searching", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        return address;
+
+    }
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for AlertDialog
+*/
+
+ AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setCancelable(false);
+                    builder.setTitle("ALERT");
+                    builder.setMessage("Are you sure you want to register?");
+                    builder.setPositiveButton("YES!", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            //MySQL CODE
+                            Intent intent = new Intent(RegisterUserActivity.this,UserMapsActivity.class);
+                            startActivity(intent);
+                            finish();
+
+                        }
+                    });
+
+                    builder.setNegativeButton("NO ", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.cancel();
+
+                                }
+                            });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+
+//Override method that event phone's back button
+@Override
+    public void onBackPressed()
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE example GoogleMaps Activity
+*/
+//PERMISSIONS
+<uses-permission android:name="android.permission.INTERNER" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.google.providers.gsf.permission.READ_GSERVICES" />
+
+    <!--
+         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
+         Google Maps Android API v2, but you must specify either coarse or fine
+         location permissions for the 'MyLocation' functionality. 
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+//Class example
+
+public class UserMapsActivity extends FragmentActivity implements OnMapReadyCallback {
+
+    private GoogleMap mMap;
+    LocationManager lm;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_user_maps);
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        getMyLocation();
+
+
+    }
+    
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResults)
+    {
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        switch (requestCode)
+        {
+            case 1:
+                getMyLocation();
+                break;
+        }
+    }
+
+    public void loadMyLocationButton()
+    {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+        }
+        else
+        {
+            mMap.setMyLocationEnabled(true);
+        }
+    }
+
+    public void getMyLocation()
+    {
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+        }
+        else
+        {
+            Location location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if(location != null)
+            {
+                double lat = location.getLatitude();
+                double log = location.getLongitude();
+                LatLng myPos = new LatLng(lat, log);
+                mMap.addMarker(new MarkerOptions().position(myPos).title("YOU"));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(myPos));
+					 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myPos,17));
+
+            }
+            else
+            {
+                LatLng myPos = new LatLng(0, 0);
+                mMap.addMarker(new MarkerOptions().position(myPos).title("MARKER"));
+            }
+				mMap.setMyLocationEnabled(true);
+        }
+    }
+
+ public void getLocationFromString(String stringLocation)
+    {
+        if(stringLocation.equalsIgnoreCase(""))
+        {
+            Toast.makeText(getApplicationContext(),"Nothing to search",Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                            PackageManager.PERMISSION_GRANTED)
+            {
+                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+            }
+            else
+            {
+                Geocoder geocoder = new Geocoder(this);
+                try {
+                    List<Address> addressesList = geocoder.getFromLocationName(stringLocation,3);
+                    if(geocoder.isPresent())
+                    {
+                        Address address = addressesList.get(0);
+                        LatLng newPos = new LatLng(address.getLatitude(),address.getLongitude());
+                        mMap.addMarker(new MarkerOptions().position(newPos).title(stringLocation));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(newPos));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newPos,8));
+                    }
+                    else
+                    {
+                        Toast.makeText(getApplicationContext(),"no present",Toast.LENGTH_SHORT).show();
+                    }
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),"ERROR searching",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+    }
+
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	ANIMATIONS res/anim/animation.xml
+*/
+//How you put an animation on a View
+
+		  layoutAnimated = (LinearLayout)findViewById(R.id.layoutMainAnimationBounce);
+        Animation animation = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.bounce);
+        layoutAnimated.startAnimation(animation);
+
+//Slide down xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+
+    <scale
+        android:duration="1000"
+        android:fromXScale="1.0"
+        android:fromYScale="0.0"
+        android:toXScale="1.0"
+        android:toYScale="1.0"/>
+
+
+</set>
+
+//Bounce xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true"
+    android:interpolator="@android:anim/bounce_interpolator">
+
+    <scale
+        android:duration="1000"
+        android:fromXScale="1.0"
+        android:fromYScale="0.0"
+        android:toXScale="1.0"
+        android:toYScale="1.0"/>
+
+
+</set>
+
+//Zoom in xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+
+    <scale
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:duration="1000"
+        android:fromXScale="1"
+        android:fromYScale="1"
+        android:toXScale="2"
+        android:toYScale="2"
+        android:pivotX="50%"
+        android:pivotY="50%"/>
+
+
+</set>
+
+//Zoom out xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fillAfter="true">
+
+    <scale
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:duration="1000"
+        android:fromXScale="1.0"
+        android:fromYScale="1.0"
+        android:toXScale="0.5"
+        android:toYScale="0.5"
+        android:pivotX="50%"
+        android:pivotY="50%"/>
+
+
+</set>
+
+//Fade in xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_interpolator">
+
+   <alpha
+       android:fromAlpha="0"
+       android:toAlpha="1"
+       android:duration="3000"/>
+
+
+</set>
+
+//Fade out xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:anim/accelerate_interpolator">
+
+   <alpha
+       android:fromAlpha="1"
+       android:toAlpha="0"
+       android:duration="3000"/>
+
+
+</set>
+
+//Blink xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+
+   <alpha
+       android:fromAlpha="0"
+       android:toAlpha="1"
+       android:interpolator="@android:anim/accelerate_interpolator"
+       android:duration="500"
+       android:repeatMode="reverse"
+       android:repeatCount="infinite"/>
+
+
+</set>
+
+//Rotate clock wase xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+   <rotate
+       android:pivotX="50%"
+       android:pivotY="50%"
+       android:fromDegrees="0"
+       android:toDegrees="360"
+       android:duration="1000"
+       android:repeatMode="restart"
+       android:repeatCount="infinite"
+       android:interpolator="@android:anim/cycle_interpolator"/>
+
+
+</set>
+
+//Rotate anticlock wase xml res/anim/animation.xml
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
+   <rotate
+       android:pivotX="50%"
+       android:pivotY="50%"
+       android:fromDegrees="360"
+       android:toDegrees="0"
+       android:duration="1000"
+       android:repeatMode="restart"
+       android:repeatCount="infinite"
+       android:interpolator="@android:anim/cycle_interpolator"/>
+
+
+</set>
+
+*/
+	DESIGN ROUNDED BORDERS EXAMPLE
+
+//FIRST
+
+<?xml version="1.0" encoding="utf-8"?>
+<!-- res/drawable/rounded_white_edittext -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#fff" />
+    <corners
+        android:bottomRightRadius="20dp"
+        android:bottomLeftRadius="20dp"
+        android:topLeftRadius="20dp"
+        android:topRightRadius="20dp"/>
+
+</shape>
+
+//SECOND
+
+<EditText
+   android:layout_width="match_parent"
+   android:layout_height="50dp"             
+   android:background="@drawable/rounded_white_edittext"/>
+
+*/
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.petsappbarrera.petsappproject"
+        minSdkVersion 18
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:26.0.0-beta1'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.google.android.gms:play-services-maps:11.8.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:0.5'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
+    implementation 'com.android.support:design:26.0.0-beta1'
+}
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CODE for Navigation Menu
+
+//FIRST xml menu  --> res/menu/menu_navigation_menu
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/itemAddProduct"
+        android:icon="@mipmap/fab_pluscircle_black"
+        android:title="New Product"/>
+
+    <item
+        android:id="@+id/itemDeleteProduct"
+        android:icon="@mipmap/fab_minuscircle_black"
+        android:title="Delete Product"/>
+
+
+
+</menu>
+
+//SECOND xml Activity
+<android.support.design.widget.BottomNavigationView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/colorPrimaryDark"
+        app:itemIconTint="#000"
+        app:itemTextColor="#000"
+        app:menu="@menu/menu_producer_activity">
+
+
+
+    </android.support.design.widget.BottomNavigationView>
+
+//THIRD java Activity code
+public class ProducerActivity extends AppCompatActivity {
+
+   private BottomNavigationView navigationMenu;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_producer);
+
+			navigationMenu=(BottomNavigationView)findViewById(R.id.bottomNavigationMenu); 
+			 navigationMenu.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+
+                if(item.getTitle().equals("New Product"))
+                {
+                    addProduct();
+                }
+                else if(item.getTitle().equals("Delete Product"))
+                {
+                    listProductsForDelete();
+                }
+
+                return true;
+            }
+        });
+ 	 }
+
+
+
+*/
+
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________
+
+/*
+	CLASS for DataBaseHandler conexion My SQL data base
+*/
+
+//FIRST class
+
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+/**
+ * Created by victorandres on 29/01/18.
+ */
+
+public class DataBaseHandler extends AsyncTask<String,Void,String> {
+
+    // IP de mi Url
+    public static final String IP = "http://192.168.0.12/DataBaseNotas"; //trabajando con lh-apache
+
+    // Rutas de los Web Services
+    public static final String GET_ALL_STUDENTS = IP + "/get_all_students.php";
+    public static final String UPDATE_STUDENT = IP + "/update_student.php";
+    public static final String DELETE_STUDENT = IP + "/delete_student.php";
+    public static final String INSERT_STUDENT = IP + "/insert_student.php";
+
+    private Context context;
+
+    public DataBaseHandler(Context c)
+    {
+        this.context=c;
+    }
+
+
+    @Override
+    protected String doInBackground(String... params) {
+
+        String cadena = params[0];
+        URL url = null; // Url de donde queremos obtener información
+        String result ="";
+
+        if (params[1]=="1") //get all students
+        {
+
+            try {
+                url = new URL(cadena);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection(); //Abrir la conexión
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0" +
+                        " (Linux; Android 1.5; es-ES) Ejemplo HTTP");
+                //connection.setHeader("content-type", "application/json");
+
+                int respuesta = connection.getResponseCode();
+                StringBuilder resultado = new StringBuilder();
+
+                if (respuesta == HttpURLConnection.HTTP_OK){
+
+
+
+                    InputStream in = new BufferedInputStream(connection.getInputStream());  // preparo la cadena de entrada
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));  // la introduzco en un BufferedReader
+
+                    // El siguiente proceso lo hago porque el JSONOBject necesita un String y tengo
+                    // que tranformar el BufferedReader a String. Esto lo hago a traves de un
+                    // StringBuilder.
+
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        resultado.append(line);        // Paso toda la entrada al StringBuilder
+                    }
+
+                    //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
+                    JSONObject respuestaJSON = new JSONObject(resultado.toString());   //Creo un JSONObject a partir del StringBuilder pasado a cadena
+                    //Accedemos al vector de resultados
+
+                    String resultJSON = respuestaJSON.getString("estado");   // estado es el nombre del campo en el JSON
+
+
+                    if (resultJSON=="1"){      // hay alumnos a mostrar
+                        JSONArray alumnosJSON = respuestaJSON.getJSONArray("students");   // estado es el nombre del campo en el JSON
+                        for(int i=0;i<alumnosJSON.length();i++){
+                            result = result + alumnosJSON.getJSONObject(i).getString("id_student") + " " +
+                                    alumnosJSON.getJSONObject(i).getString("name") + " " +
+                                    alumnosJSON.getJSONObject(i).getString("pass") + " " +
+                                    alumnosJSON.getJSONObject(i).getString("email") + "\n";
+
+                        }
+
+                    }
+                    else if (resultJSON=="2"){
+                        result = "No students";
+                    }
+
+
+                }
+
+
+            } catch (MalformedURLException e) {
+                result = "MalformedEceptionError";
+                e.printStackTrace();
+            } catch (IOException e) {
+                result = "IOException-ERROR";
+                e.printStackTrace();
+            } catch (JSONException e) {
+                result = "JSONException - ERROR";
+                e.printStackTrace();
+            }
+
+            return result;
+
+
+        }
+        else if (params[1]=="2") //update Student
+        {
+
+            try {
+                url = new URL(cadena);
+                HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+                urlConn.setDoInput(true);
+                urlConn.setDoOutput(true);
+                urlConn.setUseCaches(false);
+                urlConn.setRequestProperty("Content-Type", "application/json");
+                urlConn.setRequestProperty("Accept", "application/json");
+                urlConn.connect();
+
+                //Creo el Objeto JSON
+                JSONObject jsonParam = new JSONObject();
+                jsonParam.put("id_student", params[2]);
+                jsonParam.put("name", params[3]);
+                jsonParam.put("pass", params[4]);
+                jsonParam.put("email", params[5]);
+                // Envio los parámetros post.
+                OutputStream os = urlConn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+                writer.write(jsonParam.toString());
+                writer.flush();
+                writer.close();
+
+                int respuesta = urlConn.getResponseCode();
+
+
+                StringBuilder resultado = new StringBuilder();
+
+                if (respuesta == HttpURLConnection.HTTP_OK) {
+
+                    String line;
+                    BufferedReader br=new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+                    while ((line=br.readLine()) != null) {
+                        resultado.append(line);
+                    }
+
+                    //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
+                    JSONObject respuestaJSON = new JSONObject(resultado.toString());   //Creo un JSONObject a partir del StringBuilder pasado a cadena
+                    //Accedemos al vector de resultados
+
+                    String resultJSON = respuestaJSON.getString("estado");   // estado es el nombre del campo en el JSON
+
+                    if (resultJSON == "1") {      // hay un alumno que mostrar
+                        result = "Update Success";
+
+                    } else if (resultJSON == "2") {
+                        result = "Update ERROR";
+                    }
+
+                }
+
+            } catch (MalformedURLException e) {
+                result = "MalformedEceptionError";
+                e.printStackTrace();
+            } catch (IOException e) {
+                result = "IOException-ERROR";
+                e.printStackTrace();
+            } catch (JSONException e) {
+                result = "JSONException - ERROR";
+                e.printStackTrace();
+            }
+
+            return result;
+
+        }
+        else if (params[1]=="3") //delete student
+        {
+
+            try {
+                url = new URL(cadena);
+                HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+                urlConn.setDoInput(true);
+                urlConn.setDoOutput(true);
+                urlConn.setUseCaches(false);
+                urlConn.setRequestProperty("Content-Type", "application/json");
+                urlConn.setRequestProperty("Accept", "application/json");
+                urlConn.connect();
+
+                //Creo el Objeto JSON
+                JSONObject jsonParam = new JSONObject();
+                jsonParam.put("id_student", params[2]);
+                // Envio los parámetros post.
+                OutputStream os = urlConn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+                writer.write(jsonParam.toString());
+                writer.flush();
+                writer.close();
+
+                int respuesta = urlConn.getResponseCode();
+
+
+                StringBuilder resultado = new StringBuilder();
+
+                if (respuesta == HttpURLConnection.HTTP_OK) {
+
+                    String line;
+                    BufferedReader br=new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+                    while ((line=br.readLine()) != null) {
+                        resultado.append(line);
+                    }
+
+                    //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
+                    JSONObject respuestaJSON = new JSONObject(resultado.toString());   //Creo un JSONObject a partir del StringBuilder pasado a cadena
+                    //Accedemos al vector de resultados
+
+                    String resultJSON = respuestaJSON.getString("estado");   // estado es el nombre del campo en el JSON
+
+                    if (resultJSON == "1") {      // hay un alumno que mostrar
+                        result = "Delete Success";
+
+                    } else if (resultJSON == "2") {
+                        result = "Delete ERROR";
+                    }
+
+                }
+
+            } catch (MalformedURLException e) {
+                result = "MalformedEceptionError";
+                e.printStackTrace();
+            } catch (IOException e) {
+                result = "IOException-ERROR";
+                e.printStackTrace();
+            } catch (JSONException e) {
+                result = "JSONException - ERROR";
+                e.printStackTrace();
+            }
+
+            return result;
+
+
+        }
+        else if (params[1]=="4") //insert student
+        {
+
+            try {
+                url = new URL(cadena);
+                HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+                urlConn.setDoInput(true);
+                urlConn.setDoOutput(true);
+                urlConn.setUseCaches(false);
+                urlConn.setRequestProperty("Content-Type", "application/json");
+                urlConn.setRequestProperty("Accept", "application/json");
+                urlConn.connect();
+
+                //Creo el Objeto JSON
+                JSONObject jsonParam = new JSONObject();
+                jsonParam.put("name", params[2]);
+                jsonParam.put("pass", params[3]);
+                jsonParam.put("email", params[4]);
+                // Envio los parámetros post.
+                OutputStream os = urlConn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+                writer.write(jsonParam.toString());
+                writer.flush();
+                writer.close();
+
+                int respuesta = urlConn.getResponseCode();
+
+
+                StringBuilder resultado = new StringBuilder();
+
+                if (respuesta == HttpURLConnection.HTTP_OK) {
+
+                    String line;
+                    BufferedReader br=new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+                    while ((line=br.readLine()) != null) {
+                        resultado.append(line);
+                    }
+
+                    //Creamos un objeto JSONObject para poder acceder a los atributos (campos) del objeto.
+                    JSONObject respuestaJSON = new JSONObject(resultado.toString());   //Creo un JSONObject a partir del StringBuilder pasado a cadena
+                    //Accedemos al vector de resultados
+
+                    String resultJSON = respuestaJSON.getString("estado");   // estado es el nombre del campo en el JSON
+
+                    if (resultJSON == "1") {      // hay un alumno que mostrar
+                        result = "Insert Success";
+
+                    } else if (resultJSON == "2") {
+                        result = "Insert ERROR";
+                    }
+
+                }
+
+            } catch (MalformedURLException e) {
+                result = "MalformedEceptionError";
+                e.printStackTrace();
+            } catch (IOException e) {
+                result = "IOException-ERROR";
+                e.printStackTrace();
+            } catch (JSONException e) {
+                result = "JSONException - ERROR";
+                e.printStackTrace();
+            }
+
+            return result;
+
+        }
+
+
+       return "No Method execute";
+    }
+
+    @Override
+    protected void onCancelled(String s) {
+        super.onCancelled(s);
+    }
+
+    @Override
+    protected void onPostExecute(String s) {
+        Toast t = Toast.makeText(context,s,Toast.LENGTH_SHORT);
+        t.show();
+        //super.onPostExecute(s);
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+    }
+
+    @Override
+    protected void onProgressUpdate(Void... values) {
+        super.onProgressUpdate(values);
+    }
+}
+
+//SECOND use methods
+
+public void getAllStudents()
+    {
+        db = new DataBaseHandler(getApplicationContext());
+        db.execute(DataBaseHandler.GET_ALL_STUDENTS,"1");
+    }
+
+    public void insertStudent()
+    {
+        String name=etName.getText().toString();
+        String pass=etPass.getText().toString();
+        String email=etEmail.getText().toString();
+
+        if(name.equalsIgnoreCase("") || pass.equalsIgnoreCase("") || email.equalsIgnoreCase(""))
+        {
+            Toast toast = Toast.makeText(getApplicationContext(),"ENTER ALL BLANKS",Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+        }
+        else
+        {
+            db = new DataBaseHandler(getApplicationContext());
+            db.execute(DataBaseHandler.INSERT_STUDENT,"4",name,pass,email);
+        }
+
+
+    }
+
+    public void updateStudent()
+    {
+        String id=etId.getText().toString();
+        String name=etName.getText().toString();
+        String pass=etPass.getText().toString();
+        String email=etEmail.getText().toString();
+
+        if(
+               id.equalsIgnoreCase("") ||name.equalsIgnoreCase("") || pass.equalsIgnoreCase("") || email.equalsIgnoreCase(""))
+        {
+            Toast toast = Toast.makeText(getApplicationContext(),"ENTER ALL BLANKS",Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+        }
+        else
+        {
+            db = new DataBaseHandler(getApplicationContext());
+            db.execute(DataBaseHandler.UPDATE_STUDENT,"2",id,name,pass,email);
+        }
+
+
+    }
+
+    public void deleteStudent()
+    {
+        String id = etId.getText().toString();
+
+        if(id.equalsIgnoreCase(""))
+        {
+            Toast toast = Toast.makeText(getApplicationContext(),"ENTER ID to delete",Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+        }
+        else
+        {
+            db = new DataBaseHandler(getApplicationContext());
+            db.execute(DataBaseHandler.DELETE_STUDENT,"3",id);
+        }
+    }
+
+------------------------------------------------------------------------------------------------------------
+************************************************************************************************************
+_____________________________________________________________________________________________________________

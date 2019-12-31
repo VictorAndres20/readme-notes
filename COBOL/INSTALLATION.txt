@@ -1,0 +1,11 @@
+/*OPEN COBOL - Ubuntu 16.04
+		whereis cobc; which cobc
+		sudo apt-get update
+		sudo apt-get install open-cobol
+		whereis cobc; which cobc
+	*/
+
+/*DOSBOX emulator - Ubuntu 16.04
+		sudo apt-get update
+		sudo apt-get install dosbox
+	*/

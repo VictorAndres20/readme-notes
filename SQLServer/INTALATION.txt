@@ -1,0 +1,53 @@
+/*SQL SERVER*/
+https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-ubuntu?view=sql-server-2017
+
+1. mport the public repository GPG keys:
+
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
+2. Register the Microsoft SQL Server Ubuntu repository:
+
+sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/16.04/mssql-server-2017.list)"
+
+3. Run the following commands to install SQL Server:
+
+sudo apt-get update
+sudo apt-get install -y mssql-server
+
+4. After the package installation finishes, run mssql-conf 
+setup and follow the prompts to set the SA password and choose your edition.
+
+sudo /opt/mssql/bin/mssql-conf setup
+
+5. Once the configuration is done, verify that the service is running:
+
+systemctl status mssql-server
+
+6. Import the public repository GPG keys. mssql-tools
+
+curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
+7. Register the Microsoft Ubuntu repository.
+
+curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+
+8. Update the sources list and run the installation command with the unixODBC developer package.
+
+sudo apt-get update 
+sudo apt-get install mssql-tools unixodbc-dev
+
+9. Optional: Add /opt/mssql-tools/bin/ to your PATH environment variable in a bash shell.
+
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+
+10 Connect
+
+sqlcmd -S localhost -U SA -P '<YourPassword>'
+
+/**##################################################################################################################**/
+
+/*SQL Server operations studio*/
+sudo dpkg -i sqlops-linux-0.30.6.deb
+
+/*Execute*/
+sqlops

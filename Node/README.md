@@ -1,0 +1,1659 @@
+# NODE JS
+----------------------------------------------------------------------------------------
+## Prefered version 12.10.0
+----------------------------------------------------------------------------------------
+## So Cool APIs
+https://rapidapi.com
+----------------------------------------------------------------------------------------
+
+
+## Simple callback
+```
+// Call back function
+let getUserById = (id, callback) => {
+
+    let user = {
+        name: "Victor",
+        id
+    }
+
+    if(id === 20)
+        callback(`El usuario con id ${id} no existe`);
+    else
+        callback(null, user);
+
+}
+
+// Using call back
+getUserById(1, (err, user) => {
+    if(err)
+        return console.log(err);
+
+    console.log("Usuario ", user);
+});
+```
+
+----------------------------------------------------------------------------------------
+
+## Find magical function on Array
+```
+let user = users.find( user => {
+        return user.id === id
+    });
+```
+
+## Simple Promise
+```
+let getUser = (id) => {
+
+    return new Promise((resolve, reject) => {
+        let user = users.find( user => {
+            return user.id === id;
+        });
+    
+        if(!user)
+            reject(`No existe un empleado con id ${id}`);
+        else
+            resolve(user);
+    });
+    
+}
+
+getUser(12)
+.then((user) => {
+    console.log(`Usuario encontrado ${user.name}`);
+})
+.catch((err) => {
+    console.log(err);
+})
+```
+
+----------------------------------------------------------------------------------------
+
+
+
+## Promises chain
+```
+let getUser = (id) => {
+
+    return new Promise((resolve, reject) => {
+        let user = users.find( user => {
+            return user.id === id;
+        });
+    
+        if(!user)
+            reject(`No existe un empleado con id ${id}`);
+        else
+            resolve(user);
+    });
+    
+}
+
+let getSalary = (user) => {
+
+    return new Promise((resolve, reject) => {
+        let salary = salaries.find(salary => {
+            return salary.id === user.id;
+        });
+    
+        if(!salary)
+            reject(`No se encontró salario para usuario ${user.name}`);
+        else
+            resolve({name: user.name, salary: salary.salary});
+    });
+
+}
+
+getUser(10)
+.then((user) => {
+    console.log(`Usuario encontrado ${user.name}`);
+    return getSalary(user);
+})
+.then((obj) => {
+    console.log(`Salario de ${obj.name} es de $ ${obj.salary}`);
+})
+.catch((err) => {
+    console.log(err);
+})
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+## Promises with async await
+```
+let getUser = async (id) => {
+
+    let user = users.find( user => {
+        return user.id === id;
+    });
+
+    if(!user)
+        throw new Error(`No existe un empleado con id ${id}`);
+    
+    return user;
+}
+
+let getSalary = async (user) => {
+
+    let salary = salaries.find(salary => {
+        return salary.id === user.id;
+    });
+
+    if(!salary)
+        throw new Error(`No se encontró salario para usuario ${user.name}`);
+    
+    return {name: user.name, salary: salary.salary};
+
+}
+
+let getData = async (id) => {
+    let user = await getUser(id);
+    let obj = await getSalary(user);
+    console.log(`Salario de ${obj.name} es de $ ${obj.salary}`);
+}
+
+getData(10)
+.catch((err) => {
+    console.log(err.message);
+});
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+## File System in Node
+
+**fs.writeFile fs.readFile**
+```
+const fs = require('fs');
+
+const createFile = async () => {
+    let content = buildContent();
+
+    let response = await writeFile(`./files/file.txt`, content); // Use `${__dirname}/../` To go back
+    console.log(response.msg);
+}
+
+const buildContent = () => {
+    return "Contenido";
+} 
+
+const writeFile = (pathFile,data) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(pathFile, data, (err) => {
+            if(err)
+                reject(err);
+            else
+                resolve(`Archivo creado ${pathFile}`);
+        });
+    }); 
+}
+
+const read = (pathFile) => {
+	 let data = await FileSystem.readFile(pathFile);
+    return data;
+}
+
+const readFile = (pathFile) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(pathFile,{encoding: 'UTF-8'}, (err, data) => {
+            if (err) 
+                reject(err);
+            else 
+                resolve(data);
+        });
+    });
+}
+
+createFile()
+.catch(err => console.log(err.message));
+
+read(`${__dirname}/../files/data.json`)
+.catch(err => console.log(err.message));
+```
+
+**JSON Files**
+If you have a .json file, you can read it and parse it to Object using:
+```
+let obj = require('../files/data.json');
+```
+
+----------------------------------------------------------------------------------------
+
+
+## Use functions on other js file
+1. Logic.js:
+```
+module.exports.myLogic = () => {
+	console.log("Hola desde otro File");
+}
+```
+**OR**
+```
+const myLogic = () => {
+	console.log("Hola desde otro File");
+}
+
+module.exports = {
+	myLogic
+}
+```
+
+2. Use Logic:
+```
+const Logic = require("./logic/Logic");
+Logic.myLogic();
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+## Use node package manager, npm on base project 
+1. Init package.json. This file is really important.
+Here we reference dependencies
+```
+$ npm init
+```
+2. know you can use npm to use node_modules
+```
+$ npm install yargs --save // --save To add dependency to package.json
+```
+3. Use packages
+```
+const yargs = require('yargs');
+// MORE CODE
+```
+3. Optional.
+```
+$ npm uninstall <name> --save // Also removes it from dependencies in package.json
+```
+**NOTE ADVISE**
+For deploys, make sure script start in in package.json
+```
+"scripts": {
+    "start": "node server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+```
+
+----------------------------------------------------------------------------------------
+
+
+
+## Get Params from command line with process object
+```
+console.log(process.argv);
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+
+## Get Params from command line with node package yargs
+**Create Commands with options flags**
+```
+const Multiply = require('./src/logic/multiply');
+const argv = require('yargs')
+                    .command('list','Lista tabla de multiplcar',{ // command, description
+                        base: { // Flag base, example listar --base
+                            demand: true, // Required
+                            alias: 'b', // listar -b
+									 description: 'Descripcion'
+                        },
+                        limit: {
+                            alias: 'l',
+                            default: 10, // Valor por defecto
+                        }
+                    })
+                    .command('multiply','Multiplica los valores',{
+                        number1: {
+                            demand: true,
+                            alias: 'a'
+                        },
+                        number2: {
+                            demand: true,
+                            alias: 'b'
+                        }
+                    })
+                    .help()
+                    .argv;
+
+let command = argv._[0];
+
+switch(command){
+    case 'list':
+        let base = argv.base;
+        let limit = argv.limit;
+
+        Multiply.createFile(base, limit)
+        .catch(err => console.log(err.message));
+        
+        break;
+    case 'multiply':
+        Multiply.executeMultiply(argv.number1, argv.number2);
+        break;
+    default:
+        console.log(`Comando ${command} no es válido.\n\n node app --help`);
+}
+```
+**Create options flags without command**
+```
+const argv = require('yargs').options({
+    address: {
+        alias: 'd',
+        desc: 'Dirección de la ciudad para obtener el clima',
+        demand: true
+    }
+}).argv;
+
+module.exports = {
+    argv
+};
+```
+----------------------------------------------------------------------------------------
+
+
+## Colors on command line
+1. Install colors
+```
+$ npm install colors --save
+```
+2. Use it!!
+```
+const colors = require('colors);
+console.log(`${colors.green("Resultado: ")} ${a} x ${b} = ${result}`);
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+## Http Server
+**Simple Http Server**
+```
+const http = require("http");
+
+http.createServer((req, res) => {
+    res.writeHead(200,{'Content-Type':'application/json'})
+    let responseObj = {name: 'Victor', url: req.url};
+    res.write(JSON.stringify(responseObj));
+    res.end();
+})
+.listen(8080);
+
+console.log("Started");
+```
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+## Express
+**Basic Example** 
+1. Install it 
+```
+$ npm install --save express
+```
+2. Create server.js file on root project and write
+```
+const express = require('express');
+/** Create app express */
+const app = express();
+
+/** ROUTES */
+app.get('/',(req, res) => {
+    let responseObj = {name: 'Victor', url: req.url};
+    res.send(responseObj);
+})
+
+/** Listen Port */
+app.listen(8000, () => {
+    console.log("Server Started. Listen on 8000");
+});
+```
+
+
+**Use express to serve static content**
+1. create folder public and create all html files here. For example
+2. On server.js write
+```
+const express = require('express');
+/** Create app express */
+const app = express();
+
+/** Middleware */
+/** Serve static content */
+app.use( express.static(__dirname + '/public'));
+
+/** Listen Port */
+app.listen(80, () => {
+    console.log("Server Started. Listen on 80");
+});
+```
+3. This serve pages with path match. For example
+If you create index.html and home.html.
+	URL: /
+	SERVE: index.html
+	
+	URL: /home.html
+	SERVE: home.html
+4. Serve images pasting all images folder in public folder example
+```
+/public/assets/images
+```
+And call image for url with
+```
+host:port/assets/images/myimage.ong
+```
+
+
+
+**Use express to create monolithic web application using views**
+1. Package Structure
+
+- src/app
+- src/app/controller
+- src/app/middleware
+- src/app/routes
+- src/app/routes/index.js
+- src/public
+- src/public/assets
+- src/server
+- src/server/config
+- src/service
+- src/dal/entities
+- src/dal/repository
+- views
+- views/partials
+- index.js
+
+2. Install express, hbs, body-parser
+```
+$ npm install --save express
+$ npm install --save hbs
+$ npm install --save body-parser
+```
+
+3. In src/public/assets. Put all inages. Public will static served
+
+4. In views/partials, create all components templates files .hbs For example AppBar.hbs and Footer.hbs
+```
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Learning Express</title>
+    </head>
+    <body>
+	<h4>AppBar</h4>
+```
+```
+    <h4>{{ getFooterDesc }} {{ year }}</h4>
+</body>
+</html>
+```
+
+5. In views create all pages hbs. for example home.hbs
+```
+{{> AppBar }}
+<h4>Learning Express {{ name }}</h1>
+<img src="assets/images/vpedraza.jpg" height="50" width="50" />
+{{> Footer }}
+
+```
+
+6. In src/app/constoller. Create all controllers.
+```
+const login = (req, res) => {
+    res.render('login'),{
+		  name: 'Victor Andres Pedraza'
+        //Objects
+    };
+}
+
+module.exports = {
+    login
+}
+```
+
+7. In src/app/routes. Create all routes.
+```
+const express = require('express');
+const LoginController = require('../controller/LoginController');
+
+const app = express();
+
+app.get('/login', (req, res) => {
+    LoginController.login(req, res);
+});
+
+module.exports = app;
+```
+
+8. In src/app/routes/index.js Register all routes
+```
+const express = require('express');
+
+const app = express();
+
+app.use(require('./LoginRotes'));
+
+module.exports = app;
+```
+
+9. In src/server/config Create all env config
+```
+/** ********************* SERVER CONFIG *********************** */
+/** Port */
+process.env.PORT = process.env.PORT || 3000;
+/*********** */
+```
+
+10. In src/server/ Create Server conf and main function
+```
+require('./config/config');
+const express = require('express');
+const hbs = require('hbs');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+/** Middleware to parse body x-www-form-urlencoded */
+app.use(bodyParser.urlencoded({extended: false}));
+
+/** Middleware to parse body json */
+app.use(bodyParser.json());
+
+/** Middleware to serve static content*/
+app.use( express.static(__dirname + '/../public'));
+
+/** hbs Partials */
+hbs.registerPartials(__dirname + '/../../views/partials');
+
+/** hbs Helpers. Call this on HBS files */
+//hbs.registerHelper('getFooterDesc', require('../helpers/YearHelper'));
+
+/** Express HBS engine */
+app.set('view engine', 'hbs');
+
+/** Routes */
+app.use(require('../app/routes'));
+
+const start = () => {
+    return new Promise((resolve, reject) => {
+        app.listen(process.env.PORT, (err) => {
+            if(err) reject(err);
+
+            resolve(`App listen ${process.env.PORT}`);
+        } );
+    });
+}
+
+const main = async () => {
+    let started = await start();
+    console.log(started);
+}
+
+module.exports = {
+    main
+}
+```
+
+11. In index.js Start server calling main function 
+```
+const server = require('./src/server/server');
+
+server.main()
+.catch((err) => {
+    console.log(err.message);
+});
+```
+
+
+
+**SIMPLE REST API**
+1. Install express
+2. Install body-parser
+```
+$ npm install --save body-parser
+```
+3. Create folder /server and /config
+4. Create file config.js inside /config folder. This can has all properties or env variables
+```
+/**
+ * Port
+ */
+process.env.PORT = process.env.PORT || 8000;
+/*********** */
+```
+5. Create file server.js inside /server folder
+```
+require('../config/config'); //To use env variables
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+
+/** Middleware to parse body x-www-form-urlencoded */
+app.use(bodyParser.urlencoded({extended: false}));
+
+/** Middleware to parse body json */
+app.use(bodyParser.json());
+
+app.get('/user/list', (req, res) => {
+    res.json({
+        msg: 'Get User'
+    });
+});
+
+app.get('/user/id/:id', (req, res) => {
+    console.log(req.params.id);
+    res.json({
+        data: `${id} id del usuario`
+    });
+});
+
+app.post('/user', (req, res) => {
+    let body = req.body; // This thanks body-parser
+    console.log(body.name); 
+    res.status(201).json({
+        msg: 'Post User'
+    });
+});
+
+app.put('/user/:id', (req, res) => {
+    console.log(req.params.id);
+    res.json('Put user');
+});
+
+app.delete('/user/:id', (req, res) => {
+    console.log(req.params.id);
+    res.json('Delete user');
+});
+
+app.listen(process.env.PORT, () => {
+    console.log("Listen port " + process.env.PORT);
+});
+```
+
+
+**BASIC STRUCTURED REST API**
+1. Packages to Install: 
+``express, body-parser, mongoose, underscore, bcryptjs, jsonwebtoken``
+
+2. Package structure
+- src/app
+- src/app/controller
+- src/app/middleware
+- src/app/routes
+- src/app/routes/index.js
+- src/error
+- src/service
+- src/dal
+- src/dal/entity
+- src/dal/repository
+- src/domain
+- src/mapper
+- src/server
+- src/server/config
+- src/util
+- src/public/assets
+- index.js
+
+3. Inside dal/entity, create all entities using Schema from Mongose.
+```
+//UserState.js
+const mongoose = require('mongoose');
+
+let Schema = mongoose.Schema;
+
+let userStateSchema = new Schema({
+    name: {
+        type: String,
+        require: [true, 'The name is needed']
+    }
+});
+
+module.exports = mongoose.model('UserState', userStateSchema);
+```
+
+```
+//User.js
+const mongoose = require('mongoose');
+
+let Schema = mongoose.Schema;
+
+let userSchema = new Schema({
+    name: {
+        type: String,
+        require: [true, 'The name is needed']
+    },
+    email: {
+        type: String,
+        unique: true,
+        require: [true, 'The email is needed']
+    },
+    pass: {
+        type: String,
+        require: [true, 'The pass is needed']
+    },
+    google: {
+        type: Boolean,
+        default: false
+    },
+    state: {
+        type: Schema.Types.ObjectId,
+        default: new mongoose.Types.ObjectId("5e0a4378cbff7b3fc8e95c3b"),
+        ref: 'UserState'
+    }
+});
+
+module.exports = mongoose.model('User', userSchema);
+```
+
+4. Inside dal/repository, create all repository methods data access
+```
+//UserStateRepo.js
+const UserState = require('../entity/UserState');
+
+const find = () => {
+    return new Promise((resolve, reject) => {
+        UserState.find((err, states) => {
+            if(err) reject(err);
+
+            resolve(states);
+        });
+    });
+}
+
+const findById = (id) => {
+    return new Promise((resolve, reject) => {
+        UserState.findById(id, (err, state) => {
+            if(err) reject(err);
+
+            resolve(state);
+        });
+    });
+}
+
+const create = (userStateInput) => {
+    return new Promise((resolve, reject) => {
+        let userState = new UserState(userStateInput);
+        userState.save((err, userStateCreated) => {
+            if(err) reject(err);
+
+            resolve(userStateCreated);
+        });
+    });
+}
+
+module.exports = {
+    find,
+    create,
+    findById
+}
+```
+
+```
+//UserRepo.js
+onst User = require('../entity/User');
+
+const create = (userInput) => {
+    return new Promise((resolve, reject) => {
+        let user = new User(userInput);
+        user.save((err, userDB) => {
+            if(err) reject(err);
+
+            resolve(userDB);
+        });
+    });
+}
+
+const count = () => {
+    return new Promise((resolve, reject) => {
+        User.countDocuments({}).exec((err, count) => {
+            if(err) reject(err);
+
+            resolve(count);
+        });
+    });
+}
+
+const find = () => {
+    return new Promise((resolve, reject) => {
+        User.find({})
+        .populate('state')
+        .exec((err, users) => {
+            if(err) reject(err);
+
+            resolve(users);
+        });
+    });
+}
+
+const findOne = (query) => {
+    return new Promise((resolve, reject) => {
+        User.findOne(query, (err, user) => {
+            if(err) reject(err);
+
+            resolve(user);
+        });
+    });
+}
+
+const findPaged = (page, limit) => {
+    page = limit * page;
+    return new Promise((resolve, reject) => {
+        User.find({})
+        .populate('state')
+        .skip(page)
+        .limit(limit)
+        .sort('name')
+        //.sort('-name') // sort DESC
+        .exec((err, users) => {
+            if(err) reject(err);
+
+            resolve(users);
+        });
+    });
+}
+
+const findById = (id) => {
+    return new Promise((resolve, reject) => {
+        User.findById(id, (err, userDB) => {
+            if(err) reject(err);
+
+            resolve(userDB);
+        });
+    });
+}
+
+const findByIdAndUpdate = (id, userInput) => {
+    return new Promise((resolve, reject) => {
+        User.findByIdAndUpdate(id, userInput, {new:true, runValidators: true}, (err, userDB) => {
+            if(err) reject(err);
+
+            resolve(userDB);
+        });
+    });
+}
+
+module.exports = {
+    create,
+    findById,
+    findByIdAndUpdate,
+    find,
+    findPaged,
+    count,
+    findOne
+}
+```
+
+5. Inside error, create all Error Classes you can need
+```
+class ValidationHttpError extends Error{
+    constructor(message,httpCode){
+        super(message);
+        this.httpCode = httpCode;
+    }
+}
+
+module.exports = ValidationHttpError;
+```
+
+
+6. Inside service, create all services methods
+```
+//UserStateService.js
+const UserStateRepo = require('../dal/repository/UserStateRepo');
+const StringUtil = require('../util/StringUtil');
+const ValidationHttpError = require('../error/ValidationHttpError')
+
+const find = async () => {
+    return await UserStateRepo.find();
+}
+
+const findById = async (id) => {
+    return await UserStateRepo.findById(id);
+}
+
+const create = async (input) => {
+    validateInput(input);
+    let userState = await UserStateRepo.create(input); 
+    let data = {
+        msg: 'Created',
+        data: userState
+    }
+    return data;
+}
+
+const validateInput = (input) => {
+    if(StringUtil.isBlank(input.name))
+        throw new ValidationHttpError('Name is Blank', 400);
+
+}
+
+module.exports = {
+    find,
+    create,
+    findById
+}
+```
+
+```
+//UserService.js
+const UserRepo = require('../dal/repository/UserRepo');
+const UserStateService = require('../service/UserStateService');
+const ValidationHttpError = require('../error/ValidationHttpError');
+const StringUtil = require('../util/StringUtil');
+const _ = require('underscore');
+const PageCalcUtil = require('../util/PageCalcUtil');
+const EncryptUtil = require('../util/EncryptUtil');
+
+const create = async (userInput) => {
+    validateUser(userInput);
+
+    await buildState(userInput);
+
+    if(StringUtil.isBlank(userInput.pass))
+        throw new ValidationHttpError("Password is blank", 400);
+    
+    encryptPassword(userInput);
+
+    return await UserRepo.create(userInput);
+}
+
+const findByIdAndUpdate = async (id, userInput) => {
+    validateUser(userInput);
+    userInput = buildUserUpdate(userInput);
+    return await UserRepo.findByIdAndUpdate(id, userInput);
+}
+
+const find = async (page, limit) => {
+    page = PageCalcUtil.setPage(page);
+    let users = await UserRepo.findPaged(page || 0, limit);
+    let total = await count();
+    let data = {
+        users,
+        total: PageCalcUtil.totalPages(total, limit),
+        page: page + 1,
+    }
+    return data;
+}
+
+const findByEmail = async (email) => {
+    return await UserRepo.findOne({email});
+}
+
+const count = async () => {
+    return await UserRepo.count();
+}
+
+const validateUser = (userInput) => {
+    if(StringUtil.isBlank(userInput.name))
+        throw new ValidationHttpError("Name is blank", 400);
+
+    if(StringUtil.isBlank(userInput.email))
+        throw new ValidationHttpError("Email is blank", 400);
+}
+
+const buildState = async (userInput) => {
+    if(! StringUtil.isBlank(userInput.state)){
+        let state = await UserStateService.findById(userInput.state);
+        console.log(state);
+        if(state == null)
+            throw new ValidationHttpError("State not found", 404);
+
+        delete userInput.state;
+    }
+}
+
+const buildUserUpdate = (userInput) => {
+    return _.pick(userInput, ["name", "email", "google"]);
+}
+
+const encryptPassword = (userInput) => {
+    userInput.pass = EncryptUtil.bcryptEncryption(userInput.pass);
+}
+
+module.exports = {
+    create,
+    findByIdAndUpdate,
+    find,
+    count,
+    findByEmail
+}
+```
+
+```
+//LoginService.js
+const UserService = require('./UserService');
+const ValidationHttpError = require('../error/ValidationHttpError');
+const EncryptUtil = require('../util/EncryptUtil');
+const StringUtil = require('../util/StringUtil');
+const JWTUtil = require('../util/JWTUtil');
+
+const login = async (credentials) => {
+    validateInputs(credentials);
+    let email = credentials.email;
+    let user = await UserService.findByEmail(email);
+    if(! user)
+        throw new ValidationHttpError(`Doesn't exist user ${email}`, 404);
+
+    validatePassword(credentials.pass, user);
+
+    let data = {
+        user,
+        token: JWTUtil.generateJWT(user)
+    }
+
+    return data;
+}
+
+const validateInputs = (credentials) => {
+    if(StringUtil.isBlank(credentials.email))
+        throw new ValidationHttpError(`Email is blank`, 400);
+
+    if(StringUtil.isBlank(credentials.pass))
+        throw new ValidationHttpError(`Password is blank`, 400);
+
+}
+
+const validatePassword = (password, user) => {
+    if(! EncryptUtil.bcryptCompare(password, user.pass))
+        throw new ValidationHttpError(`Incorrect password`, 400);
+}
+
+module.exports = {
+    login
+}
+```
+
+7. Inside app/controller, create all Request Response handlers methods
+using service.
+```
+//UserController.js
+require('../../server/config/config');
+const UserService = require('../../service/UserService');
+
+const create = (req, res) => {
+    let body = req.body;
+    UserService.create(body)
+    .then((userDB) => {
+        res.status(201).json({
+            ok: true,
+            msg: `User created ${userDB.name}`,
+            data: userDB
+        });
+    })
+    .catch((err) =>{
+        res.status(err.httpCode || 500).json({
+            msg: err.message
+        });
+    }); 
+}
+
+const findByIdAndUpdate = (req, res) => {
+    let id = req.params.id;
+    let body = req.body;
+    UserService.findByIdAndUpdate(id,body)
+    .then((userDB) => {
+        res.status(201).json({
+            msg: `User updated ${userDB.name}`,
+            data: userDB
+        });
+    })
+    .catch((err) =>{
+        res.status(err.httpCode || 500).json({
+            msg: err.message
+        });
+    }); 
+}
+
+const find = (req, res) => {
+    let page = Number(req.query.page);
+    let limit = Number(process.env.USERS_PAGE_LIMIT);
+    UserService.find(page, limit)
+    .then((data) => {
+        res.status(200).json({
+            msg: `Count users found ${data.users.length}`,
+            data
+        });
+    })
+    .catch((err) => {
+        res.status(err.httpCode || 500).json({
+            msg: err.message
+        });
+    });
+}
+
+module.exports = {
+    create,
+    findByIdAndUpdate,
+    find
+}
+```
+
+8. Inside util, create all Utilities you can need
+```
+//PageCalcUtil.js
+const totalPages = (total, limit) => {
+    return Math.ceil(total / limit);
+}
+
+const setPage = (page) => {
+    return (page === 0 ? 1 : page) -1;
+}
+
+module.exports = {
+    totalPages,
+    setPage
+}
+```
+
+```
+//EncryptUtil.js
+const bcrypt = require('bcryptjs');
+
+const bcryptEncryption = (text) => {
+    let salt = bcrypt.genSaltSync(10);
+    return bcrypt.hashSync(text,salt);
+}
+
+const bcryptCompare = (plainText, hashText) => {
+    return bcrypt.compareSync(plainText, hashText);
+}
+
+module.exports = {
+    bcryptEncryption,
+    bcryptCompare
+}
+```
+
+
+9. Inside app/routes, create all files that has routes
+```
+//UserRoutes.js
+const express = require('express');
+const app = express();
+const UserController = require('../controller/UserController');
+const AuthMiddelware = require('../middleware/AuthMiddleware');
+
+app.get('/user/list', (req, res) => {
+    UserController.find(req, res);
+});
+
+app.get('/user/id/:id', [AuthMiddelware.verifyToken], (req, res) => {
+    console.log(req.params.id);
+    res.json({
+        data: `${id} id del usuario`
+    });
+});
+
+app.post('/user', (req, res) => {
+    UserController.create(req,res);
+});
+
+app.put('/user/:id', [AuthMiddelware.verifyToken] ,(req, res) => {
+    UserController.findByIdAndUpdate(req, res);
+});
+
+app.delete('/user/:id', (req, res) => {
+    console.log(req.params.id);
+    res.json('Delete user');
+});
+
+module.exports = app;
+```
+
+10. Inside app/routes/index.js, register all routes
+```
+//index.js
+const express = require('express');
+const app = express();
+
+/** User ROUTES */
+app.use(require('./UserRoute'));
+
+/** Login ROUTES */
+app.use(require('./LoginRoute'));
+
+/** User State ROUTES */
+app.use(require('./UserStateRoute'));
+
+/** User State ROUTES */
+app.use(require('./ProductRoute'));
+
+// All other routes here
+// app.use(otherRoute);
+
+module.exports = app;
+```
+
+11. Inside server/config/config.js, Create env configuration
+```
+// config.js
+/** ********************* SERVER CONFIG *********************** */
+/** Port */
+process.env.PORT = process.env.PORT || 8000;
+/*********** */
+
+/** ********************* DB CONFIG *********************** */
+/** DB host */
+process.env.DB_HOST = "yourhost.com";
+/*********** */
+
+/** DB port */
+process.env.DB_PORT = "27017";
+/*********** */
+
+/** DB Protocol */
+process.env.DB_PROTOCOL = "mongodb";
+/*********** */
+
+/** DB Name */
+process.env.DB_NAME = "products";
+/*********** */
+
+/** ********************* USERS PAGEABLE CONFIG *********************** */
+/** DB host */
+process.env.USERS_PAGE_LIMIT = 4;
+/*********** */
+
+/** ********************* JWT CONFIG *********************** */
+/** JWT secret - seed */
+process.env.JWT_SECRET = "Jhysbb-wybdsop-spw";
+/*********** */
+
+/** JWT expiration time in seconds */
+process.env.JWT_EXPIRES = 60 * 60 * 24 * 30
+/*********** */
+```
+
+12. Inside server/config/DBConfig.js, Create DataBase configuration
+**Mongoose**
+```
+// DBConfig.js
+const mongoose = require('mongoose');
+
+const connect = () => {
+    return new Promise((resolve, reject) => {
+        mongoose.connect(`${process.env.DB_PROTOCOL}://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+            { useNewUrlParser: true, useUnifiedTopology: true },(err, res) => {
+            if(err) reject(err);
+
+            resolve(`Mongo db connection stablished`);
+        });
+    });
+}
+
+module.exports = {
+    connect
+}
+```
+
+13. Inside server, create main entry and start server file. 
+```
+//server.js
+require('./config/config');
+const express = require('express');
+const bodyParser = require('body-parser');
+const DBConfig = require('./config/DBConfig');
+const app = express();
+
+/** Middleware to parse body x-www-form-urlencoded */
+app.use(bodyParser.urlencoded({extended: false}));
+
+/** Middleware to parse body json */
+app.use(bodyParser.json());
+
+/** ROUTES */
+app.use(require('../app/routes'));
+
+/** Listen function */
+const listen = () => {
+    /** Start Server */
+    return new Promise((resolve, reject) => {
+        app.listen(process.env.PORT, (err) => {
+            if(err) reject(err);
+
+            resolve("Listen port " + process.env.PORT);
+        });
+    });
+}
+
+/** Start Function */
+const main = async () => {
+    let db = await DBConfig.connect();
+    console.log(db);
+    let server = await listen();
+    console.log(server);
+}
+
+module.exports = {
+    main
+}
+```
+
+14. Inside index.js
+```
+const server = require('./src/server/server');
+
+server.main()
+.catch((err) => {
+    console.log(err.message);
+});
+```
+
+----------------------------------------------------------------------------------------
+
+
+## Middlewares in Express
+
+1. Create Middleware in folder
+```
+//MyMiddleare.js
+
+const myFunction = (req, res, next) => {
+	//CODE
+
+	next(); //To continue
+}
+
+module.exports = {
+	myFunction
+}
+```
+
+2. Implemeting it in ROUTE
+```
+const express = require('express');
+const app = express();
+const MyMiddleare = require('../middleware/MyMiddleare');
+
+app.get('/user/list', [MyMiddleare.myFunction],  (req, res) => {
+    //CODE;
+});
+
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+## Implementing JWT
+
+1. Create env variables
+```
+//config.js
+
+/** ********************* JWT CONFIG *********************** */
+/** JWT secret - seed */
+process.env.JWT_SECRET = "Jhysbb-wybdsop-spw";
+/*********** */
+
+/** JWT expiration time in seconds */
+process.env.JWT_EXPIRES = 60 * 60 * 24 * 30
+/*********** */
+```
+
+2. Create JWT Util
+```
+// JWTUtil.js
+
+require('../server/config/config');
+const jwt = require('jsonwebtoken');
+
+const generateJWT = (content) => {
+    return jwt.sign({
+        content
+    }, process.env.JWT_SECRET, { expiresIn: Number(process.env.JWT_EXPIRES)});
+}
+
+const verifyToken = (token) => {
+    return new Promise((resolve , reject) => {
+        if(! token.startsWith('Bearer '))
+            throw new Error("Invalid HEADER prefix");
+        jwt.verify(token.split(" ")[1], process.env.JWT_SECRET, (err, decoded) => {
+            if(err) reject(err);
+
+            resolve(decoded);
+        });
+    });
+}
+
+module.exports = {
+    generateJWT,
+    verifyToken
+}
+```
+
+3. Create Middleware
+```
+//AuthMiddleware.js
+
+const JWTUtil = require('../../util/JWTUtil');
+
+const verifyToken = (req, res, next) => {
+
+    /** Get HEADER Authorization */
+    let token = req.get('Authorization');
+    console.log(token);
+
+    JWTUtil.verifyToken(token)
+    .then((decoded) => {
+        req.decoded = decoded; //Set Token Content in request to use it in Controller or other Middleware
+        next();
+    })
+    .catch((err) => {
+        res.status(401).json({
+            ok: false,
+            msg: err.message
+        });
+    });
+}
+
+module.exports = {
+    verifyToken
+}
+```
+
+4. Implementing Middleware to potect routes
+```
+//User Route
+const express = require('express');
+const app = express();
+const AuthMiddleware = require('../middleware/AuthMiddleware');
+
+app.get('/user/list', AuthMiddleware.verifyToken,  (req, res) => {
+    //CODE;
+});
+```
+
+----------------------------------------------------------------------------------------
+
+
+## Google API sign
+
+**Google sign Frontend Authentication with WebBrowser implementation**
+
+1. Create a project. Calling from WebBrowser
+``https://developers.google.com/identity/sign-in/web/sign-in``
+
+2. Go to API console and in Navigation Menu, go to Credentials
+``https://console.developers.google.com``
+
+3. Click Create Client ID OAuth >> [Select Type Application] WEB >> Write Name >> Write JavaScript ORIGNS (http://localhost) >> **If you need** URIs Redirect >> (http://localhost/home)
+
+4. Get CLIENT ID and CLIENT SECRET
+
+5. On your client application (React, Angular, VUE, Node, Spring Boot). On login HTML:
+```
+...
+<head>
+	 ...
+	 <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="<YOUR_CLIENT_ID>.apps.googleusercontent.com" />
+</head>
+<body>
+	 <div class="g-signin2" data-onsuccess="onSignIn"></div>
+	 <script>
+        function onSignIn(googleUser) {
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+            console.log('Name: ' + profile.getName());
+            console.log('Image URL: ' + profile.getImageUrl());
+            console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+        		/** Send Google TOKEN to Your Backend */
+            var id_token = googleUser.getAuthResponse().id_token;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'http://localhost:3000/google');
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                console.log('Signed in as: ' + xhr.responseText);
+            };
+            xhr.send('idtoken=' + id_token);
+        }
+    </script>
+    <a href="#" onclick="signOut();">Sign out</a>
+    <script>
+        function signOut() {
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                console.log('User signed out.');
+            })
+            .catch((err) => {
+                console.log(err.message);
+            });
+        }
+    </script> 
+</body>
+```
+
+6. Validate Token on backend
+
+**NodeJS**
+- 
+```
+npm install npm install google-auth-library --save
+```
+- Function:
+```
+const {OAuth2Client} = require('google-auth-library');
+const client = new OAuth2Client(CLIENT_ID);
+
+async function verify(token) {
+  const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
+      // Or, if multiple clients access the backend:
+      //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+  });
+  const payload = ticket.getPayload();
+  console.log(payload);
+  
+  // ********* IMPORTANT	
+  // After this, you have user data to create new user if doesn't exist
+  // Generate your new JWT and send it to Frontend
+  
+  
+  return payload;
+  //const userid = payload['sub'];
+  // If request specified a G Suite domain:
+  //const domain = payload['hd'];
+}
+verify().catch(console.error);
+```
+
+**Java**
+```
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+
+...
+
+GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+    // Specify the CLIENT_ID of the app that accesses the backend:
+    .setAudience(Collections.singletonList(CLIENT_ID))
+    // Or, if multiple clients access the backend:
+    //.setAudience(Arrays.asList(CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3))
+    .build();
+
+// (Receive idTokenString by HTTPS POST)
+
+GoogleIdToken idToken = verifier.verify(idTokenString);
+if (idToken != null) {
+  Payload payload = idToken.getPayload();
+
+  // Print user identifier
+  String userId = payload.getSubject();
+  System.out.println("User ID: " + userId);
+
+  // Get profile information from payload
+  String email = payload.getEmail();
+  boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+  String name = (String) payload.get("name");
+  String pictureUrl = (String) payload.get("picture");
+  String locale = (String) payload.get("locale");
+  String familyName = (String) payload.get("family_name");
+  String givenName = (String) payload.get("given_name");
+
+  // Use or store profile information
+  // ...
+
+} else {
+  System.out.println("Invalid ID token.");
+}
+```
+
+7. After veirfy, make the response propoerly to frontend, send the JWT and all info
+you send when user authenticate normally
+
+
+
+----------------------------------------------------------------------------------------
+
+## Mongoose queries
+
+**populate to retrive relations**
+```
+return new Promise((resolve, reject) => {
+        Product.find({})
+        .skip(pageNew)
+        .limit(limit)
+        .populate({
+            path: 'user',
+            select: ['name', 'email'],
+            populate: { //Because user has state
+                path: 'state'
+            }
+        })
+        .exec((err, products) => {
+            if(err) reject(err);
+
+            resolve(products);
+        });
+    });
+```
+
+**find() with Regex**
+```
+Entity.find({ attribute: new RegExp('')})
+```
+
+
+----------------------------------------------------------------------------------------
+
+
+
+## Create LOCALLY Node modules and Installed in other Node application
+https://dev.to/therealdanvega/creating-your-first-npm-package-2ehf
+
+
+----------------------------------------------------------------------------------------

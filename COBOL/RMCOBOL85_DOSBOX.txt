@@ -1,0 +1,8 @@
+MANEJO DE DOSBOX CON RMCOBOL85
+
+Ejecutar DOSBOX.
+mount c: /ruta/carpeta/RMCOBOL85 -> montar carpeta donde se encuentre RMCOBOL85.
+c: entrar en esta.
+
+rmcobol archivo.cbl -> compilacion
+runcobol archivo.cob -> ejecutar
