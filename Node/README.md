@@ -1651,6 +1651,67 @@ Entity.find({ attribute: new RegExp('')})
 ----------------------------------------------------------------------------------------
 
 
+## Upload files Express Server API
+
+**Using like Multipart**
+https://www.npmjs.com/package/express-fileupload
+
+1. Install 
+``express, body-parser, express-fileupload``
+
+2. Create you favorite API package structure and add 
+``uploads`` folder.
+
+3. Example wrapper
+```
+const uploadFile = (file, path) => {
+    return new Promise((resolve, reject) => {
+        file.mv(path, (err) => {
+            if(err) reject(err);
+
+            resolve(`File created ${path}`);
+        });
+    });
+}
+
+module.exports = {
+    uploadFile
+};
+```
+
+4. Controller to handle request
+```
+const UploadService = require('../../services/UploadService');
+
+const uploadImage = (req, res) => {
+    /** File sended is in req.files object */
+    let files = req.files;
+    UploadService.uploadImage(files.file)
+    .then((result) => {
+        res.status(201).json({
+            ok: true,
+            msg: 'Created',
+            data: result
+        });
+    })
+    .catch((err) => {
+        res.status(err.codeHttp || 500).json({
+            ok:false,
+            msg: err.message
+        });
+    });
+}
+
+
+module.exports = {
+    uploadImage
+}
+```
+
+
+----------------------------------------------------------------------------------------
+
+
 
 ## Create LOCALLY Node modules and Installed in other Node application
 https://dev.to/therealdanvega/creating-your-first-npm-package-2ehf
