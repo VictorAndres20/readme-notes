@@ -396,6 +396,7 @@ console.log("Started");
 
 
 ## Express
+
 **Basic Example** 
 1. Install it 
 ```
@@ -416,6 +417,198 @@ app.get('/',(req, res) => {
 /** Listen Port */
 app.listen(8000, () => {
     console.log("Server Started. Listen on 8000");
+});
+```
+
+**Structure and Init Classes Configuration for express app**
+0. Install
+``express, body-parser``
+
+1. Structure
+- public
+- src/app
+- src/app/controller
+- src/app/controller/exampleController.js
+- src/app/routes
+- src/app/routes/exampleRoute.js
+- src/app/routes/index.js
+- src/server
+- src/server/Server.js
+- src/serverStartup.js
+- src/server/config
+- src/server/config/config.js
+- index.js
+
+2. Controller example
+```
+class ExampleController{
+
+    exampleFunction = (req, res) => {
+        res.status(200).send("Hello my dear!!");
+        /** If you have middleware body-parser and want JSON response like API */
+        /*
+        res.status(200).json({
+            ok:true
+        });
+        */
+    }
+}
+
+const buildClass = () => {
+    return new ExampleController();
+}
+
+module.exports = {buildClass};
+```
+
+3. Route example
+```
+const router = require('express').Router();
+const exampleController = require('../controller/ExampleController').buildClass();
+
+router.get('/',(req, res) => {
+    exampleController.exampleFunction(req, res);
+});
+
+module.exports = router;
+```
+
+4. Route index
+```
+const router = require('express').Router();
+
+/** Register routes */
+router.use(require('./exampleRoute'));
+
+module.exports = router;
+```
+
+5. config example
+```
+/** ********************* SERVER CONFIG *********************** */
+/** Port */
+process.env.PORT = process.env.PORT || 8000;
+/*********** */
+```
+
+6. Server.js
+```
+const http = require('http');
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
+
+class Server{
+    constructor(){
+        this.app = express();
+    }
+
+    buildHttpServer = () => {
+        return http.createServer(this.getApp());
+    }
+
+    enablePublicContent = () => {
+        this.setMiddleware(express.static(path.join(__dirname,'../../public')));
+    }
+
+    enableBodyParser = () => {
+        this.setMiddleware(bodyParser.urlencoded({extended: false}));
+        this.setMiddleware(bodyParser.json());
+    }
+
+    setRoutes = () => {
+        this.setMiddleware(require('../app/routes'));
+    }
+
+    enableViewEngine = (engine) => {
+        //For example if you install hbs, pass parameter 'hbs'
+        this.app.set('view engine', engine);
+    }
+
+    setMiddleware = (middleware) => {
+        this.app.use(middleware);
+    }
+
+    getApp = () => {
+        return this.app;
+    }
+}
+
+const buildClass = () => {
+    return new Server();
+}
+
+module.exports = {buildClass}
+```
+
+7. Startup.js
+```
+require('./config/config');
+//Some Other Configuration imports,
+//for example socket.io, DataBase ORM or View Engine HBS
+//const hbs = require('./hbs');
+
+class Startup{
+    constructor(server){
+        this.server = server;
+    }
+
+    /** MAIN NETRY to call in index.js main file */
+    main = async () => {
+        
+        //May be call some other function Configs, 
+        //for example to init socket.io, DataBase ORM or View Engine
+
+        //hbs.registerPartials();
+        //hbs.registerHelpers();
+
+        this.configureServer();
+        let start = await this.startServer(this.buildServer());
+        console.log(start);
+    }
+
+    startServer = (server) => {
+        let port = process.env.PORT;
+        return new Promise((resolve, reject) => {
+            server.listen(port, (err) => {
+                if(err) reject(err);
+
+                resolve(`Server stated at port ${port}`);
+            });
+        });
+    }
+
+    configureServer = () => {
+        this.server.enablePublicContent();
+        this.server.enableBodyParser();
+        //this.server.enableViewEngine('hbs');
+        this.server.setRoutes();
+        return this.server;
+    }
+
+    buildServer = () => {
+        return this.server.getApp();
+        //When use socket io, you need http server
+        //return this.server.buildHttpServer();
+    }
+}
+
+const buildClass = (server) => {
+    return new Startup(server);
+}
+
+module.exports = {buildClass}
+```
+
+8. index.js MAIN
+```
+const server = require('./src/server/Server').buildClass();
+const startup = require('./src/server/Startup').buildClass(server);
+
+startup.main()
+.catch((err) => {
+    console.log(err.message);
+    process.exit();
 });
 ```
 
@@ -1706,7 +1899,73 @@ const uploadImage = (req, res) => {
 module.exports = {
     uploadImage
 }
+``
+`
+
+5. Render image Controller
 ```
+const Path = require('path');
+
+const renderImage = (req, res) => {
+    let image = req.params.image;
+    console.log(image); //name of image
+    let path = Path.join(__dirname,'../../../public/assets',image); 
+	 res.status(200)
+        .sendFile(path);
+}
+
+module.exports = {
+    renderImage
+}
+```
+
+6. Routes
+```
+//UploadRoute
+const express = require('express');
+const expressFileUpload = require('express-fileupload');
+const UploadController = require('../controller/UploadController');
+
+const app = express();
+
+app.use(expressFileUpload());
+
+app.post('/upload/image', (req, res) => {
+    UploadController.uploadImage(req, res);
+});
+
+module.exports = app;
+```
+
+```
+///Render Route
+const express = require('express');
+const RenderController = require('../controller/RenderController');
+
+const app = express();
+
+app.get('/render/image/:image', (req, res) => {
+    RenderController.renderImage(req, res);
+});
+
+module.exports = app;
+```
+
+
+**To handle Bytes and types**
+```
+
+```
+
+----------------------------------------------------------------------------------------
+
+
+## Sockets - socket.io
+
+1. Install 
+``express, socket.io``
+
+2. 
 
 
 ----------------------------------------------------------------------------------------
