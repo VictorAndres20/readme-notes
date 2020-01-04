@@ -197,6 +197,15 @@ const read = (pathFile) => {
     return data;
 }
 
+const writeFileSync = (data) => {
+    fs.writeFileSync(this.pathFile, data);
+}
+
+readFileSync = () => {
+    return JSON.parse(fs.readFileSync(this.pathFile, 'utf8'))
+    //return require(this.pathFile); // This has cache or something
+}
+
 const readFile = (pathFile) => {
     return new Promise((resolve, reject) => {
         fs.readFile(pathFile,{encoding: 'UTF-8'}, (err, data) => {
@@ -213,12 +222,6 @@ createFile()
 
 read(`${__dirname}/../files/data.json`)
 .catch(err => console.log(err.message));
-```
-
-**JSON Files**
-If you have a .json file, you can read it and parse it to Object using:
-```
-let obj = require('../files/data.json');
 ```
 
 ----------------------------------------------------------------------------------------
@@ -1965,8 +1968,137 @@ module.exports = app;
 1. Install 
 ``express, socket.io``
 
-2. 
+2. Socket Handler class server
+```
+const SocketIO = require('socket.io');
 
+class Socket{
+    constructor(httpServer){
+        this.socket = SocketIO(httpServer);
+        this.BusinessService = require('../../service/BusinessService').buildClass();
+    }
+
+    connect = () => {
+        this.socket.on('connection', (client) => {
+            console.log('Client connected');
+            this.sendClient(client, 'welcome', {ok:true, msg:'Welcome'});
+
+            this.listenDisconnect(client);
+
+            /** Listen generate new ticket */
+            this.listenAndResponseAndBroadcast(client, 'generateTicket', (data) => {
+                let ticket = myFunction(data.name);
+                return {
+                    ok: true,
+                    ticket
+                }
+            }, (client) => {myFunctionBroadcast(client)});
+
+            /** Listen assign Ticket */
+            this.listenAndResponseAndBroadcast(client, 'assignTicket', (data) => {
+                myFunction(data.name, data.number);
+                return myFunction();
+            }, (client) => {this.ticketsToAssignBroadcast(client)});
+
+            /** Listen assign Ticket */
+            this.listenAndResponseAndBroadcast(client, 'restart', (data) => {
+                return myFunction();
+            }, (client) => {myFunctionBroadcast(client)});
+        });
+    }
+
+    sendClient = (client, messageID, data) => {
+        client.emit(messageID, data);
+    }
+
+    broadcastClient = (client, messageID, data) => {
+        client.broadcast.emit(messageID, data);
+    }
+
+    listenDisconnect = (client) => {
+        client.on('disconnect', () => {
+            console.log('Client disconnected');
+        });
+    }
+
+    listenAndResponse = (client, messageID, callback) => {
+        client.on(messageID, (data, response) => {
+            response(callback(data));
+        });
+    }
+
+    listenAndResponseAndBroadcast = (client, messageID, callback, broadcast) => {
+        client.on(messageID, (data, response) => {
+            response(callback(data));
+            broadcast(client);
+        });
+    }
+}
+
+const buildClass = (httpServer) => {
+    return new Socket(httpServer);
+}
+
+module.exports = {buildClass}
+```
+
+3. Start socket conf on Startup
+
+```
+//CODE
+
+	main = async () => {
+        
+        //May be call some other function Configs, 
+        //for example to init socket.io, DataBase ORM or View Engine
+
+        hbs.registerPartials();
+        hbs.registerHelpers();
+
+        this.configureServer();
+        let httpServer = this.buildServer();
+        require('./config/Socket').buildClass(httpServer).connect(); // START SOCKET
+        let start = await this.startServer(httpServer);
+        console.log(start);
+    }
+//CODE
+```
+
+4. On front end create js/socket-io.js
+```
+var socket = io();
+
+function socketIOListen(messageID, callback){
+    socket.on(messageID, function(data){
+        callback(data);
+    });
+}
+
+function socketIOSendMessage(messageID, message, callback){
+    socket.emit(messageID,message, (res) => {
+        callback(res);
+    });
+}
+```
+
+5. On forn end import script
+```
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Testing local Sockets</title>
+    </head>
+    <body>
+        Check the console
+         <!-- SocketIO library -->
+   	  <script src="http://host:post/socket.io/socket.io.js"></script>
+			<!-- SocketIO to start -->
+		  <script src="js/socket-io.js"></script>
+        <!-- SocketIO custom functions to interact -->
+    	  <script src="js/socket-io-custom.js"></script>
+    </body>
+</html>
+```
 
 ----------------------------------------------------------------------------------------
 
