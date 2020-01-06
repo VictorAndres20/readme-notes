@@ -197,13 +197,13 @@ const read = (pathFile) => {
     return data;
 }
 
-const writeFileSync = (data) => {
-    fs.writeFileSync(this.pathFile, data);
+const writeFileSync = (pathFile, data) => {
+    fs.writeFileSync(pathFile, data);
 }
 
-readFileSync = () => {
-    return JSON.parse(fs.readFileSync(this.pathFile, 'utf8'))
-    //return require(this.pathFile); // This has cache or something
+const readFileSync = (pathFile) => {
+    return JSON.parse(fs.readFileSync(pathFile, 'utf8'));
+    //return require(pathFile); // This has cache or something
 }
 
 const readFile = (pathFile) => {
@@ -437,7 +437,7 @@ app.listen(8000, () => {
 - src/app/routes/index.js
 - src/server
 - src/server/Server.js
-- src/serverStartup.js
+- src/server/Startup.js
 - src/server/config
 - src/server/config/config.js
 - index.js
@@ -615,6 +615,26 @@ startup.main()
 });
 ```
 
+9. **If you use hbs**
+```
+//hbs.js
+const hbs = require('hbs');
+const path = require('path')
+
+const registerPartials = () => {
+    hbs.registerPartials(path.join(__dirname,'../../views/partials'));
+}
+
+const registerHelpers = () => {
+    hbs.registerHelper('getActualYear',require('../helpers/dateHelper').getActualYear);
+}
+
+module.exports = {
+    registerPartials,
+    registerHelpers
+}
+```
+
 
 **Use express to serve static content**
 1. create folder public and create all html files here. For example
@@ -707,10 +727,10 @@ $ npm install --save body-parser
 6. In src/app/constoller. Create all controllers.
 ```
 const login = (req, res) => {
-    res.render('login'),{
+    res.render('login',{
 		  name: 'Victor Andres Pedraza'
         //Objects
-    };
+    });
 }
 
 module.exports = {
@@ -2057,7 +2077,7 @@ module.exports = {buildClass}
 
         this.configureServer();
         let httpServer = this.buildServer();
-        require('./config/Socket').buildClass(httpServer).connect(); // START SOCKET
+   /* HERE */require('./config/Socket').buildClass(httpServer).connect(); // -----> START SOCKET
         let start = await this.startServer(httpServer);
         console.log(start);
     }
@@ -2066,7 +2086,8 @@ module.exports = {buildClass}
 
 4. On front end create js/socket-io.js
 ```
-var socket = io();
+//var socket = io(); // If socket server is the SAME http server
+//var socket = io.connect('http://172.168.23.14:8000/'); // If socket server is DIFFERENT http server
 
 function socketIOListen(messageID, callback){
     socket.on(messageID, function(data){
@@ -2091,7 +2112,7 @@ function socketIOSendMessage(messageID, message, callback){
     <body>
         Check the console
          <!-- SocketIO library -->
-   	  <script src="http://host:post/socket.io/socket.io.js"></script>
+   	  <script src="http://[host]:[port]/socket.io/socket.io.js"></script>
 			<!-- SocketIO to start -->
 		  <script src="js/socket-io.js"></script>
         <!-- SocketIO custom functions to interact -->
