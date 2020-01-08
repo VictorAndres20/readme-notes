@@ -29,5 +29,9 @@ https://www.r-bloggers.com/how-to-install-r-ubuntu-16-04-xenial/
 
 download .deb and install it
 
+**MAY BE need to install** 
+```
+$ sudo apt-get -f install libgstreamer-plugins-base0.10-0 libgstreamer0.10-0 libjpeg62
+```
 
 -------------------------------------------------------------------------------------------
