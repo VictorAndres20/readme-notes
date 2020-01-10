@@ -2003,7 +2003,7 @@ class Socket{
         this.chatBusiness = require('../../service/ChatBusiness').buildClass();
     }
 
-    connect = () => {
+    connect() {
         this.socket.on(CONN_MESSAGE_ID, (client) => {
             console.log(`Client connected`);
 
@@ -2028,70 +2028,70 @@ class Socket{
         });
     }
 
-    connectionHandler = (client, data) => {
+    connectionHandler(client, data) {
         let id = client.id;
         let {name} = data;
         return this.chatBusiness.addUser(id,name);
     }
 
-    disconnectionHandler = (client, data) => {
+    disconnectionHandler(client, data) {
         let id = client.id;
         return this.chatBusiness.removeUser(id);
     }
 
-    sendPrivateMessage = (client, data) => {
+    sendPrivateMessage(client, data) {
         let {userID} = data;
         return this.broadcastTo(client, userID, PRIVATE_MESSAGE_ID, data);
     }
 
-    listenAndResponseAndBroadcast = (client, messageID, resCallback , messageIDBroadcast, broadcastCallback) => {
+    listenAndResponseAndBroadcast(client, messageID, resCallback , messageIDBroadcast, broadcastCallback) {
         this.listenAndResponseAndAction(client, messageID, resCallback, (client, data) =>{
             this.broadcast(client, messageIDBroadcast, broadcastCallback(data));
         });
     }
 
-    listenAndResponseSameBroadcast = (client, messageID, resCallback, messageIDBroadcast) => {
+    listenAndResponseSameBroadcast(client, messageID, resCallback, messageIDBroadcast) {
         this.listenAndResponseSameAction(client, messageID, resCallback, (client, res) => {
             this.broadcast(client, messageIDBroadcast, res);
         });
     }
 
-    joinRoom = (client, room) => {
+    joinRoom(client, room) {
         client.join(room);
     }
 
-    send = (client, messageID, data) => {
+    send(client, messageID, data) {
         return client.emit(messageID, data);
     }
 
-    broadcast = (client, messageID, data) => {
+    broadcast(client, messageID, data) {
         return client.broadcast.emit(messageID, data);
     }
 
-    broadcastTo = (client, clientId, messageID, data) => {
+    broadcastTo(client, clientId, messageID, data) {
         return client.broadcast.to(clientId).emit(messageID, data);
     }
 
-    listen = (client, messageID, callback) => {
+    listen(client, messageID, callback) {
         client.on(messageID, (data) => {
             callback(data);
         });
     }
 
-    listenAndResponse = (client, messageID, resCallback) => {
+    listenAndResponse(client, messageID, resCallback) {
         client.on(messageID, (data, response) => {
             response(resCallback(data));
         });
     }
 
-    listenAndResponseAndAction = (client, messageID, resCallback , action) => {
+    listenAndResponseAndAction(client, messageID, resCallback , action) {
         client.on(messageID, (data, response) => {
             response(resCallback(data));
             action(client, data);
         });
     }
 
-    listenAndResponseSameAction = (client, messageID, resCallback , action) => {
+    listenAndResponseSameAction(client, messageID, resCallback , action) {
         client.on(messageID, (data, response) => {
             let res = resCallback(data);
             response(res);
