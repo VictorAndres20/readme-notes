@@ -866,6 +866,118 @@ public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
 
 ###############################################################################################
 
+# Spring Boot and JWT service
+
+1. Maven dependency
+```
+		<dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.8.3</version>
+        </dependency>
+```
+
+2. JWTException
+```
+public class JWTException extends Exception {
+
+	private static final long serialVersionUID = 2893141502868586192L;
+	
+	public JwtException(String message) {
+        super(message);
+    }
+	
+	public JwtException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+```
+
+3. JWTService
+```
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+@Service
+class JWTService{
+
+	private static final String JWT_SECRET = "MwTeTnnSkhWQt8utGETcmHIGIsOzQZLsXVrpyDG1";
+
+    private static final String JWT_ISSUER = "SomeIssuerHere";
+
+	@Value("${jwt.token.expiration-minutes}")
+    private int jwtExpirationMinutes;
+	
+	String generateToken(final String username) throws JWTException {
+        try {
+            return JWT.create()
+                    .withIssuer(JWT_ISSUER)
+                    .withIssuedAt(new Date())
+                    .withSubject(username) //Token Content 
+                    .withExpiresAt(addMinutes(jwtExpirationMinutes))
+                    .sign(buildAlgorithm(JWT_SECRET));
+        } catch (IllegalArgumentException | JWTCreationException e) {
+            throw new JWTException(e.getMessage(), e);
+        }
+    }
+
+    String validate(final String token) throws JWTException {
+        try {
+            final JWTVerifier verifier = JWT.require(buildAlgorithm())
+                    .build();
+            final DecodedJWT decoded = verifier.verify(token);
+            return decoded.getSubject();
+        } catch (JWTVerificationException e) {
+            throw new JWTException(e.getMessage(), e);
+        }
+    }
+
+    static Algorithm buildAlgorithm(String secret) {
+        return Algorithm.HMAC512(secret);
+    }
+
+    static Date addMinutes(final int minutes) {
+        Calendar calendar = GregorianCalendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.MINUTE, minutes);
+        return calendar.getTime();
+    }
+}
+```
+
+4. Create Validate JWT method on LoginService or UserService
+```
+//CODE
+	public UserDTO validateToken(final String token) throws JwtException {
+        
+        final String username = jwtService.validate(token);
+        final Optional<User> optional = userService.findByUsername(username);
+        if (!optional.isPresent())
+            throw new JwtException("Username is not valid.");
+
+        final User user = optional.get();
+        final UserDTO output = new UserDTO();
+        output.setId(user.getId());
+        return output;        
+    }
+//CODE
+```
+
+5. Validate on controller and generate token on Login
+
+
+###############################################################################################
+
 # Spring Boot Security with JWT
 1. Maven dependencies
 		<dependency>
