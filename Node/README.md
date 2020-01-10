@@ -446,9 +446,9 @@ app.listen(8000, () => {
 ```
 class ExampleController{
 
-    exampleFunction = (req, res) => {
+    exampleFunction(req, res) {
         res.status(200).send("Hello my dear!!");
-        /** If you have middleware body-parser and want JSON response like API */
+        /** If you have middleware body-parser */
         /*
         res.status(200).json({
             ok:true
@@ -506,33 +506,33 @@ class Server{
         this.app = express();
     }
 
-    buildHttpServer = () => {
+    buildHttpServer() {
         return http.createServer(this.getApp());
     }
 
-    enablePublicContent = () => {
+    enablePublicContent() {
         this.setMiddleware(express.static(path.join(__dirname,'../../public')));
     }
 
-    enableBodyParser = () => {
+    enableBodyParser() {
         this.setMiddleware(bodyParser.urlencoded({extended: false}));
         this.setMiddleware(bodyParser.json());
     }
 
-    setRoutes = () => {
+    setRoutes() {
         this.setMiddleware(require('../app/routes'));
     }
 
-    enableViewEngine = (engine) => {
+    enableViewEngine(engine) {
         //For example if you install hbs, pass parameter 'hbs'
         this.app.set('view engine', engine);
     }
 
-    setMiddleware = (middleware) => {
+    setMiddleware(middleware) {
         this.app.use(middleware);
     }
 
-    getApp = () => {
+    getApp() {
         return this.app;
     }
 }
@@ -557,7 +557,7 @@ class Startup{
     }
 
     /** MAIN NETRY to call in index.js main file */
-    main = async () => {
+    async main() {
         
         //May be call some other function Configs, 
         //for example to init socket.io, DataBase ORM or View Engine
@@ -570,7 +570,7 @@ class Startup{
         console.log(start);
     }
 
-    startServer = (server) => {
+    startServer(server) {
         let port = process.env.PORT;
         return new Promise((resolve, reject) => {
             server.listen(port, (err) => {
@@ -581,7 +581,7 @@ class Startup{
         });
     }
 
-    configureServer = () => {
+    configureServer() {
         this.server.enablePublicContent();
         this.server.enableBodyParser();
         //this.server.enableViewEngine('hbs');
@@ -589,10 +589,8 @@ class Startup{
         return this.server;
     }
 
-    buildServer = () => {
-        return this.server.getApp();
-        //When use socket io, you need http server
-        //return this.server.buildHttpServer();
+    buildServer() {
+        return this.server.buildHttpServer();
     }
 }
 

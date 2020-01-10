@@ -288,6 +288,77 @@ $ sudo docker build /path/to/folder/Dockerfile/ -t php-apache-name
 $ sudo docker run -i -t --name php-apache-name -d -p 80:80 php-apache-name
 ```
 
+
+## Node Web App container
+https://nodejs.org/de/docs/guides/nodejs-docker-webapp/
+
+1. Write scripts to start on package.json
+```
+{
+  "name": "docker_web_app",
+  "version": "1.0.0",
+  "description": "My App Desc",
+  "author": "Victor Andres Pedraza <vapedraza1706@gmail.com>",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.16.1"
+  }
+}
+```
+
+2. Create folder to put all files to build docker image
+- node-app-folders
+- Dockerfile
+- .dockerignore
+
+3. node-app-folders. 
+This are all folders that compose your app. EXCLUDE node_modules
+
+4. Dockerfile
+```
+FROM node:10
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY package*.json ./
+
+RUN npm install
+# If you are building your code for production
+# RUN npm ci --only=production
+
+# Bundle app source
+COPY . .
+
+# Expose the port your app is listen to on startup
+EXPOSE <LISTEN-PORT-ON-APP>
+
+# Exceute start command
+CMD [ "node", "index.js" ]
+```
+
+5. .dockerignore
+```
+node_modules
+npm-debug.log
+```
+
+6. Build your image
+```
+$ sudo docker build /path/to/folder/Dockerfile/ -t node-app-name
+```
+
+7. Run image and create container
+```
+$ sudo docker run -i -t --name node-app-name -d -p 8000:<LISTEN-PORT-ON-DOCKERFILE> node-app-name
+```
+
 ------------------------------------------------------------------------------------------------
 
 **IMPORTANT**
