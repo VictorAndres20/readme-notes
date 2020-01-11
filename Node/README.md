@@ -1599,6 +1599,287 @@ app.get('/user/list', [MyMiddleare.myFunction],  (req, res) => {
 
 ----------------------------------------------------------------------------------------
 
+## Node and TypeScript
+
+**Getting Started**
+
+To use TypeScript in Node, you will need to compile all TypeScript files
+, copy your not .ts files into dist/ folder and run app.
+
+1. Install globally TypeScript
+```
+$ sudo npm install -g typescript
+$ tsc -v
+```
+
+2. Execute npm init and tsc init on your main folder project
+```
+$ npm init
+$ tsc --init
+```
+
+3. This create a package.json and tsconfig.json. In tsconfig.json, uncomment outDir referencing dist as the compile result folder
+```
+// ...
+"outDir": "./dist",
+// ...
+
+4. If you have more files that are not .ts, you will need to copy all of this files
+and folders to dist/ folder. So install copyfiles
+```
+$ npm install --save copyfiles
+```
+
+5. Then, to compile in one npm script, in your package.json, add scripts:
+```
+"scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copy-data": "copyfiles data/** dist",
+    "copy-public": "copyfiles public/** public/**/** public/**/**/** dist",
+	 //"copy-views": "copyfiles views/** views/**/** dist",
+    "build": "tsc && npm run copy-data && npm run copy-public"
+  },
+```
+
+6. After finish writting code, execute
+```
+$ npm run build
+```
+
+7. Run app
+```
+$ node dist/index
+```
+
+**With TypeScript - Structure and Init Classes Configuration for express app**
+
+- Configure TS like Above first, then:
+
+0. Install
+``express, body-parser``
+
+And as develop scope, @types, this for declare some types from libraries
+For example types for express:
+```
+$ npm install --save-dev @types/express
+```
+
+1. Structure
+- public
+- src/app
+- src/app/controller
+- src/app/controller/exampleController.js
+- src/app/routes
+- src/app/routes/exampleRoute.js
+- src/app/routes/index.js
+- src/server
+- src/server/Server.js
+- src/server/Startup.js
+- src/server/config
+- src/server/config/config.js
+- index.js
+
+2. Controller ExampleController.ts
+```
+import {Request, Response} from 'express';
+
+class ExampleController{
+
+    exampleFunction(req: Request, res: Response) {
+        res.status(200).send("Hello my dear!!");
+        /** If you have middleware body-parser */
+        /*
+        res.status(200).json({
+            ok:true
+        });
+        */
+    }
+}
+
+export default ExampleController;
+```
+
+3. Route exampleRoutes.ts
+```
+import {Router, Request, Response} from 'express';
+import ExampleController from '../controller/ExampleController';
+
+const exampleController = new ExampleController();
+const router = Router();
+
+router.get('/',(req: Request, res: Response) => {
+    exampleController.exampleFunction(req, res);
+});
+
+export default router;
+```
+
+4. Route index.ts
+```
+import {Router} from 'express';
+import exampleRouter from './exampleRoutes';
+
+const router = Router();
+
+router.use(exampleRouter);
+
+export default router;
+```
+
+5. config.ts example
+```
+declare namespace NodeJS {
+    export interface ProcessEnv {
+        PORT: string;
+    }
+}
+
+/** ********************* SERVER CONFIG *********************** */
+/** Port */
+process.env.PORT = process.env.PORT || "8000";
+/*********** */
+```
+
+6. Server.ts
+```
+import express from 'express';
+import http from 'http';
+import path from 'path';
+import bodyParser from 'body-parser';
+import routes from '../app/routes/index';
+
+class Server{
+
+    app: express.Application;
+
+    constructor(){
+        this.app = express();
+    }
+
+    buildHttpServer() {
+        return http.createServer(this.getApp());
+    }
+
+    enablePublicContent() {
+        this.setMiddleware(express.static(path.join(__dirname,'../../public')));
+    }
+
+    enableBodyParser() {
+        this.setMiddleware(bodyParser.urlencoded({extended: false}));
+        this.setMiddleware(bodyParser.json());
+    }
+
+    setRoutes() {
+        this.setMiddleware(routes);
+    }
+
+    enableViewEngine(engine: string) {
+        //For example if you install hbs, pass parameter 'hbs'
+        this.app.set('view engine', engine);
+    }
+
+    setMiddleware(middleware: express.RequestHandler) {
+        this.app.use(middleware);
+    }
+
+    getApp() {
+        return this.app;
+    }
+}
+
+export default Server;
+```
+
+7. Startup.ts
+```
+require('./config/config');
+import Server from "./Server";
+//Some Other Configuration imports,
+//for example socket.io, DataBase ORM or View Engine HBS
+//import hbs from './hbs';
+
+class Startup{
+
+    server: Server;
+
+    constructor(server: Server){
+        this.server = server;
+    }
+
+    /** MAIN NETRY to call in index.js main file */
+    async main() {
+        
+        //May be call some other function Configs, 
+        //for example to init socket.io, DataBase ORM or View Engine
+
+        //hbs.registerPartials();
+        //hbs.registerHelpers();
+
+        this.configureServer();
+        let start = await this.startServer(this.buildServer());
+        console.log(start);
+    }
+
+    startServer(server: any) {
+        let port = Number(process.env.PORT);
+        return new Promise((resolve, reject) => {
+            server.listen(port, (err: any) => {
+                if(err) reject(err);
+
+                resolve(`Server stated at port ${port}`);
+            });
+        });
+    }
+
+    configureServer() {
+        this.server.enablePublicContent();
+        this.server.enableBodyParser();
+        //this.server.enableViewEngine('hbs');
+        this.server.setRoutes();
+        return this.server;
+    }
+
+    buildServer() {
+        return this.server.buildHttpServer();
+    }
+}
+
+export default Startup;
+```
+
+8. index.ts MAIN
+```
+import Server from './src/server/Server';
+import Startup from './src/server/Startup';
+
+const server = new Server();
+const startup = new Startup(server);
+
+startup.main()
+.catch((err: Error) => {
+    console.log(err.message);
+    process.exit();
+});
+```
+
+9. **If you use hbs**
+```
+//hbs.ts
+import hbs from 'hbs';
+import path from 'path';
+
+export const registerPartials = () => {
+    hbs.registerPartials(path.join(__dirname,'../../views/partials'));
+}
+
+export const registerHelpers = () => {
+    hbs.registerHelper('getActualYear',require('../helpers/dateHelper').getActualYear);
+}
+
+```
+
+----------------------------------------------------------------------------------------
+
 
 ## Implementing JWT
 
@@ -2167,8 +2448,6 @@ function socketIOSendMessage(messageID, message, callback){
 ```
 
 ----------------------------------------------------------------------------------------
-
-
 
 ## Create LOCALLY Node modules and Installed in other Node application
 https://dev.to/therealdanvega/creating-your-first-npm-package-2ehf
