@@ -2569,8 +2569,27 @@ export default class UserRepository{
 
 ----------------------------------------------------------------------------------------
 
-## Create LOCALLY Node modules and Installed in other Node application
-https://dev.to/therealdanvega/creating-your-first-npm-package-2ehf
+## Pack Node modules and Install it LOCALLY in other Node application
+https://stackoverflow.com/questions/28440893/install-a-locally-developed-npm-package-globally
+
+1. Pack node app to use it in other app.
+```
+$ npm pack
+```
+
+2. Cut the .tgz file into your app that use it. 
+Recommend to create folder local_modules
+and paste here
+
+3. Install it as dependency
+```
+npm install --save file:./local_modules/node-app-1.0.0.tgz
+```
+
+4. Use it like.
+```
+import User from 'node-app/src/model/User';
+```
 
 
 ----------------------------------------------------------------------------------------
