@@ -188,14 +188,39 @@ $ sudo docker exec -it <postgres_container_name> psql -U <user>
 
 ## MongoDB
 ```
-$ sudo docker run -i -t --name mongo-name -d -p 27017-27019:27017-27019 mongo
+$ sudo docker run -i -t --name mongo-name -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=secret -d -p 27017-27019:27017-27019 mongo --auth
 ```
 **Execute MongoDB container**
 ```
 $ sudo docker exec -it <container id> bash
-$ mongo
+$ mongo -u root -p secret **OR** $ mongo [db] -u user_db -p secret
+> show dbs;
 > //Create your database and all stuff
 ```
+**Create Backup**
+1. Dump inside container
+```
+$ sudo docker exec -it <container-id> bash
+$ cd /
+$ mongodump --port 27017 -u root -p secret -o /dump/
+$ exit
+``` 
+2. Copy backup on your machine
+```
+$ cd /path/to/mongo-backup
+$ sudo docker cp <CONTAINER ID>:/dump .
+```
+**Restore Backup**
+1. If you have backup on your machine, copy inside container
+```
+$ cd /path/to/restore/
+$ docker cp dump <CONTAINER ID>:/restore-mongo/
+``` 
+2. Restore inside container
+```
+$ sudo docker exec -it <container-id> bash
+$ mongorestore --port 27017 --drop --db <DB NAME> /restore-mongo/db_name/
+$ exit
 
 ## httpd container
 ```
