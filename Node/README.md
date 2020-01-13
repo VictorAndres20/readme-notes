@@ -2593,3 +2593,33 @@ import User from 'node-app/src/model/User';
 
 
 ----------------------------------------------------------------------------------------
+
+## Switch npm to yarn and reverse
+
+**npm to yarn**
+1. Delete package-lock.json
+
+2. Delete node_modules
+
+3. Execute npm
+```
+$ yarn
+```
+ 
+**yarn to npm**
+1. Delete yarn.lock
+
+2. Delete node_modules
+
+3. Execute npm
+```
+$ npm install
+```
+
+
+**NOTE install yarn**
+```
+$ sudo npm install -g yarn
+```
+
+----------------------------------------------------------------------------------------
