@@ -1591,12 +1591,20 @@ Note that [profileName] must be the same you put in pom.xl inside
 				<activeByDefault>
 ```
 
-4. In application.properties specify which profile use
+4. In application.properties specify which profile use or put a default with ${some:default}
 ```
-spring.profiles.active = dev
+spring.profiles.active = ${my.active.spring.profiles:dev}
 ```
 
-5. Run or package application
+5. Run or package application specifying profile:
+```
+$ mvn -Dmy.active.spring.profiles=prod clean install
+```
+
+5. Run or package application using default profile:
+```
+$ mvn clean install
+```
 
 
 
