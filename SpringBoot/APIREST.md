@@ -1525,6 +1525,81 @@ public class PetsappCoreApplication {
 
 }
 ```
+
+
+###############################################################################################
+
+
+# Use maven profiles in SpringBoot
+http://dolszewski.com/spring/spring-boot-properties-per-maven-profile/
+
+1. Create maven profiles in your pom.xml
+```
+<project>
+
+...
+
+    <profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<activatedProperties>dev</activatedProperties>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<activatedProperties>prod</activatedProperties>
+			</properties>
+		</profile>
+	</profiles>
+
+...
+
+</project>
+```
+
+2. Allow Maven to manipulate resource files, so paste this inside build tag
+```
+<build>
+
+    ...
+
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+        </resource>
+    </resources>
+</build>
+```
+
+3. Create profile properties with sintax ``application-[profileName].properties``
+```
+application-dev.properties
+application-prod.properties
+```
+
+Note that [profileName] must be the same you put in pom.xl inside
+```
+    <profiles>
+		<profile>
+			<activation>
+				<activeByDefault>
+```
+
+4. In application.properties specify which profile use
+```
+spring.profiles.active = dev
+```
+
+5. Run or package application
+
+
+
 ###############################################################################################
 
 # Propeties
