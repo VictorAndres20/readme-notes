@@ -392,9 +392,230 @@ $ sudo npm install mdbreact --save
 ## React Redux app
 
 0. Package structure
+- src/_services
+- src/actions/index.js
+- src/actions/[setActionExample].js
+- src/components/modules
+- src/components/containers
+- src/config
+- src/reducers/index.js
+- src/reducers/[stateExample].js
+- src/store/index.js
+- App.js
+- index.js
 
 1. Install
 ``redux, react-redux``
 
-2. 
+2. src/_services
+Here you can write all your API calls and return promises if yuo need
+
+3. actions/[setActionExample].js
+In actions folder you create all actions, for example setSession, setUsers, 
+createUser, setProducts, etc...
+```
+import {loginService, validateLogin} from '../_services/LoginService';
+import {batch} from 'react-redux';
+
+export const SET_SESSION_ACTION = 'SET_SESSION';
+
+export const login = (payload, navigate) => {
+    return dispatch => {
+        // You can call more actions here before execute fetch.
+        // dispatch(someAction(payload));
+
+        // Use batch from react-redux to call two or more actions
+        /*
+        batch(() => {
+            dispatch(someAction1(payload));
+            dispatch(someAction2(payload));
+        })
+        */
+        
+        
+        dispatch(setSession({ok: false, loaded: false}));
+        loginService(payload.body)
+        .then(data => {
+            if(validateLogin(data)){
+                dispatch(setSession({
+                    ok: true, 
+                    loaded: true,
+                    msg: data.content.message, 
+                    token: data.content.token
+                }));
+                if(typeof navigate === 'function') navigate();
+            } else
+                dispatch(setSession({                    
+                    loaded: true, 
+                    msg: (data.content == null ? data.message : data.content.message)
+                }));
+        })
+        .catch(err => dispatch(setSession({loaded: true, msg: err.message})));
+
+        return;
+    };
+};
+
+export const setSession = (payload) => ({
+    type: SET_SESSION_ACTION,
+    payload
+});
+```
+
+4. actions/index.js
+Here you import and export all actions
+```
+import {login, setSession} from './session.actions';
+//All more actions
+
+export {
+    login,
+    setSession,
+	 //All more actions
+}
+```
+
+5. reducers/[stateExample].js
+Here you create reducers. This are states that you can use
+```
+import {SET_SESSION_ACTION} from '../actions/session.actions';
+
+const defaultState = {
+    ok: false, 
+    loaded: true,
+    msg: '', 
+    token: ''
+};
+
+const buildState = (state, {ok, loaded, msg, token}) => {
+    return {...state, ok, loaded, msg, token};
+};
+
+const session = (state = defaultState, action) => {
+    switch(action.type){
+        case SET_SESSION_ACTION:{
+            return buildState(state, action.payload);    
+        }             
+        default: 
+            return state;
+    }
+}
+
+export default session;
+```
+
+6. reducers/index.js
+Here you combine all reducers
+```
+import {combineReducers} from 'redux';
+import session from './session';
+//More reducers
+
+export default combineReducers({
+    session,
+	 //More reducers
+});
+```
+
+7. store/index.js
+Create store to store application states, reducers
+```
+import {createStore, applyMiddleware} from 'redux';
+import thunk from 'redux-thunk';
+import storeRoot from '../reducers';
+
+//const initialState = {};
+
+export const store = createStore(storeRoot, applyMiddleware(thunk));
+```
+
+8. index.js
+Wrap application with the store using provider
+```
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'antd/dist/antd.css';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {Provider} from 'react-redux'; //This
+import {store} from './store'; //This
+import './index.css';
+import App from './App';
+import * as serviceWorker from './serviceWorker';
+
+//Wrap
+ReactDOM.render(<Provider store={store}><App /></Provider>, document.getElementById('root'));
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: https://bit.ly/CRA-PWA
+serviceWorker.unregister();
+```
+
+9. componets/containers
+Here you create all components that can be use in many modules, 
+example NavBar, Footer, Header, etc.
+
+10. componets/module/login/index.js
+In modules you create index.js, This will be the ClassComponent MAIN.
+In index.js you connect you app with Redux
+Then you create all functional components to use in module.
+```
+import React from 'react';
+import {connect} from 'react-redux';
+import {login} from '../../../actions';
+import { Container, Row, Col} from 'antd';
+import Login from './Login';
+
+class LoginModule extends React.Component{
+
+    send = () => {
+        let body = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        }
+        this.props.login({body}, () => {
+            alert("Go to home");
+        });
+    }
+
+    render() {
+        console.log(this.props.session);
+        return (
+            <Container>
+		          <Row>
+		              <Col sm={4}></Col>
+		              <Col sm={4}>
+		                  <Login login={this.send} />
+		              </Col>
+		              <Col sm={4}></Col>
+		          </Row>
+		      </Container>
+          );
+    }
+}
+
+const mapStateToProps = (state) => ({
+    session: state.session
+});
+
+const mapDispatchToProps = dispatch => ({
+    login: (body, navigate) => dispatch(login(body, navigate))
+});
+
+/* mapDispatchToProps could be better
+const mapDispatchToProps = {
+    login
+};
+*/
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginModule);
+```
+
+
+**Redux Forms**
+
+
+
+
+
 -------------------------------------------------------------------------------------------------------------------------------
