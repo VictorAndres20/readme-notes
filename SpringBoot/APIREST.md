@@ -1529,8 +1529,35 @@ public class PetsappCoreApplication {
 
 ###############################################################################################
 
+# BCrypt usage
 
-# Use maven profiles in SpringBoot
+```
+import com.sun.xml.fastinfoset.util.CharArray;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+public final class SecurityEncoderHelper {
+
+    private SecurityEncoderHelper(){}
+
+    public static String encodePasswordBCrypt(String password){
+        return new BCryptPasswordEncoder().encode(password);
+    }
+
+    public static boolean comparePasswordBCrypt(String plainPassword, String hashedPassword){
+        char[] charArrayPasswordInput = plainPassword.toCharArray();
+        CharSequence charSequence = new CharArray(charArrayPasswordInput,0,charArrayPasswordInput.length,true);
+        return new BCryptPasswordEncoder().matches(charSequence,hashedPassword);
+    }
+
+}
+```
+
+
+
+###############################################################################################
+
+
+# Use spring profiles in SpringBoot and Maven
 http://dolszewski.com/spring/spring-boot-properties-per-maven-profile/
 
 1. Create maven profiles in your pom.xml
