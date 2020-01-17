@@ -1547,6 +1547,9 @@ http://dolszewski.com/spring/spring-boot-properties-per-maven-profile/
 			</properties>
 			<activation>
 				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>dev</name>
+				</property>
 			</activation>
 		</profile>
 		<profile>
@@ -1554,6 +1557,11 @@ http://dolszewski.com/spring/spring-boot-properties-per-maven-profile/
 			<properties>
 				<activatedProperties>prod</activatedProperties>
 			</properties>
+			<activation>
+				<property>
+					<name>prod</name>
+				</property>
+			</activation>
 		</profile>
 	</profiles>
 
@@ -1587,23 +1595,23 @@ Note that [profileName] must be the same you put in pom.xl inside
 ```
     <profiles>
 		<profile>
-			<activation>
-				<activeByDefault>
+			<properties>
+				<activatedProperties>
 ```
 
 4. In application.properties specify which profile use or put a default with ${some:default}
 ```
-spring.profiles.active = ${my.active.spring.profiles:dev}
+spring.profiles.active=@activatedProperties@
 ```
 
 5. Run or package application specifying profile:
 ```
-$ mvn -Dmy.active.spring.profiles=prod clean install
+$ mvn package -Pprod
 ```
 
 5. Run or package application using default profile:
 ```
-$ mvn clean install
+$ mvn clean package
 ```
 
 
