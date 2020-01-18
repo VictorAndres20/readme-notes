@@ -46,12 +46,12 @@ $ npm install --save react-router-dom
 
 # USAGE React Router Dom
 
-Router.js FILE
+1. Router.js FILE
 ```
 ...
 
 import React from 'react';
-import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import {BrowserRouter as Router, Route, Switch} from 'react-router-dom';
 
 import ErrorPage from '../ErrorPage/ErrorPage.js';
 .. ALL COMPONENTS
@@ -63,16 +63,15 @@ class Router extends React.Component
         return(
             <BrowserRouter basename="/YOUR_APP_NAME" >
                 <Switch>
-                    {/** Ruta por default */}
-                    <Route exact path='/user/' render={(props)=> <Inicio user={this.props.user}/>}/>
-                    {/** Rutas especificas */}
-                    <Route path='/user/inicio' render={(props)=> <Inicio user={this.props.user}/>}/>
-                    <Route path='/user/cuidadores' render={(props)=> <Cares user={this.props.user}/>}/>
-                    <Route path='/user/mascotas' render={(props)=> <Pets user={this.props.user}/>}/>
-                    <Route path='/user/configuracion' render={(props)=> <Config user={this.props.user}/>}/>
-						  <Route path='/user/care/:id' render={({match})=> <CareProfile match={match} user={this.props.user}/>}/>
+                    <Route exact path='/user' render={(props)=> <Inicio user={this.props.user}/>}/>
+                    <Route exact path='/user/inicio' render={(props)=> <Inicio user={this.props.user}/>}/>
+                    <Route exact path='/user/cuidadores' render={(props)=> <Cares user={this.props.user}/>}/>
+                    <Route exact path='/user/mascotas' render={(props)=> <Pets user={this.props.user}/>}/>
+                    <Route exact path='/user/configuracion' render={(props)=> <Config user={this.props.user}/>}/>
+						  <Route path='/user/care/nuevo' render={(props) => <CareNew user={this.props.user}/>}/>
+						  <Route path='/user/care/edit/:id' render={({match})=> <CareProfile match={match} user={this.props.user}/>}/>
 							{/** Usar parametro pasado por URL this.props.match.params.id */}
-                    {/** Ruta no especificada */}
+                    
                     <Route component={ErrorPage} />
                 </Switch>
             </BrowserRouter>
@@ -83,12 +82,67 @@ class Router extends React.Component
 export default Router;
 ```
 
-Implement.js
+2. Implement.js
 ```
 ...
 href=/YOUR_APP_NAME/ruta
 ```
 
+# Link to navigate in HTML
+
+
+# Use History to push('/some/url'), goBack(), replace('/some/url')
+
+1. Create HistoryHelper
+```
+import { createBrowserHistory } from 'history';
+
+export default createBrowserHistory();
+```
+
+2. Pass History from BrowserRouter to components
+```
+import HistoryHelper from '../../_helpers/HistoryHelper';
+
+export const AppRoute = () => {
+    return(
+        <Router history={HistoryHelper}>
+```
+
+3. Use it on any component that has prop.history or action
+```
+import React from 'react';
+import {Nav, Navbar, NavDropdown} from 'react-bootstrap';
+
+const NavBar = (props) => {
+    return(
+        <Navbar bg="primary" variant="dark" expand="lg">
+            <Navbar.Brand href="/users/">React-Redux-App</Navbar.Brand>
+            <Navbar.Toggle aria-controls="basic-navbar-nav" />
+            <Navbar.Collapse id="basic-navbar-nav">
+                <Nav className="mr-auto">
+                <Nav.Link href="/users/">Home</Nav.Link>
+                <NavDropdown title="Actions" id="basic-nav-dropdown">
+                    <NavDropdown.Item href="/users/create">Create</NavDropdown.Item>
+                    <NavDropdown.Divider />
+                    <NavDropdown.Item href="#!" onClick = { () => {props.exit(() => {
+                            
+                            
+                            props.history.replace('/'); // or any
+                        
+                        
+                        })}}>
+                        Logut
+                    </NavDropdown.Item>
+                </NavDropdown>
+                </Nav>
+            </Navbar.Collapse>
+        </Navbar>
+    );
+}
+
+export default NavBar;
+```
 
 
 -------------------------------------------------------------------------------------------------------------------------------
