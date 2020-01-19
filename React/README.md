@@ -668,6 +668,193 @@ export default connect(mapStateToProps, mapDispatchToProps)(LoginModule);
 
 **Redux Forms**
 
+1. Install redux-form
+
+2. Add reducer redux-form in combineReducers
+```
+// reducers/index.js
+import {combineReducers} from 'redux';
+import testOne from './testOne';
+import session from './session';
+import user from './user';
+
+/** Redux Form */
+import {reducer as reduxForm} from 'redux-form';
+
+export default combineReducers({
+    testOne,
+    session,
+    user,
+    
+    /** Redux form MUST be 'form' */
+    form: reduxForm
+});
+```
+
+3. Create HOC to wrap component with initial props in src/hoc folder
+```
+// wrapComponentHoc.js
+
+import React from 'react';
+
+export const setPropsAsInitial = WrappedComponent => (
+    class extends React.Component{
+        render(){
+            return <WrappedComponent 
+                {...this.props} 
+                initialValues = {this.props}
+                //enableReinitialize //This if you want to reset values before submit success            
+            />
+        }
+    }
+)
+```
+
+4. Maybe create some validations helper
+```
+export const isRequired = value => {
+    if(!value)
+        return 'This field is required';
+}
+```
+
+
+5. Create FormComponent in components/containers/forms
+```
+import React from 'react';
+import {reduxForm, Field} from 'redux-form';
+import {setPropsAsInitial} from '../../../_hoc/wrapComponentHoc';
+import { Form, Icon, Input, Button} from 'antd';
+import {isRequired} from '../../../_helpers/redux-form-valiations';
+
+const LoginForm = (props) => {
+    /** Must be hanldeSubmit */
+    let {handleSubmit} = props;
+    return(
+        <Form onSubmit = {handleSubmit} className="login-form">
+        <Form.Item>                
+            <Field 
+                name="username"
+                component = {TextField}
+                type = 'text'
+                validate = {[isRequired]}
+            />
+        </Form.Item>
+                        
+        <Field 
+            name="password"
+            component = {TextPassword}
+            validate = {[isRequired]}
+        />
+        
+        <Form.Item>
+            {displayButton(props)}
+        </Form.Item>
+        </Form>
+    );
+}
+
+const TextField = ({input, meta}) => (
+    <div>
+        <Input {...input}
+            prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />}
+            placeholder="Username"
+        />
+        {meta.error && <span>{meta.error}</span>}
+    </div>
+);
+
+const TextPassword = ({input, meta}) => (
+    <Form.Item validateStatus={meta.error ? "error" : ""}>
+        <Input.Password {...input}
+            prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />}
+            allowClear
+            placeholder="Password"
+            />
+        {meta.error && <span>{meta.error}</span>}
+    </Form.Item>
+);
+
+const displayButton = (props) => {
+    console.log(props);
+    if(! props.loaded){
+        return(
+        <div>Loading...</div>
+        );
+    } else {
+        return(
+        <Button type="primary" htmlType="submit" className="login-form-button">
+            Log in
+        </Button>
+        );
+    }
+}
+
+const LoginReduxForm = reduxForm({form: 'LoginForm'})(LoginForm);
+
+export default setPropsAsInitial(LoginReduxForm);
+```
+
+6. Use it on connected component
+```
+import React from 'react';
+import { connect } from 'react-redux';
+import {login} from '../../../actions/session.actions';
+import {Container, Row, Col} from 'react-bootstrap';
+import LoginReduxForm from '../../containers/forms/loginForm';
+
+class LoginModule extends React.Component {
+
+    send = (values) => {
+        let {username, password} = values;
+        let body = {
+            username,
+            password
+        }
+        this.props.login({body}, () => {
+            this.props.history.push('/users/');
+        });
+    }
+    
+    render(){
+        console.log(this.props.session);
+        return(
+            <Container style={{marginTop: 30 + 'px'}}>
+                <Row>
+                    <Col sm={4}></Col>
+                    <Col sm={4}>
+                        <LoginReduxForm 
+                            /** Custome props */
+                            loaded={this.props.session.loaded} 
+                            
+                            /** Redux Form props */
+                            // Default values in form.
+                            // props must be equals as 'name' attribute
+                            //username={"myDefaultUsername"}
+                            //If you have a complete object from reducer,
+                            //use copy props to use all atributes
+                            //{...this.props.customer}
+                            //To handle submit, must be onSubmit
+                            onSubmit={this.send} />
+                    </Col>
+                    <Col sm={4}></Col>
+                </Row>
+            </Container>
+            
+        );
+    }
+}
+
+const mapStateToProps = (state) => ({
+    session: state.session
+});
+
+const mapDispatchToProps = dispatch => ({
+    login: (body, navigate) => dispatch(login(body, navigate))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoginModule);
+```
 
 
 
