@@ -1,0 +1,43 @@
+###################################################################################################################################
+
+/* Deploy Laravel project */
+https://laraveles.com/laravel-servidor-compartido/ -> Laravel on public_html
+
+Caso 1 - Proyecto Laravel como RAIZ
+_____________________________________
+
+Necesito subir mi proyecto a la raíz de mi sitio web es decir en “www.example.com” y sabemos que este directorio raíz en la
+mayoría de los casos es una carpeta llamada public_html.
+Lo que debemos hacer a continuación es:
+1. Copiar todos los archivos de de la carpeta public de Laravel y colocarlos dentro de public_html en el Hosting.
+De esta manera el index.php que estará allí sera el de nuestra aplicación en laravel.
+2. Subir resto de Proyecto de Laravel a Servidor Compartido.
+Con esto, todo el contenido que estaba dentro de proyecto_Laravel/public ahora esta dentro de nuestro directorio public_html.
+3. Editar el archivo index.php en el cual ahora debemos apuntar a una nueva rutas de los require.
+
+Esto ------>
+
+require __DIR__.'/../bootstrap/autoload.php'; 
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+POR ------>
+
+require __DIR__.'../proyecto_compartido/bootstrap/autoload.php';
+$app = require_once __DIR__.'../proyecto_compartido/bootstrap/app.php';
+
+
+/* Configuraciones necesarias */
+
+IMPOTANTE
+______________
+
+Sea cual sea el caso, se debe editar AppServiceProvider. Dentro del método register debes colocar tu nueva ruta
+
+$this->app->bind('path.public', function() {
+    return base_path('public_html');
+});
+
+*** Y CAMBIAR CONEXIÓN BASE DE DATOS EN .env FILE ****
+
+###################################################################################################################################
+
