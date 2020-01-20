@@ -2210,8 +2210,7 @@ const uploadImage = (req, res) => {
 module.exports = {
     uploadImage
 }
-``
-`
+```
 
 5. Render image Controller
 ```
@@ -2265,7 +2264,7 @@ module.exports = app;
 
 **To handle Bytes and types**
 ```
-
+//
 ```
 
 ----------------------------------------------------------------------------------------
