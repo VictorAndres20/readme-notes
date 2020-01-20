@@ -1629,9 +1629,9 @@ $ tsc --init
 
 3. This create a package.json and tsconfig.json. In tsconfig.json, uncomment outDir referencing dist as the compile result folder
 ```
-// ...
+// 
 "outDir": "./dist",
-// ...
+// 
 
 4. If you have more files that are not .ts, you will need to copy all of this files
 and folders to dist/ folder. So install copyfiles
