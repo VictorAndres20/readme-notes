@@ -35,6 +35,51 @@ $ sudo docker image rm -f <ID>
 
 ------------------------------------------------------------------------------------------------
 
+## Dockerfile specification
+
+- FROM image:tag
+	- Base of image or OS that you will build image
+	
+- LABLE key=value
+	- Specify some meta data, for example author="Victor Andres"
+
+- RUN command 
+	- Execute a linux command inside image.
+
+- COPY /local/machine/path /inside/image/path
+	- Copy files from local machine to image
+
+- ADD URL /inside/image/path
+	- Add files form URL or local machine to image. this add files inside path
+
+- ENV ENVIRONMENT_VARIABLE value
+	- Create environment variable inside image
+
+- WORKDIR /inside/image/path/folder
+	- Is like cd path inside image.
+	
+- EXPOSE port
+	- Expose a port inside image
+
+- VOLUME /path/inside/local/machine /path/inside/container
+	- Persist container files inside local machine
+
+- CMD command
+	- Executed when the container start
+	
+- .dockerignore
+	- Create this file to ignore folders and files that you dont wnat to copy inside image
+	
+**Good Practices**
+
+1. One service by container
+2. Few layers. More than one argument by layer, if you need.
+3. Use LABEL
+
+
+
+------------------------------------------------------------------------------------------------
+
 # Containers
 
 ## Create Containers
