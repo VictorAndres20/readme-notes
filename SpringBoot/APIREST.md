@@ -1645,6 +1645,155 @@ $ mvn clean package
 
 ###############################################################################################
 
+# SpringBoot and Swagger documentation
+https://dzone.com/articles/spring-boot-2-restful-api-documentation-with-swagg
+
+1. Dependencies
+		<dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-bean-validators</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+		
+2. Folder config
+```
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import com.google.common.base.Predicate;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import static springfox.documentation.builders.PathSelectors.regex;
+import static com.google.common.base.Predicates.or;
+
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+    @Bean
+    public Docket postsApi() {
+        return new Docket(DocumentationType.SWAGGER_2).groupName("Novopangea Software Engineering Team")
+                .apiInfo(apiInfo()).select().paths(specificPaths()).build();
+    }
+
+    private Predicate<String> specificPaths() {
+        return or(regex("/users.*"), regex("/login*"));
+    }
+
+    private Predicate<String> allPaths() {
+        return or(regex("/.*"));
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder().title("Application name")
+                .description("Description app")
+                .termsOfServiceUrl("http://example.com")
+                .contact(new Contact("Name Dev Team",
+                        "http://example.com", "development@example.com"))
+                .license("MIT")
+                .licenseUrl("http://example.com")
+                .version("1.0")
+                .build();
+    }
+
+}
+```
+
+3. Now you can deploy app and go to
+```
+http://host:port/swagger-ui.html
+```
+
+4. Description of endpoints. In controllers request methods
+```
+//CODE
+@RestController
+@RequestMapping("/api")
+@Api(tags = {"Employee resources"})
+public class AgreementController{
+
+//CODE
+
+	@ApiOperation(value = "Response with data and a list of available employees")
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Successfully retrieved list"),
+		@ApiResponse(code = 401, message = "You are not authorized to view the resource"),
+		@ApiResponse(code = 403, message = "Accessing the resource you were trying to reach is forbidden"),
+		@ApiResponse(code = 404, message = "The resource you were trying to reach is not found")
+	})
+	@GetMapping("/employees")
+	public List <EmployeeOutput> getAllEmployees() {
+		return employeeService.findAll();
+	}
+
+	@ApiOperation(value = "Get an employee by Id")
+    @GetMapping("/employees/{id}")
+    public ResponseEntity < Employee > getEmployeeById(
+        @ApiParam(value = "Employee id from which employee object will retrieve", required = true) @PathVariable(value = "id") Long employeeId)
+    throws ResourceNotFoundException {
+        Employee employee = employeeRepository.findById(employeeId)
+            .orElseThrow(() - > new ResourceNotFoundException("Employee not found for this id :: " + employeeId));
+        return ResponseEntity.ok().body(employee);
+    }
+	
+    @ApiOperation(value = "Add an employee")
+    @PostMapping("/employees")
+    public Employee createEmployee(
+        @ApiParam(value = "Employee object store in database table", required = true) @Valid @RequestBody EmployeeInput employee) {
+        return employeeRepository.save(employee);
+    }
+
+//CODE
+```
+
+5. Descriptions if swagger models. In domains
+```
+public class EmployeeOutput {
+
+    @ApiModelProperty(notes = "The database generated employee ID")
+    private long id;
+    
+	@ApiModelProperty(notes = "The employee first name")
+    private String firstName;
+    
+	@ApiModelProperty(notes = "The employee last name")
+    private String lastName;
+    
+	@ApiModelProperty(notes = "The employee email id")
+    private String emailId;
+    
+	public Employee() {
+    }
+	
+//CODE
+```
+
+6. Deploy app and go to
+```
+http://host:port/swagger-ui.html
+```
+		
+		
+		
+
+
+###############################################################################################
+
 # Propeties
   <properties>
 	  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
