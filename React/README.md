@@ -860,3 +860,51 @@ export default connect(mapStateToProps, mapDispatchToProps)(LoginModule);
 
 
 -------------------------------------------------------------------------------------------------------------------------------
+
+# HOC to protect auth module compoents
+
+1. HOC
+```
+import React from 'react';
+import {validateSession} from '../_helpers/sessionHelper';
+
+const WrapAuthComponent = (AuthComponent) => (
+    class extends React.Component{
+        render(){
+            if(validateSession()){
+                return(<AuthComponent {...this.props} />);
+            } else {
+                return(
+                    <>
+                        Unauthorized
+                    </>
+                );
+            }
+        }
+    }
+);
+
+export default WrapAuthComponent;
+```
+
+2. Use it on Module you want to protect
+```
+// CODE
+
+export const AppRoute = () => {
+    return(
+        <Router history={HistoryHelper}>
+            <Switch>
+                <Route exact path = "/" component = {LoginModule} />
+                <Route exact path = "/test" component = {TestModule} />
+                <Route path = "/users" component = {WrapAuthComponent(UserModule)} />
+
+                <Route component = {NotFoundModule} />
+            </Switch>
+        </Router>
+    );
+}
+```
+
+
+-------------------------------------------------------------------------------------------------------------------------------

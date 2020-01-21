@@ -9,6 +9,15 @@ $ sudo git remote add origin http://github/repository
 -------------------------------------------------------------------------------------------------
 
 
+# chown .git to your user for dont use sudo
+```
+$ sudo chown -R user:user /path/to/your/project/.git
+```
+
+
+-------------------------------------------------------------------------------------------------
+
+
 # Add files, commit and push
 git push -u [REMOTE REPO] [BRANCH]
 ```
