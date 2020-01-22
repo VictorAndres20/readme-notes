@@ -141,6 +141,27 @@ $ sudo docker rm <CONTAINER ID>
 $ sudo docker inspect <CONTAINER ID> | grep IPAddress
 ```
 
+**List container stat**
+```
+$ sudo docker stats <CONTAINER ID>
+```
+
+**Limit RAM conatiner**
+```
+$ sudo docker run -m "5gb" --name container-name image
+```
+
+**Limit CPU conatiner**
+```
+$ grep "model name" /proc/cpuinfo | wc -l
+$ sudo docker run -m "5gb" --cpuset-cpus 0-1 --name container-name image
+```
+
+**Copy files from container to machine**
+```
+docker cp container-name:/path/inside/container /path/local/machine
+```
+
 
 ------------------------------------------------------------------------------------------------
 
