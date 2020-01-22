@@ -1688,7 +1688,7 @@ public class SwaggerConfig {
     @Bean
     public Docket postsApi() {
         return new Docket(DocumentationType.SWAGGER_2).groupName("Novopangea Software Engineering Team")
-                .apiInfo(apiInfo()).select().paths(specificPaths()).build();
+                .apiInfo(apiInfo()).select().paths(allPaths()).paths(excludePaths()).build();
     }
 
     private Predicate<String> specificPaths() {
@@ -1697,6 +1697,10 @@ public class SwaggerConfig {
 
     private Predicate<String> allPaths() {
         return or(regex("/.*"));
+    }
+	
+	private Predicate<String> excludePaths() {
+        return or(regex("(?!/error).+"));
     }
 
     private ApiInfo apiInfo() {

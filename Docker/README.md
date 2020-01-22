@@ -159,11 +159,129 @@ $ sudo docker run -m "5gb" --cpuset-cpus 0-1 --name container-name image
 
 **Copy files from container to machine**
 ```
-docker cp container-name:/path/inside/container /path/local/machine
+$ sudo docker cp container-name:/path/inside/container /path/local/machine
+```
+
+**Logs**
+```
+$ sudo docker logs -f <CONTAINER-ID>
 ```
 
 
 ------------------------------------------------------------------------------------------------
+
+# Volumes
+
+**Create named volume**
+
+1. Create volume. This will create a folder in docker home -> '/var/lib/docker' default
+```
+$ sudo docker volume create volume-name
+```
+
+2. Create docker and associate named volume
+```
+$ sudo docker run --name postgres_vitolo -e POSTGRES_PASSWORD=passwd -d -p 5432:5432 -v volume-name:/var/lib/postgresql/data postgres
+```
+You can use one volume in many containers
+
+**List volumes**
+```
+$ sudo docker volume ls
+```
+
+**List Dangling volumes**
+Volumes that are create but are not referenced by any container
+```
+$ sudo docker volume ls -f dangling=true
+```
+
+**Delete Dangling volumes**
+```
+$ sudo su
+$ docker volume ls -f dangling=true | xargs docker volume rm
+```
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+# Docker network
+
+**Default network bridge**
+```
+$ sudo docker network inspect bridge
+```
+
+**List docker networks**
+```
+$ sudo docker network ls
+```
+
+**Create network**
+```
+$ sudo docker network create network-name
+```
+
+**Create network with custom subnet**
+```
+$ sudo docker network create -d bridge --subnet 172.124.10.0/24 --gateway 172.124.10.1 network-name
+```
+
+**Add container to created network**
+```
+$ sudo docker run --network network-name --name php-name -d -p 80:80 php-image
+```
+
+**Connect containers in same created network**
+You can do it by container-name or IP assigned
+```
+$ sudo docker exec cont1-name bash -c "ping cont2-name"
+$ sudo docker exec cont1-name bash -c "ping 172.124.10.3"
+```
+
+**Connect container to more than one network**
+```
+$ sudo docker network connect network-name container-name
+```
+
+**Disconnect container to more than one network**
+```
+$ sudo docker network disconnect network-name container-name
+```
+
+**Assign IP to container in created network**
+```
+$ sudo docker run --network network-name --ip 172.124.10.20 --name php-name -d -p 80:80 php-image
+```
+
+**Delete docker network**
+```
+$ sudo docker network rm network-name
+```
+Need to delete containers or disconnect connected containers
+
+
+
+
+**Connect to local machine network (host)**
+```
+sudo docker run --network host --name php-name -d -p 80:80 php-image
+```
+
+
+
+**Container with no network (none)**
+```
+sudo docker run --network none --name php-name -d -p 80:80 php-image
+```
+
+
+
+------------------------------------------------------------------------------------------------
+
+
 
 # Create Image from Container
 https://docs.docker.com/engine/reference/commandline/commit/#commit-a-container
@@ -455,5 +573,210 @@ $ sudo docker run -i -t --name node-app-name -d -p 8000:<LISTEN-PORT-ON-DOCKERFI
 **IMPORTANT**
 1. To connect container to other container, you need Docker IP Container.
    Example: Container-laravel with Container-mysql. DB_HOST=Container-mysql IP
+
+------------------------------------------------------------------------------------------------
+
+# Docker compose
+
+**Install**
+https://docs.docker.com/compose/install/
+
+**yml file parts**
+```
+version: [required]
+services: [required]
+volumes: [optional]
+networks: [optional]
+```
+
+**Example nginx yml file**
+```
+version: '3'
+services:
+  web:
+    container_name: nginx-cont1-name
+	ports:
+	  - "8000:80"
+	image: nginx
+```
+
+**Run docker-compose.yml file**
+```
+$ cd /path/yml/file/docker-compose.yml
+$ docker-compose up -d
+```
+
+**Stop and remove docker-compose yml file**
+```
+$ cd /path/yml/file/docker-compose.yml
+$ docker-compose down
+```
+
+**Example ENVIRONEMNT in yml file**
+```
+version: '3'
+services:
+  db:
+    container_name: mysql-cont1-name
+	ports:
+	  - "3306:3306"
+	environment:
+	  MYSQL_ROOT_PASSWORD: secret
+	  MYSQL_DATABASE: test
+	  MYSQL_USER: test
+	  MYSQL_PASSWORD: test
+	image: mysql
+```
+
+OR with env file
+1. Create env file
+```
+MYSQL_ROOT_PASSWORD=secret
+key=value
+```
+
+2. Write file yml
+```
+version: '3'
+services:
+  db:
+    container_name: mysql-cont1-name
+	ports:
+	  - "3306:3306"
+	env_file: mysql-cont.env
+	image: mysql
+```
+
+**Example named VOLUME in yml file**
+```
+version: '3'
+services:
+  web:
+    container_name: nginx-cont1-name
+	ports:
+	  - "8000:80"
+	volumes:
+	  - "vol-name:/usr/share/nginx/html"
+	image: nginx
+volumes:
+  vol-name
+```
+
+**Example host VOLUME in yml file**
+```
+version: '3'
+services:
+  web:
+    container_name: nginx-cont1-name
+	ports:
+	  - "8000:80"
+	volumes:
+	  - "/path/local/machine:/usr/share/nginx/html"
+	image: nginx
+```
+
+**Example simple bridge NETWORK in yml file**
+```
+version: '3'
+services:
+  web:
+    container_name: nginx-cont1-name
+	ports:
+	  - "8000:80"
+	volumes:
+	  - "/path/local/machine:/usr/share/nginx/html"
+	networks:
+	  - network-name
+	image: nginx
+networks:
+  network-name:
+```
+
+**Build image with docker compose**
+1. Create Docker file
+
+2. docker-compose.yml
+```
+version: '3'
+services:
+  web:
+    container_name: web
+	image: image-name
+	build: .
+```
+
+2. If Dockerfile called different by default
+```
+version: '3'
+services:
+  web:
+    container_name: web
+	image: image-name
+	build:
+	  context: .
+	  dockerfile: Dockerfile-name
+```
+
+3. Execute
+```
+$ cd /path/yml/file/docker-compose.yml
+$ docker-compose build
+```
+
+**Execute yml file named diferent by default**
+```
+$ docker-compose -f docker-compose-name.yml up -d
+$ docker-compose -f docker-compose-name.yml down
+$ docker-compose -f docker-compose-name.yml build
+$ docker-compose -f docker-compose-name.yml logs -f
+```
+
+**Restart policy**
+```
+version: '3'
+services:
+  web:
+    container_name: nginx-cont1-name
+	ports:
+	  - "8000:80"
+	volumes:
+	  - "/path/local/machine:/usr/share/nginx/html"
+	restart: [always , unless-stop , on-failure]
+	image: nginx
+```
+
+**More than one container**
+```
+version: '3'
+services:
+  db:
+    container_name: mysql-cont1-name
+	ports:
+	  - "3306:3306"
+	environment:
+	  MYSQL_ROOT_PASSWORD: secret
+	  MYSQL_DATABASE: wordpress
+	  MYSQL_USER: wp
+	  MYSQL_PASSWORD: wp
+	image: mysql
+	networks:
+	  - wp-net
+  wordpress:
+    container_name: wp-ccont
+	depends_on:
+	  - db
+	ports:
+	  - "8000:80"
+	image: wordpress
+	environment:
+	  WORDPRESS_DB_HOST: db:3306
+	  WORDPRESS_DB_USER: wp
+	  WORDPRESS_DB_PASSWORD: wp
+	networks:
+	  - wp-net
+networks:
+  wp-net:
+```
+
 
 ------------------------------------------------------------------------------------------------
