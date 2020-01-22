@@ -58,13 +58,61 @@ $ python3 --version
 ```
 
 **Install pip**
-
 ```
 $ sudo apt-get install python3.7-gdbm
 $ sudo apt-get install python3-pip
 $ pip3 --version
 ```
 
+
+
+----------------------------------------------------------------------------------
+
+# ORM peewee
+
+1. Install pewee
+```
+$ pip3 install peewee
+```
+
+2. Eexample
+```
+import datetime
+from peewee import *
+
+db_SQLite = SqliteDatabase('./data/employees.db')
+
+# Connect to MySQL
+mysql_db = MySQLDatabase('database', user='app', password='db_password', host='10.1.0.8', port=3306)
+
+# Connect to a PostgreSQL database.
+pg_db = PostgresqlDatabase('database', user='postgres', password='secret', host='10.1.0.9', port=5432)
+
+
+class BaseSQLiteModel(Model):
+	class Meta:
+		database = db_SQLite
+
+class Enterprise(BaseSQLiteModel):
+	name = CharField(max_length=300, unique=True)
+		
+class Employee(BaseSQLiteModel):
+	#None of the fields are initialized with primary_key=True, an auto-incrementing primary key will automatically be created and named “id”
+	username = CharField(max_length=255, unique=True)
+	salary = DoubleField(default=0)
+	created_date = DateTimeField(default=datetime.datetime.now)
+	enterprise = ForeignKeyField(Enterprise, backref='employees')
+
+def create_enterprise(name):
+    Enterprise.create(name)
+	
+
+# MAIN
+if __name__ == '__main__':
+	db_SQLite.connect()
+	db_SQLite.create_tables([Enterprise, Employee], safe=True)
+    #create_enterprise('PSL')
+```
 
 
 ----------------------------------------------------------------------------------
