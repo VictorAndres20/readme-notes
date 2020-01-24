@@ -338,3 +338,58 @@ if __name__ == '__main__':
 
 
 ----------------------------------------------------------------------------------
+
+# Usage of Flask
+
+1. package structure
+- src/config/server.py
+- src/config/templates
+- main.py
+
+2. server.py
+```
+from flask import Flask, request, render_template
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return "Hello world"
+
+@app.route('/params')
+def param(name='world'):
+    name = request.args.get('name')
+    return "Hello {}".format(name)
+
+@app.route('/query')
+@app.route('/query/<name>')
+def query(name='mundo'):
+    return "Hello {}".format(name) 
+
+@app.route('/add/<int:num1>/<int:num2>')
+@app.route('/add/<float:num1>/<float:num2>')
+@app.route('/add/<int:num1>/<float:num2>')
+def add(num1, num2):
+    return "Adition: {} + {} = {}".format(num1, num2, num1 + num2) 
+
+@app.route('/template')
+def template():
+    context = {'var': "Works!"}
+    return render_template("index.html", **context)
+
+def start():
+    app.run(debug=True, port=8000, host='0.0.0.0')
+```
+
+3. main.py
+```
+from src.config.server import start
+
+if(__name__ == "__main__"):
+    start()
+```
+
+
+
+
+----------------------------------------------------------------------------------
