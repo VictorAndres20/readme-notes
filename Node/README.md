@@ -425,7 +425,7 @@ app.listen(8000, () => {
 
 **Structure and Init Classes Configuration for express app**
 0. Install
-``express, body-parser``
+``express, body-parser, dotenv``
 
 1. Structure
 - public
@@ -438,9 +438,12 @@ app.listen(8000, () => {
 - src/server
 - src/server/Server.js
 - src/server/Startup.js
-- src/server/config
-- src/server/config/config.js
+- src/server/config/env/index.js
+- src/server/config/env/development-env.js
+- src/server/config/env/test-env.js
+- src/server/config/env/production-env.js
 - index.js
+- .env
 
 2. Controller example
 ```
@@ -486,7 +489,12 @@ router.use(require('./exampleRoute'));
 module.exports = router;
 ```
 
-5. config example
+5. .env file
+```
+ENVIRONMENT=test
+```
+
+6. config//env/development-env.js example
 ```
 /** ********************* SERVER CONFIG *********************** */
 /** Port */
@@ -494,7 +502,37 @@ process.env.PORT = process.env.PORT || 8000;
 /*********** */
 ```
 
-6. Server.js
+7. config//env/test-env.js example
+```
+/** ********************* SERVER CONFIG *********************** */
+/** Port */
+process.env.PORT = process.env.PORT || 8001;
+/*********** */
+```
+
+8. config//env/production-env.js example
+```
+/** ********************* SERVER CONFIG *********************** */
+/** Port */
+process.env.PORT = process.env.PORT || 8002;
+/*********** */
+```
+
+9. config/env/index.js example
+```
+require('dotenv').config();
+
+process.env.ENVIRONMENT = process.env.ENVIRONMENT || 'development';
+
+if(process.env.ENVIRONMENT === 'production')
+    require('./production-env');
+else if(process.env.ENVIRONMENT === 'test')
+    require('./test-env');
+else
+    require('./development-env');
+```
+
+10. Server.js
 ```
 const http = require('http');
 const express = require('express');
@@ -544,9 +582,9 @@ const buildClass = () => {
 module.exports = {buildClass}
 ```
 
-7. Startup.js
+11. Startup.js
 ```
-require('./config/config');
+require('./config/env');
 //Some Other Configuration imports,
 //for example socket.io, DataBase ORM or View Engine HBS
 //const hbs = require('./hbs');
@@ -601,7 +639,7 @@ const buildClass = (server) => {
 module.exports = {buildClass}
 ```
 
-8. index.js MAIN
+12. index.js MAIN
 ```
 const server = require('./src/server/Server').buildClass();
 const startup = require('./src/server/Startup').buildClass(server);
@@ -613,7 +651,7 @@ startup.main()
 });
 ```
 
-9. **If you use hbs**
+13. **If you use hbs**
 ```
 //hbs.js
 const hbs = require('hbs');
@@ -898,7 +936,7 @@ app.listen(process.env.PORT, () => {
 
 **BASIC STRUCTURED REST API**
 1. Packages to Install: 
-``express, body-parser, mongoose, underscore, bcryptjs, jsonwebtoken``
+``express, body-parser, mongoose, underscore, bcryptjs, jsonwebtoken, dotenv, automapper-js``
 
 2. Package structure
 - src/app
@@ -912,7 +950,7 @@ app.listen(process.env.PORT, () => {
 - src/dal/entity
 - src/dal/repository
 - src/domain
-- src/mapper
+- src/mapper/index.js
 - src/server
 - src/server/config
 - src/util
@@ -931,7 +969,7 @@ let userStateSchema = new Schema({
         type: String,
         require: [true, 'The name is needed']
     }
-});
+}, { collection: 'user_state' });
 
 module.exports = mongoose.model('UserState', userStateSchema);
 ```
@@ -965,7 +1003,7 @@ let userSchema = new Schema({
         default: new mongoose.Types.ObjectId("5e0a4378cbff7b3fc8e95c3b"),
         ref: 'UserState'
     }
-});
+}, { collection: 'users' });
 
 module.exports = mongoose.model('User', userSchema);
 ```
@@ -1571,6 +1609,21 @@ server.main()
 .catch((err) => {
     console.log(err.message);
 });
+```
+
+15. Use domains with a mapper!!
+```
+const mapper = require('automapper-js');
+
+const reqToEntity = (entity, domain) => {
+    return mapper(entity, domain);
+}
+
+const entityToDomain = (entity, domain) => {
+    return mapper(domain, entity);
+}
+
+module.exports = {entityToDomain, reqToEntity};
 ```
 
 ----------------------------------------------------------------------------------------
