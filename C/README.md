@@ -164,6 +164,25 @@ int main()
 -----------------------------------------------------------------------------
 
 # Get data from console
+
+1. scanf()
+```
+#include <stdio.h>
+
+int main(){
+
+	char string[20] = "";
+	int integer = 0;
+	double decimal = 0;
+	char character = '';
+	printf("Enter a word integer decimal letter:\n");
+	scanf("%s %d %lf %c", string, &integer, &decimal, &character);
+	printf("%s - %d - %lf - %c",string,integer,decimal,character);
+	return 0;
+}
+```
+
+2. fgets()
 ```
 #include <stdio.h>
 #include <stdlib.h>
