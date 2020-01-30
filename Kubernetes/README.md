@@ -2,6 +2,37 @@
 https://www.linuxtechi.com/install-kubernetes-1-7-centos7-rhel7/
 
 
+# In All Nodes
+
+1. Update
+```
+$ sudo yum update
+```
+
+2. Intall packages
+```
+$ sudo yum -y install net-tools
+$ sudo yum -y install wget
+````
+
+3. Set hostname
+```
+$ sudo hostnamectl set-hostname kubernetes-master
+$ exec bash
+```
+
+4. Disable selinux
+```
+$ sudo setenforce 0
+$ sudo sed -i --follow-symlinks 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
+```
+
+## Master Node
+
+1. Firewall rules
+```
+
+
 ---------------------------------------------------------------------------------------------
 
 # Install on Ubuntu
@@ -38,7 +69,7 @@ https://www.youtube.com/watch?v=UWg3ORRRF60
 ```
 $ swapoff -a
 ```
-AND
+And do this to swapoff even when reboot
 ```
 $ sudo vi /etc/fstab
 ```
@@ -50,6 +81,7 @@ Comment at the end
 2. Change node master hostname /etc/hostname file
 ```
 $ sudo hostnamectl set-hostname kubernetes-master
+$ exec bash
 ```
 
 3. Set static IP address

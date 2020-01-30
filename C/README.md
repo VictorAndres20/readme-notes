@@ -212,6 +212,7 @@ int main(){
 ```
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(){
     int numbers1[]={1,2,3,4,5,6};
@@ -219,7 +220,11 @@ int main(){
     char strings[][10]={"Hola","Mundo"};
     numbers2[3]=5;
     printf("%d %d %s %s",numbers1[3],numbers2[3],strings[0],strings[1]);
-    return 0;
+	
+	char str[20] = "abc";
+	//sizeof(str) is 20, and strlen(str) is 3
+    
+	return 0;
 }
 ```
 
@@ -284,5 +289,10 @@ int main(int argc, char *argv[]){
     return 0;
 }
 ```
+
+-----------------------------------------------------------------------------
+
+# GTK+ GUI example
+https://www.youtube.com/watch?v=ajNvsv1ka4I
 
 -----------------------------------------------------------------------------
