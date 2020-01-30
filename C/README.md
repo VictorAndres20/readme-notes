@@ -143,18 +143,19 @@ char * gets(char * st, int n);
 -----------------------------------------------------------------------------
 
 
-# Concat on printf function
+# Format specifiers on printf function
 ```
 #include <stdio.h>
 #include <stdlib.h>
 
-int main()
-{
+int main(){
     char character='A';
     char name[]="Hello";
     int number=5;
-    double decimal=5.6;
-    printf("Hello world! %c %s %d %f\n",character,name,number,decimal);
+    double dec1=5.6;
+    double dec2=5.6234234;
+    _Bool boolean=1; /* 1=true, 0=false */
+    printf("Hello world! %c %s %d %f %.2f %i\n",character,name,number,dec1,dec2, boolean);
     return 0;
 }
 ```
@@ -171,14 +172,14 @@ int main()
 
 int main(){
 
-	char string[20] = "";
-	int integer = 0;
-	double decimal = 0;
-	char character = '';
-	printf("Enter a word integer decimal letter:\n");
-	scanf("%s %d %lf %c", string, &integer, &decimal, &character);
-	printf("%s - %d - %lf - %c",string,integer,decimal,character);
-	return 0;
+    char string[20] = "";
+    int integer = 0;
+    double decimal = 0;
+    char character = '';
+    printf("Enter a word integer decimal letter:\n");
+    scanf("%s %d %lf %c", string, &integer, &decimal, &character);
+    printf("%s - %d - %lf - %c",string,integer,decimal,character);
+    return 0;
 }
 ```
 
@@ -187,8 +188,7 @@ int main(){
 #include <stdio.h>
 #include <stdlib.h>
 
-int main()
-{
+int main(){
     char name[50]="";
     int age=0;
     double decimal=0;
@@ -213,8 +213,7 @@ int main()
 #include <stdio.h>
 #include <stdlib.h>
 
-int main()
-{
+int main(){
     int numbers1[]={1,2,3,4,5,6};
     char numbers2[7];
     char strings[][10]={"Hola","Mundo"};
@@ -225,5 +224,65 @@ int main()
 ```
 
 
+
+-----------------------------------------------------------------------------
+
+# Enums
+```
+#include <stdio.h>
+
+int main(){
+    
+    /* Define enum */
+    enum month {January, Febrary, March April, May, June};
+    enum direction {up, down, left = 10, right};
+    enum gender {female, male};
+    /* Use enum */
+    enum gender myGender = male;
+    enum gender otherGender = female;
+    
+    if(myGender == otyherGender){
+        printf("Gender equals");
+    }
+    
+    return 0;
+}
+```
+
+
+-----------------------------------------------------------------------------
+
+# Command line arguments
+```
+#include <stdio.h>
+
+_Bool validateArgs(int count){
+    if(count == 1){
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+void showWarn(){
+    printf("No argument passed... --help\n");
+}
+
+int main(int argc, char *argv[]){
+    
+    int countArguments = argc;
+    char *arg1 = argv[0]; /* executed command */
+    char *arg2 = argv[1];
+    char *arg3 = argv[2]; 
+    
+    if(! validateArgs(countArguments)){
+        showWarn();
+    } else {
+        printf("Number of arguments = %d\n", countArguments);
+        printf("Arguments = %s %s\n", arg2, arg3);
+    }
+    return 0;
+}
+```
 
 -----------------------------------------------------------------------------
