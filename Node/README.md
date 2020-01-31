@@ -1535,6 +1535,7 @@ const mongoose = require('mongoose');
 const options = { 
     useNewUrlParser: true, 
     useUnifiedTopology: true, 
+	useCreateIndex: true,
     auth:{
         user: 'test', 
         password: 'secret'
