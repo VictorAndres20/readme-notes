@@ -198,3 +198,20 @@ $ sudo docker exec -it <container-id> bash
 $ mongorestore --port 27017 --drop --db <DB NAME> /restore-mongo/db_name/
 $ exit
 ------------------------------------------------------------------------------------------
+
+# Some cool queries
+
+**Lookup**
+```
+db.city.aggregate([
+   {
+     $lookup:
+       {
+         from: "country",
+         localField: "country",
+         foreignField: "_id",
+         as: "countries"
+       }
+  }
+]);
+```
