@@ -2677,6 +2677,63 @@ $ sudo npm install -g yarn
 
 ----------------------------------------------------------------------------------------
 
+# Using Jest!!!
+1. Install it
+```
+$ npm install --save-dev jest
+```
+OR
+```
+$ yarn add --dev jest
+```
+
+2. Create your function to test
+```
+//operations.js
+const multiply = (a,b) => {
+	return a * b;
+}
+
+module.exports = {multiply};
+
+```
+
+3. Create your test
+```
+//operations.test.js
+const {multiply} = require('../folder/operations.js');
+
+test('2 * 2 to equal 4', () => {
+  expect(multiply(2, 2)).toBe(4);
+});
+
+// https://jestjs.io/docs/en/using-matchers
+
+```
+
+4. Execute command inside project to test
+Test All
+```
+$ node_modules/jest/bin/jest.js
+```
+
+Test specific test file
+```
+$ node_modules/jest/bin/jest.js src/test/folder/operations.test.js
+```
+
+**If you need to test a function that throw an error, try**
+```
+test('Validate Props, this needs to throw exception', () => {
+    let obj = {name:'bar',mail:'foo'};
+    let props = ['name','username','mail'];
+
+    expect(() => validateProps(obj,props)).toThrow(ValidateError);
+});
+```
+
+----------------------------------------------------------------------------------------
+
 # Swagger and node
 https://blog.cloudboost.io/adding-swagger-to-existing-node-js-project-92a6624b855b
 
