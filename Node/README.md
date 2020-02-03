@@ -976,6 +976,8 @@ module.exports = mongoose.model('UserState', userStateSchema);
 
 ```
 //User.js
+const UserState = require('./UserState');
+const Role = require('./Role');
 const mongoose = require('mongoose');
 
 let Schema = mongoose.Schema;
@@ -1001,7 +1003,14 @@ let userSchema = new Schema({
     state: {
         type: Schema.Types.ObjectId,
         default: new mongoose.Types.ObjectId("5e0a4378cbff7b3fc8e95c3b"),
-        ref: 'UserState'
+        ref: UserState
+    },
+	roles: { 
+        type: [{
+            type: Schema.Types.ObjectId,
+            ref: Role
+        }], 
+        default: []
     }
 }, { collection: 'users' });
 

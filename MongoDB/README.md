@@ -93,6 +93,11 @@ https://docs.mongodb.com/manual/reference/built-in-roles/
 > db.createCollection("collectionName");
 ```
 
+## Drop collection
+```
+> db.<collectionName>.drop();
+```
+
 ## Insert single document in collection
 ```
 > db.<collectionName>.insert({field1: "value", field2: "value"});
