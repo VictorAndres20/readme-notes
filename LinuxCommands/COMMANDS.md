@@ -298,9 +298,19 @@ $ ls -ltr | grep ^- | awk '{print $5}'
 ------------------------------------------------------------------------------------------------------------------
 
 # Install openssh-server
+
+## Ubuntu
 1. sudo apt-get install openssh-server
 2. sudo service ssh status
 3. sudo service ssh start
+
+Configurations at /etc/ssh/sshd_config
+
+## CentOS 7
+1. sudo yum install openssh-server
+2. sudo systemctl status sshd
+3. sudo systemctl start sshd
+4. sudo systemctl enable sshd
 
 Configurations at /etc/ssh/sshd_config
 
