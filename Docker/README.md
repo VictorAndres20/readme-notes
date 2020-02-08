@@ -340,7 +340,7 @@ $ sudo docker run -i -t --name phpmyadmin-name -d --link <MySQL Container NAME>:
 
 ## MySQL container
 ```
-$ sudo docker run -i -t --name mysql-name -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 mysql:5.6
+$ sudo docker run -i -t --name mysql-name -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 mysql:5.7
 ```
 **Execute MySQL container**
 ```
