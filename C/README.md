@@ -292,6 +292,32 @@ int main(int argc, char *argv[]){
 
 -----------------------------------------------------------------------------
 
+# Pointers
+```
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(){
+    char string[] = "Hello";
+    printf("%s\n", string);
+
+    int number = 20;
+    printf("Address memory of number variabe %p\n", &number);
+    printf("Address memory of number variabe %p\n", (void *)&number);
+    // Pass address of number variable to pointer
+    int *pnumber = &number;
+    printf("Address pointer is storage %p\n", pnumber);
+    printf("Value of pointer %d\n", *pnumber);
+    printf("Address memory of pointer %p\n", &pnumber);
+    //size of the pointer
+    printf("Size of pointer %d\n", (int)sizeof(*pnumber));
+
+    return 0;
+}
+```
+
+-----------------------------------------------------------------------------
+
 # GTK+ GUI example
 https://www.youtube.com/watch?v=ajNvsv1ka4I
 
