@@ -173,11 +173,11 @@ $ mongodump --port 27017 -u root -p secret -o /dump/
 ``` 
 
 **If mongo run on docker**
-1. Dump inside container
+1. Dump inside container. Optional database name. If not, you need to be root
 ```
 $ sudo docker exec -it <container-id> bash
 $ cd /
-$ mongodump --port 27017 -u root -p secret -o /dump/
+$ mongodump --port 27017 [-d db_name] -u user -p secret -o /dump/
 $ exit
 ``` 
 2. Copy backup on your machine

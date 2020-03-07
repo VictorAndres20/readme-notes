@@ -382,28 +382,28 @@ $ mongo -u root -p secret **OR** $ mongo [db] -u user_db -p secret
 > //Create your database and all stuff
 ```
 **Create Backup**
-1. Dump inside container
+1. Dump inside container. Optional database name. If not, you need to be root
 ```
 $ sudo docker exec -it <container-id> bash
 $ cd /
-$ mongodump [--host <host.com>] --db <database> [--port 27017] -u root -p secret -o /dump/
+$ mongodump --port 27017 [-d db_name] -u user -p secret -o /dump/
 $ exit
 ``` 
 2. Copy backup on your machine
 ```
 $ cd /path/to/mongo-backup
-$ sudo docker cp <CONTAINER ID>:/dump-db .
+$ sudo docker cp <CONTAINER ID>:/dump .
 ```
 **Restore Backup**
 1. If you have backup on your machine, copy inside container
 ```
 $ cd /path/to/restore/
-$ docker cp dump <CONTAINER ID>:/dump-db/
+$ docker cp dump <CONTAINER ID>:/restore-mongo/
 ``` 
 2. Restore inside container
 ```
 $ sudo docker exec -it <container-id> bash
-$ mongorestore -u root -p secret --port 27017 --authenticationDatabase=admin --drop /dump-db
+$ mongorestore --port 27017 --drop --db <DB NAME> /restore-mongo/db_name/
 $ exit
 
 ## httpd container
