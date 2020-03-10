@@ -459,5 +459,22 @@ $ sudo systemctl restart network
 
 
 
+------------------------------------------------------------------------------------------------------------------
 
+## Some errors fixed
 
+#### Error with sudo add-apt-repository
+
+1. Error tack trace
+```
+File "/usr/lib/python3/dist-packages/softwareproperties/SoftwareProperties.py", line 27, in <module>
+    import apt_pkg
+ModuleNotFoundError: No module named 'apt_pkg'
+```
+
+2. Solution https://askubuntu.com/questions/1069087/modulenotfounderror-no-module-named-apt-pkg-error
+```
+$ cd /usr/lib/python3
+$ cd dist-packages/
+$ sudo cp apt_pkg.cpython-35m-x86_64-linux-gnu.so apt_pkg.so
+```
