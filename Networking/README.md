@@ -41,6 +41,10 @@ sw1-f1# show interfaces
 sw1-f1# sh int
 ```
 
+### Reload
+```
+sw1-f1# reload
+```
 
 ### Configuration 
 
@@ -86,7 +90,7 @@ sw1-f1(config)# interface vlan 1
 **privilege EXEC mode (root)**
 ```
 sw1-f1(config)# enable secret MyPassword
-sw1-f1(config-line)# exit
+sw1-f1(config)# exit
 sw1-f1#
 ```
 
@@ -118,4 +122,36 @@ sw1-f1# show running-config
 **Banner display**
 ```
 sw1-f1(config)# banner motd #Authorized Access Only#
+```
+
+#### Startup Config
+Configuration when startup
+This write in NVRAM
+```
+sw1-f1# show startup-config
+```
+
+#### Save Configuration
+```
+sw1-f1# copy running-config startup-config
+```
+
+#### Reset Configuration
+```
+sw1-f1# copy startup-config running-config
+```
+
+#### Ls in 
+```
+sw1-f1# dir
+sw1-f1# dir nvram
+sw1-f1# dir ?
+```
+
+#### Switch Virtual Interface (SVI)
+To access remotely need IP address
+```
+sw1-f1(config)# interface vlan 1
+sw1-f1(config-if)# ip address 192.168.1.10 255.255.255.0
+sw1-f1(config-if)# no shutdown
 ```
