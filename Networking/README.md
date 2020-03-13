@@ -5,8 +5,8 @@
 ### Intermediary devices
 - Wireless Router
 - Router
-- LAN Switch
-- Multilayer Switch
+- LAN switch
+- Multilayer switch
 - Firewall Appliance
 
 
@@ -31,14 +31,14 @@ Illustrate
 
 ### ROOT
 ```
-switch> enable
+sw1-f1> enable
 ```
 
 
 ### Show interfaces
 ```
-switch# show interfaces
-switch# sh int
+sw1-f1# show interfaces
+sw1-f1# sh int
 ```
 
 
@@ -46,30 +46,76 @@ switch# sh int
 
 **To configure device, must enter global configuration**
 ```
-switch# config t
-switch(config)#
+sw1-f1# config t
+sw1-f1(config)#
 ```
 **OR**
 ```
-switch# configure terminal
-switch(config)#
+sw1-f1# configure terminal
+sw1-f1(config)#
 ```
 
-- Line Configuration Mode: Configure console, AUX, SSH.
+#### Set host name
+Rules:
+- Start letter
+- End letter or digit
+- Use letters, digits, and -
+- Less than 64 characters
 ```
-switch(config)# line console 0
-switch(config-line)#
+sw1-f1(config)# hostname my-name
 ```
 
-- Interface configuration mode: Configure Switch port, Router network interface.
+#### Line Configuration Mode: Configure console, AUX, SSH.
 ```
-switch(config)# interface FastEthernet 0/1
+sw1-f1(config)# line console 0
+sw1-f1(config-line)#
+```
+
+#### Interface configuration mode: Configure sw1-f1 port, Router network interface.
+```
+sw1-f1(config)# interface FastEthernet 0/1
 (config-if)# 
 ```
 **or**
 ```
-switch(config)# interface vlan 1
+sw1-f1(config)# interface vlan 1
 (config-if)# 
 ```
 
+#### PASSWORD
+**privilege EXEC mode (root)**
+```
+sw1-f1(config)# enable secret MyPassword
+sw1-f1(config-line)# exit
+sw1-f1#
+```
 
+**user EXEC mode**
+```
+sw1-f1(config)# line console 0
+sw1-f1(config-line)# password MyPassword
+sw1-f1(config-line)# login
+sw1-f1(config-line)# end
+sw1-f1#
+```
+
+**secure VTY lines (0-15)**
+```
+sw1-f1(config)# line vty 0 15
+sw1-f1(config-line)# password MyPassword
+sw1-f1(config-line)# login
+sw1-f1(config-line)# end
+sw1-f1#
+```
+
+**Encrypt password**
+```
+sw1-f1(config)# service password-encryption
+sw1-f1(config-line)# end
+sw1-f1# show running-config
+```
+
+**Banner display**
+```
+sw1-f1(config)# banner motd #Authorized Access Only#
+```
