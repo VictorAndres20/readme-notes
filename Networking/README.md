@@ -166,3 +166,130 @@ sw1-f1(config-if)# no shutdown
 ```
 sw1-f1# show ip interface brief
 ```
+
+-----------------------------------------------------------------------------------
+
+## Create VLAN
+**START ALWAYS WITH VLAN 2**
+
+1. Create vlans and name it
+```
+sw1(config)# vlan 2
+sw1(config-vlan)# name MyVLAN1
+sw1(config-vlan)# end
+sw1# show vlan
+```
+
+2. Config interfaces
+```
+sw1(config)# interface FastEthernet 0/1
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+```
+sw1(config)# interface FastEthernet 0/2
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+```
+sw1(config)# interface FastEthernet 0/3
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+
+3. Connect end devices to interfaces configured, and assign IP MASK
+
+-----------------------------------------------------------------------------------
+
+## Create VLAN with two switches
+**START ALWAYS WITH VLAN 2**
+
+1. Create vlans and name it
+```
+sw1(config)# vlan 2
+sw1(config-vlan)# name MyVLAN1
+sw1(config-vlan)# end
+sw1# show vlan
+```
+
+2. Config interfaces
+```
+sw1(config)# interface FastEthernet 0/1
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+```
+sw1(config)# interface FastEthernet 0/2
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+```
+sw1(config)# interface FastEthernet 0/3
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+
+3. Connect end devices to interfaces configured, and assign IP MASK
+
+4. Create vlans and name it
+```
+sw2(config)# vlan 2
+sw2(config-vlan)# name MyVLAN1
+sw2(config-vlan)# end
+sw2# show vlan
+```
+
+5. Config interfaces
+```
+sw2(config)# interface FastEthernet 0/1
+sw2(config-if)# switchport access vlan 2
+sw2(config-if)# no shutdown
+sw2(config-if)# end
+sw2# show vlan
+```
+```
+sw2(config)# interface FastEthernet 0/2
+sw2(config-if)# switchport access vlan 2
+sw2(config-if)# no shutdown
+sw2(config-if)# end
+sw2# show vlan
+```
+```
+sw2(config)# interface FastEthernet 0/3
+sw2(config-if)# switchport access vlan 2
+sw2(config-if)# no shutdown
+sw2(config-if)# end
+sw2# show vlan
+```
+
+6. Connect end devices to interfaces configured, and assign IP MASK
+
+7. Connect switches and config interface with switchport mode trunk allowed vlan 2,3,4,...n
+```
+sw1(config)# interface GigabitEthernet 0/1
+sw1(config-if)# switchport mode trunk
+sw1(config-if)# switchport trunk allowed vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+```
+sw2(config)# interface GigabitEthernet 0/1
+sw2(config-if)# switchport mode trunk
+sw2(config-if)# switchport trunk allowed vlan 2
+sw2(config-if)# no shutdown
+sw2(config-if)# end
+sw2# show vlan
+```
