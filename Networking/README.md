@@ -148,10 +148,21 @@ sw1-f1# dir nvram
 sw1-f1# dir ?
 ```
 
+#### Up interface
+```
+sw1-f1(config)# interface vlan 1
+sw1-f1(config-if)# no shutdown
+```
+
 #### Switch Virtual Interface (SVI)
 To access remotely need IP address
 ```
 sw1-f1(config)# interface vlan 1
 sw1-f1(config-if)# ip address 192.168.1.10 255.255.255.0
 sw1-f1(config-if)# no shutdown
+```
+
+#### Verify condition of switch interfaces 
+```
+sw1-f1# show ip interface brief
 ```
