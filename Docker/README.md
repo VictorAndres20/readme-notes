@@ -780,3 +780,38 @@ networks:
 
 
 ------------------------------------------------------------------------------------------------
+
+## nginx-proxy to uase subdomains
+https://blog.florianlopes.io/host-multiple-websites-on-single-host-docker/
+
+
+SCHEMA
+
+
+                                                             |--> Node Api Container  | VIRTUAL_HOST=api.domain.com
+                                                             |        port:49255      | VIRTUAL_PORT=8000
+     http://api.domain.com      |                            |
+---> http://gitlab.domain.com   |-->  nginx-proxy Container  |--> Gitlab Container    | VIRTUAL_HOST=gitlab.domain.com
+     http://jenkins.domain.com  |           port:80          |        port:49255      |
+                                                             |
+												             |--> Jenkins Container   | VIRTUAL_HOST=jenkins.domain.com
+												                      port:49255      |
+
+1. Run nginx-proxy
+```
+$ sudo docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy
+```
+If you want to use nginx custom config file add
+```
+-v /path/to/my_proxy.conf:/etc/nginx/conf.d/my_proxy.conf:ro
+```
+
+2. Run other container with VIRTUAL_HOST env variable
+```
+$ sudo docker run -d --expose 8000 -e VIRTUAL_HOST=api.domain.com -e VIRTUAL_PORT=8000 api-image
+$ sudo docker run -d --expose 80 -e VIRTUAL_HOST=gitlab.domain.com gitlab
+$ sudo docker run -d --expose 80 -e VIRTUAL_HOST=jenkins.domain.com jenkins
+```
+
+
+------------------------------------------------------------------------------------------------
