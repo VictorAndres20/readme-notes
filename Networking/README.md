@@ -25,6 +25,53 @@ Illustrate
 - Addressing scheme
 - Which end devices are connected to which intermediay devices.
 
+## Subnetworks
+
+**TABLE**
+------- Mask --------------- Subnets --------- Total-Hosts ---------- Available-Hosts
+255.255.255.0/24 --------------- 1 ------------ 256 ------------------- 154
+255.255.255.128/25 ------------- 2 ------------ 128 ------------------- 126
+255.255.255.192/26 ------------- 4 ------------ 64 -------------------- 62
+255.255.255.224/27 ------------- 8 ------------ 32 -------------------- 30
+255.255.255.240/28 ------------- 16 ----------- 16 -------------------- 14
+255.255.255.248/29 ------------- 32 ----------- 8 --------------------- 6
+255.255.255.252/30 ------------- 64 ----------- 4 --------------------- 2
+255.255.255.254/31 ------------- 128 ---------- 2 --------------------- 0
+255.255.255.255/32 ------------- 256 ---------- 1 --------------------- 0
+
+**Example**
+You need to create 4 subnetworks
+- Network 1: 63 hosts
+- Network 2: 20 hosts
+- Network 3: 10 hosts
+- Network 4: 2 hosts
+Starting with 192.168.14.0
+
+1. You calculate in which mask are available as less hosts you can
+Do not forget that first available IP is for GATEWAY
+
+- Network 1:
+MASK: 25
+IP NETWORK: 192.168.14.0/25
+IP BROADCAST: 192.168.0.127/25
+
+- Network 2: 20 hosts
+MASK: 27
+IP NETWORK: 192.168.14.128/27
+IP BROADCAST: 192.168.0.159/27
+
+- Network 3: 10 hosts
+MASK: 28
+IP NETWORK: 192.168.14.160/28
+IP BROADCAST: 192.168.0.175/28
+
+- Network 4: 2 hosts
+MASK: 29
+IP NETWORK: 192.168.14.176/29
+IP BROADCAST: 192.168.0.183/29
+
+2. Now, You can create 4 VLANs
+
 -----------------------------------------------------------------------------------
 
 ## Commands CISCO IOS
