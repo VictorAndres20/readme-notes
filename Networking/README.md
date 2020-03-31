@@ -203,6 +203,15 @@ sw1(config-if)# end
 sw1# show vlan
 ```
 
+**OR with range to configure more than one interface**
+```
+sw1(config)# interface range FastEthernet 0/1-3
+sw1(config-if)# switchport access vlan 2
+sw1(config-if)# no shutdown
+sw1(config-if)# end
+sw1# show vlan
+```
+
 3. Connect end devices to interfaces configured, and assign IP MASK
 
 -----------------------------------------------------------------------------------
@@ -220,21 +229,7 @@ sw1# show vlan
 
 2. Config interfaces
 ```
-sw1(config)# interface FastEthernet 0/1
-sw1(config-if)# switchport access vlan 2
-sw1(config-if)# no shutdown
-sw1(config-if)# end
-sw1# show vlan
-```
-```
-sw1(config)# interface FastEthernet 0/2
-sw1(config-if)# switchport access vlan 2
-sw1(config-if)# no shutdown
-sw1(config-if)# end
-sw1# show vlan
-```
-```
-sw1(config)# interface FastEthernet 0/3
+sw1(config)# interface range FastEthernet 0/1-3
 sw1(config-if)# switchport access vlan 2
 sw1(config-if)# no shutdown
 sw1(config-if)# end
@@ -253,21 +248,7 @@ sw2# show vlan
 
 5. Config interfaces
 ```
-sw2(config)# interface FastEthernet 0/1
-sw2(config-if)# switchport access vlan 2
-sw2(config-if)# no shutdown
-sw2(config-if)# end
-sw2# show vlan
-```
-```
-sw2(config)# interface FastEthernet 0/2
-sw2(config-if)# switchport access vlan 2
-sw2(config-if)# no shutdown
-sw2(config-if)# end
-sw2# show vlan
-```
-```
-sw2(config)# interface FastEthernet 0/3
+sw2(config)# interface range FastEthernet 0/1-3
 sw2(config-if)# switchport access vlan 2
 sw2(config-if)# no shutdown
 sw2(config-if)# end
