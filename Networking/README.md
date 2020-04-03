@@ -25,9 +25,49 @@ Illustrate
 - Addressing scheme
 - Which end devices are connected to which intermediay devices.
 
-## Subnetworks
+## IPs A,B,C,D - Public and Privates
+**Invalid address available**
+0.0.0.0 - 0.255.255.255
+127.0.0.0 - 127.255.255.255
 
-**TABLE**
+**Class A - Very large number of hosts**
+- Default Mask: 8
+- Range:
+1.0.0.0 - 126.0.0.0/8
+1.0.0.0 - 126.255.255.255
+- Private Addresses reserved:
+10.0.0.0 - 10.255.255.255
+
+**Class B - Medium number of hosts**
+- Default Mask: 16
+- Range:
+128.0.0.0 - 191.255.0.0/16
+128.0.0.0 - 191.255.255.255
+- Private Addresses reserved:
+172.16.0.0 - 172.31.255.255
+
+**Class C - Small number of hosts**
+- Default Mask: 24
+- Range:
+192.0.0.0 - 223.255.255.0/24
+192.0.0.0 - 223.255.255.255
+- Private Addresses reserved:
+192.168.0.0.0 - 192.168.255.255
+
+**Class D - Multicast addresses**
+Not fot hosts
+- Default Mask: NA
+- Range:
+224.0.0.0 - 239.255.255.255
+
+**Class D - Experimental addresses**
+- Default Mask: NA
+- Range:
+240.0.0.0 - 255.255.255.255
+
+## Subnetting
+
+**TABLE MASK 24**
 ------- Mask --------------- Subnets --------- Total-Hosts ---------- Available-Hosts
 255.255.255.0/24 --------------- 1 ------------ 256 ------------------- 154
 255.255.255.128/25 ------------- 2 ------------ 128 ------------------- 126
@@ -40,32 +80,32 @@ Illustrate
 255.255.255.255/32 ------------- 256 ---------- 1 --------------------- 0
 
 **Example**
-You need to create 4 subnetworks
-- Network 1: 63 hosts
-- Network 2: 20 hosts
-- Network 3: 10 hosts
-- Network 4: 2 hosts
+You need to create 4 subnets
+- Subnet 1: 63 hosts
+- Subnet 2: 20 hosts
+- Subnet 3: 10 hosts
+- Subnet 4: 2 hosts
 Starting with 192.168.14.0
 
 1. You calculate in which mask are available as less hosts you can
 Do not forget that first available IP is for GATEWAY
 
-- Network 1:
+- Subnet 1:
 MASK: 25
 IP NETWORK: 192.168.14.0/25
 IP BROADCAST: 192.168.0.127/25
 
-- Network 2: 20 hosts
+- Subnet 2: 20 hosts
 MASK: 27
 IP NETWORK: 192.168.14.128/27
 IP BROADCAST: 192.168.0.159/27
 
-- Network 3: 10 hosts
+- Subnet 3: 10 hosts
 MASK: 28
 IP NETWORK: 192.168.14.160/28
 IP BROADCAST: 192.168.0.175/28
 
-- Network 4: 2 hosts
+- Subnet 4: 2 hosts
 MASK: 29
 IP NETWORK: 192.168.14.176/29
 IP BROADCAST: 192.168.0.183/29
