@@ -5,7 +5,7 @@ https://www.linuxtechi.com/install-kubernetes-1-7-centos7-rhel7/
 32GB RAM
 64 GB Disk space
 
-## Configure server to kubernetes and Pangea
+## Configure server to kubernetes
 1. Install CentOS (CentOS 7)
 
 2. Verify network connection.
@@ -57,9 +57,9 @@ $ sudo yum install wget -y
 $ sudo yum install unzip -y
 ```
 
-5. Set Hostname, for example pangea-master
+5. Set Hostname, for example master
 ```
-$ sudo hostnamectl set-hostname pangea-master
+$ sudo hostnamectl set-hostname master
 $ exec bash
 ```
 
@@ -114,7 +114,7 @@ You need to know your current GATEWAY,
 for this i use a local GATEWAY example
 ```
 NETWORKING=yes
-HOSTNAME=pangea-master
+HOSTNAME=master
 GATEWAY=192.168.0.1
 NETWORKING_IPV6=no
 IPV6INIT=no
@@ -130,7 +130,7 @@ Identify your ifcfg-<INTERFACE> file and edit this items
 ```
 DNS1=8.8.8.8
 DNS2=8.8.4.4
-HOSTNAME=pangea-master
+HOSTNAME=master
 GATEWAY=192.168.0.1
 NETMASK=255.255.255.0
 IPADDR=192.168.0.17
@@ -153,7 +153,7 @@ $ sudo systemctl restart network
 9. Configure hosts
 Edit etc/hosts adding
 ```
-192.168.0.17 pangea-master
+192.168.0.17 master
 <When you create cluster, ADD minions IPs and minions HOSTS bellow>
 ```
 
@@ -219,7 +219,7 @@ $ sudo kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever"
 6. Set none Taints
 ```
 $ sudo kubectl describe nodes | grep Taints
-$ sudo kubectl taint nodes pangea-master <node-role.kubernetes.io>/master:NoSchedule-
+$ sudo kubectl taint nodes master <node-role.kubernetes.io>/master:NoSchedule-
 $ sudo kubectl describe nodes | grep Taints
 ```
 
