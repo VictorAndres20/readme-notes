@@ -361,3 +361,94 @@ sw2(config-if)# no shutdown
 sw2(config-if)# end
 sw2# show vlan
 ```
+
+
+-----------------------------------------------------------------------------------
+
+## Router configure
+
+
+-----------------------------------------------------------------------------------
+
+## Routting
+
+1. Configure Router Interfaces
+- Show run to show Interfaces
+```
+r1# show run
+```
+
+- Select sub interface on physical interface 0/0
+```
+r1# config t
+r1(config)# interface GigabitEthernet 0/0.2
+```
+
+- Encapsulation dot1Q to last number Interface
+```
+r1(config-subif)# encapsulation dot1Q 2
+```
+
+- Set IP. REMEMBER THIS IS FIRST AVAILABLE IP ON SEGMENT
+```
+r1(config-subif)# ip address 192.168.14.1 255.255.255.128
+r1(config-subif)# exit
+```
+
+2. Configure sub interfaces you need on physical interface 0/0. SAME in all
+- Select interface
+```
+r1# config t
+r1(config)# interface GigabitEthernet 0/0.3
+```
+
+- Encapsulation dot1Q to last number Interface
+```
+r1(config-subif)# encapsulation dot1Q 3
+```
+
+- Set IP. REMEMBER THIS IS FIRST AVAILABLE IP ON SEGMENT
+```
+r1(config-subif)# ip address 192.168.14.130 255.255.255.224
+r1(config-subif)# exit
+```
+
+3. When you finish configure virtual interfaces, SAVE changes in physical interface
+```
+r1(config)# interface GigabitEthernet 0/0
+r1(config-if)# no shutdown
+r1(config-if)# end
+r1# show run
+```
+
+
+4. May be, you need to connect this router to Switches with VLANs. In Switch:
+- Config interface in trunk mode allowing any VLANs you want
+```
+sw-1# show run
+sw-1# config t
+sw-1(config)# interface GigabitEthernet 0/1
+sw-1(config)# switchport trunk encapsulation dot1q ######## THIS COMMAND MAY FAIL IN PACKET TRACER
+sw-1(config-if)# switchport mode trunk
+sw-1(config-if)# switchport trunk allowed vlan add 2
+sw-1(config-if)# switchport trunk allowed vlan add 3
+...
+sw-1(config-if)# switchport trunk allowed vlan add X
+sw-1(config-if)# no shutdown
+sw-1(config-if)# end
+sw-1# show interface trunk
+```
+
+- Repeat STEP above with any switch that connect with router
+
+5. Command to route IPs
+```
+r1# show ip route
+```
+
+6. Configure default GATEWAY IP in PCs connected to switches.
+This IP GATEWAY is the assigned to Router in PC´s same netwotk
+Then use ping
+
+
+-----------------------------------------------------------------------------------
