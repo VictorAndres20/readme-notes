@@ -33,6 +33,15 @@ $ sudo systemctl restart network
 $ ip add
 ```
 
+**If restart network show error**
+- enter nmtui
+- Edit interface
+- Set IPv4 <Manual>
+- Set IP address with MASK prefix, and GATEWAY
+- [X] Automatically connect
+- Back
+- Quit
+- And execute systemctl restart network again
 
 3. Update system
 ```
@@ -189,9 +198,13 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
 ```
 
 2. Install kubernetes and docker
+- docker
+https://docs.docker.com/install/linux/docker-ce/centos/
+
+- kubernetes
 ```
 $ sudo yum update
-$ sudo yum install kubeadm docker -y
+$ sudo yum install kubeadm -y
 ```
 
 3. Start and enable services
