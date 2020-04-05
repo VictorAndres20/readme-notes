@@ -2214,6 +2214,20 @@ return new Promise((resolve, reject) => {
 Entity.find({ attribute: new RegExp('')})
 ```
 
+**Combine AND with ORs**
+return new Promise((resolve, reject) => {
+		Test.find({
+			$and: [
+				{ $or: [{a: 1}, {b: 1}] },
+				{ $or: [{c: 1}, {d: 1}] }
+			]
+		})
+		.exec(function (err, results) {
+			if(err) reject(err);
+
+            resolve(products);
+		});
+	});
 
 ----------------------------------------------------------------------------------------
 
