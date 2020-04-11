@@ -113,6 +113,11 @@ https://docs.mongodb.com/manual/reference/built-in-roles/
 > db.<collectionName>.save({"_id": new ObjectId("jhgsdjhgdsf"), field1: "value", field2: "value"});
 ```
 
+## Update One
+```
+> db.<collectionName>.updateOne({_id: new ObjectId("5e3467aaf9d29b0564188149")}, {$set:{field1:"value"}});
+```
+
 ## Retrive all documents
 ```
 > db.<collectionName>.find();
@@ -238,6 +243,12 @@ https://docs.mongodb.com/manual/tutorial/query-documents/
 
 # Some cool queries with aggregate
 
+**Project**
+*SELECT _id, title, author FROM books*
+```
+db.books.aggregate( [ { $project : { title : 1 , author : 1 } } ] );
+```
+
 **Lookup**
 ```
 db.city.aggregate([
@@ -253,6 +264,28 @@ db.city.aggregate([
 ]);
 ```
 
+If you dont want lookup join be an array, use unwind
+FOR EXAMPLE: 
+- You can match with city params:
+- shop as only one city.
+```
+db.shop.aggregate([
+  {
+    $lookup:
+      {from:"city", localField:"city", foreignField:"_id", as:"city"}
+  },
+  {
+    $unwind:
+      {path:"$city",preserveNullAndEmptyArrays:true}
+  },
+  {
+    $match:
+      {'city.name':"Bogotá"}
+  }
+]);
+```
+
+
 https://docs.mongodb.com/manual/reference/operator/aggregation/match/#pipe._S_match
 **Match**
 ```
@@ -265,6 +298,30 @@ db.users.aggregate([
   },
   {$match:
      {mail:"vapedraza1706@gmail.com"}
+  }
+]);
+```
+
+**JS RegExp**
+*SELECT * FROM products WHERE sku like "%789";*
+```
+> db.products.find( { sku: { $regex: /789$/ } } );
+```
+
+**Match with JS RegExp**
+```
+db.shop.aggregate([
+  {
+    $lookup:
+      {from:"city", localField:"city", foreignField:"_id", as:"city"}
+  },
+  {
+    $unwind:
+      {path:"$city",preserveNullAndEmptyArrays:true}
+  },
+  {
+    $match:
+      {'city.name':{$regex:/^Bog/}}
   }
 ]);
 ```
@@ -332,6 +389,22 @@ db.product.aggregate([
     $group:{_id:"$type.name", count:{$sum:1}}
   }
 ]);
+```
+
+**SQL Comparison**
+https://docs.mongodb.com/manual/reference/sql-aggregation-comparison/
+```
+WHERE	                 $match
+GROUP BY	         $group
+HAVING	                 $match
+SELECT	                 $project
+ORDER BY	         $sort
+LIMIT	                 $limit
+SUM()	                 $sum
+COUNT()	                 $sum $sortByCount
+join	                 $lookup
+SELECT INTO NEW_TABLE	 $out
+MERGE INTO TABLE	 $merge (Available starting in MongoDB 4.2)
 ```
 
 ------------------------------------------------------------------------------------------
