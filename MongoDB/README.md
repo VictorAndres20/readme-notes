@@ -202,9 +202,41 @@ $ docker cp dump <CONTAINER ID>:/restore-mongo/
 $ sudo docker exec -it <container-id> bash
 $ mongorestore --port 27017 --drop --db <DB NAME> /restore-mongo/db_name/
 $ exit
+
+
 ------------------------------------------------------------------------------------------
 
-# Some cool queries
+# Some find queries
+https://docs.mongodb.com/manual/tutorial/query-documents/
+
+**AND condition**
+*SELECT * FROM inventory WHERE status = "A" AND qty < 30*
+```
+> db.inventory.find( { status: "A", qty: { $lt: 30 } } );
+```
+
+**OR condition**
+*SELECT * FROM inventory WHERE status = "A" OR qty < 30*
+```
+> db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } );
+```
+
+**AND with OR Condition**
+*SELECT * FROM inventory WHERE status = "A" AND ( qty < 30 OR item LIKE "p%")*
+```
+> db.inventory.find({status:"A", $or:[{qty:{$lt:30}},{item:/^p/}]});
+```
+
+**COUNT**
+*SELECT COUNT(*) AS count FROM sales*
+```
+> db.sales.aggregate([{$group:{_id: null,count:{$sum:1}}}]);
+```
+
+------------------------------------------------------------------------------------------
+
+
+# Some cool queries with aggregate
 
 **Lookup**
 ```
@@ -220,3 +252,86 @@ db.city.aggregate([
   }
 ]);
 ```
+
+https://docs.mongodb.com/manual/reference/operator/aggregation/match/#pipe._S_match
+**Match**
+```
+db.users.aggregate([
+  {$lookup:
+     {from:"user_state", localField:"state", foreignField:"_id", as : "state"}
+  },
+  {$lookup:
+     {from:"roles",localField:"roles",foreignField:"_id", as:"roles"}
+  },
+  {$match:
+     {mail:"vapedraza1706@gmail.com"}
+  }
+]);
+```
+
+**Group**
+*SELECT item,Sum((price*quantity)) AS totalSaleAmount FROM sales GROUP BY item HAVING totalSaleAmount >= 100*
+```
+db.sales.aggregate(
+  [
+    // First Stage
+    {
+      $group :
+        {
+          _id : "$item",
+          totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
+        }
+     },
+     // Second Stage
+     {
+       $match: { "totalSaleAmount": { $gte: 100 } }
+     }
+   ]
+ )
+```
+
+**Sort, AVG, Count, Sum**
+*SELECT date,Sum((price*quantity)) AS totalSaleAmount,Avg(quantity) AS averageQuantity,Count(*) AS Count FROM sales GROUP BY Date(date) ORDER BY totalSaleAmount DESC*
+```
+db.sales.aggregate([
+  // First Stage
+  {
+    $match : { "date": { $gte: new ISODate("2014-01-01"), $lt: new ISODate("2015-01-01") } }
+  },
+  // Second Stage
+  {
+    $group : {
+       _id : { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+       totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+       averageQuantity: { $avg: "$quantity" },
+       count: { $sum: 1 }
+    }
+  },
+  // Third Stage
+  {
+    $sort : { totalSaleAmount: -1 }
+  }
+ ])
+```
+
+**Search Shop's products, group and count by type**
+```
+db.product.aggregate([
+  {
+    $match: {shop:ObjectId("5e643fe778e1441e15069a3c")}
+  },
+  {
+    $lookup:{
+      from:"product_type",
+      localField:"type",
+      foreignField:"_id",
+      as:"type"
+    }
+  },
+  {
+    $group:{_id:"$type.name", count:{$sum:1}}
+  }
+]);
+```
+
+------------------------------------------------------------------------------------------
