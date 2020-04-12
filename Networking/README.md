@@ -2,6 +2,85 @@
 
 ## Some theory
 
+### OSI Layer Model
+7. Application
+6. Presentation
+5. Session
+4. Transport
+3. Network
+2. Data Link
+1. Physical
+
+## Example Incomming Data Frame readed by Layer 1
+
+1. Example Data Frame in Hexa
+```
+45 F5 45 D8 5E AA 21 34 C5 6D 8F EE 90 FF FE 36 78 A5 F6 B2 D9 36 78 A5 F6
+B1 D9 1E C0 0A 0A 05 C0 0A 0A 14 89 72 48 41 20 45 4F 43 4F 4E 54 52 41 44
+4F 20 45 4C 20 4D 53 47 D0 0F FF FE 24 5D 9F FE C0 00 DE D1 F5 C1 3C 68 84
+8D 8E 90 FA 0F 4B 9B 04 5B 6A 45 67 7E 3F F1 11 93 EA 12 34 FD 11 3E C0
+```
+
+2. Structure
+```
+Preamble -- MAC Dest. -- MAC Orig. -- Package Size -- |Data Package| -- Check Frame -- Preamble
+2 Bytes --- 6 Bytes ---- 6 Bytes ---- 1 Bytes ------- |0-1500 Bytes| -- 2 Bytes ------ 2 Bytes
+                                                     |              |
+												|                        |
+										  |                                    |  
+                                    |IP Orig. -- IP Dest. -- Upper Layers -- DATA (ASCII)|
+									|4 Bytes --- 4 Bytes --- 2 Bytes ------- Rest Bytes  | 
+```
+
+3. With preamble 11111111 11111110
+11111111 : FF
+11111110 : FE
+Preamble HEX: FF FE
+
+4. Data Frame to analyze
+```
+FF FE 36 78 A5 F6 B2 D9 36 78 A5 F6
+B1 D9 1E C0 0A 0A 05 C0 0A 0A 14 89 72 48 41 20 45 4F 43 4F 4E 54 52 41 44
+4F 20 45 4C 20 4D 53 47 D0 0F FF FE 
+```
+
+5. MACs
+Dest: 36:78:A5:F6:B2:D9
+Orig: 36:78:A5:F6:B1:D9
+Laast 3 Bytes = MANUFACTURER
+
+6. Pakcage Size = 1E
+
+7. IPs
+Orig: C0 0A 0A 05 -> 192.10.10.5
+Dest: C0 0A 0A 14 -> 192.10.10.20
+
+8. Upper Layers = 89 72
+
+
+9. Check Frame = D0 0F
+So, invert
+0FD0 = 4048
+
+To check,
+Add all bytes from "MAC dest." to "DATA" and need to be equals "Check Farme Inverted".
+
+36 + 78 + A5 + F6 + B2 + D9 + 36 + 78 + A5 + F6 +
+B1 + D9 + 1E + C0 + 0A + 0A + 05 + C0 + 0A + 0A +
+14 + 89 + 72 + 48 + 41 + 20 + 45 + 4F + 43 + 4F +
+4E + 54 + 52 + 41 + 44 + 4F + 20 + 45 + 4C + 20 + 
+4D + 53 + 47 = 0FD0
+
+
+10. DATA
+```
+48 41 20 45 4F 43 4F 4E 54 52 41 44
+4F 20 45 4C 20 4D 53 47
+```
+IN ASCII = "HA EOCONTRADO EL MSG"
+
+
+
 ### Intermediary devices
 - Wireless Router
 - Router
@@ -219,6 +298,16 @@ sw1-f1(config-line)# end
 sw1-f1#
 ```
 
+**Router secure remote Telnet / SSH access. VTY lines (0-15)**
+```
+sw1-f1(config)# line vty 0 15
+sw1-f1(config-line)# password MyPassword
+sw1-f1(config-line)# login
+sw1-f1(config-line)# transport input {ssh | telnet}
+sw1-f1(config-line)# end
+sw1-f1#
+```
+
 **Encrypt password**
 ```
 sw1-f1(config)# service password-encryption
@@ -385,8 +474,8 @@ sw2# show vlan
 
 -----------------------------------------------------------------------------------
 
-## Router configure
-
+## Router basic configure
+Same as IOS commands
 
 -----------------------------------------------------------------------------------
 
