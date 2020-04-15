@@ -539,10 +539,7 @@ sw-1# config t
 sw-1(config)# interface GigabitEthernet 0/1
 sw-1(config)# switchport trunk encapsulation dot1q ######## THIS COMMAND MAY FAIL IN PACKET TRACER
 sw-1(config-if)# switchport mode trunk
-sw-1(config-if)# switchport trunk allowed vlan add 2
-sw-1(config-if)# switchport trunk allowed vlan add 3
-...
-sw-1(config-if)# switchport trunk allowed vlan add X
+sw-1(config-if)# switchport trunk allowed vlan 2,3,4,...X
 sw-1(config-if)# no shutdown
 sw-1(config-if)# end
 sw-1# show interface trunk
