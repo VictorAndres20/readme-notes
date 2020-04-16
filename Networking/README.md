@@ -3,12 +3,12 @@
 ## Some theory
 
 ### OSI Layer Model
-7. Application
+7. Application ........... Data
 6. Presentation
 5. Session
-4. Transport
-3. Network
-2. Data Link
+4. Transport .............. Segment ...... TCP/UDP, Port
+3. Network ................ Packet ....... IP Address
+2. Data Link .............. Frame
 1. Physical
 
 ## Example Incomming Data Frame readed by Layer 1
