@@ -157,7 +157,7 @@ $ sudo git push origin develop
 
 # Delete remote branch
 ```
-$ sudo git push origin :<branchName>
+$ sudo git push origin --delete <branchName>
 ```
 
 
