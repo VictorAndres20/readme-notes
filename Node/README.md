@@ -192,6 +192,18 @@ const writeFile = (pathFile,data) => {
     }); 
 }
 
+//For example, encoding=base64 if you have an image in BASE 64
+const createFileEncoding = (path,fileName, content, extension, encoding) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(pathFile, content, {encoding}, (err) => {
+            if(err)
+                reject(err);
+            else
+                resolve(`Archivo creado ${pathFile}`);
+        });
+    });
+}
+
 const read = (pathFile) => {
 	 let data = await FileSystem.readFile(pathFile);
     return data;
