@@ -211,6 +211,43 @@ IP BROADCAST: 192.168.0.183/29
 
 2. Now, You can create 4 VLANs
 
+
+### Routing
+
+    X.X.1.0/24          X.X.2.0/24      X.X.3.0/24        X.X.4.0/24
+PC1 --------------- R1 ------------- R2 ------------- R3 ------------- PC2
+X.X.1.10       Fa0/0  Fa0/1     Fa0/0  Fa0/1     Fa0/0  Fa0/1        X.X.4.10
+              .1.1    .2.1      .2.2   .3.1      .3.2   .4.1
+
+
+**Table routing R1**
+Net ---------- Jumps ------------- IP next Jump ------------ Interface
+X.X.1.0/24 --- 0 ----------------- Connected --------------- Fa0/0
+X.X.2.0/24 --- 0 ----------------- Connected --------------- Fa0/1
+X.X.3.0/24 --- 1 ----------------- X.X.2.2 ----------------- Fa0/1
+X.X.4.0/24 --- 2 ----------------- X.X.2.2 ----------------- Fa0/1
+
+**Table routing R2**
+Net ---------- Jumps ------------- IP next Jump ------------ Interface
+X.X.1.0/24 --- 1 ----------------- X.X.2.1 ----------------- Fa0/0
+X.X.2.0/24 --- 0 ----------------- Connected --------------- Fa0/0
+X.X.3.0/24 --- 0 ----------------- Connected --------------- Fa0/1
+X.X.4.0/24 --- 1 ----------------- X.X.3.2 ----------------- Fa0/1
+
+**Table routing R3**
+Net ---------- Jumps ------------- IP next Jump ------------ Interface
+X.X.1.0/24 --- 2 ----------------- X.X.3.1 ----------------- Fa0/0
+X.X.2.0/24 --- 1 ----------------- X.X.3.1 ----------------- Fa0/0
+X.X.3.0/24 --- 0 ----------------- Connected --------------- Fa0/0
+X.X.4.0/24 --- 0 ----------------- Connected --------------- Fa0/1
+
+
+### Static routes.
+- Only if this network is small.
+- Need to configure manualy
+
+
+
 -----------------------------------------------------------------------------------
 
 ## Commands CISCO IOS
@@ -361,6 +398,17 @@ sw1-f1(config-if)# no shutdown
 #### Verify condition of switch interfaces 
 ```
 sw1-f1# show ip interface brief
+```
+
+#### Verify routes in Router
+```
+R1# show ip route
+```
+
+#### Maybe delete some config, put 'no' at the beginning
+Example delete
+```
+R1(config)# no ip route 192.168.1.2 255.255.255 192.168.2.1
 ```
 
 -----------------------------------------------------------------------------------
@@ -558,3 +606,88 @@ Then use ping
 
 
 -----------------------------------------------------------------------------------
+
+### Configure Static Routes with Routing multiple jumps
+
+    X.X.1.0/24          X.X.2.0/24      X.X.3.0/24        X.X.4.0/24
+PC1 --------------- R1 ------------- R2 ------------- R3 ------------- PC2
+X.X.1.10       GB0/0  GB0/1     GB0/0  GB0/1     GB0/0  GB0/1        X.X.4.10
+              .1.1    .2.1      .2.2   .3.1      .3.2   .4.1
+			  
+0. CRETAE ROUTERS TABLE
+See theory section
+
+1. Configure interfaces in Routers
+**R1**
+```
+R1(config)# interface GigabitEthernet 0/0
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)# exit
+R1(config)# interface GigabitEthernet 0/1
+R1(config-if)# ip address 192.168.2.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)# end
+R1# show run
+```
+
+**R2**
+```
+R2(config)# interface GigabitEthernet 0/0
+R2(config-if)# ip address 192.168.2.2 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)# exit
+R2(config)# interface GigabitEthernet 0/1
+R2(config-if)# ip address 192.168.3.1 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)# end
+R2# show run
+```
+
+**R3**
+```
+R3(config)# interface GigabitEthernet 0/0
+R3(config-if)# ip address 192.168.3.2 255.255.255.0
+R3(config-if)# no shutdown
+R3(config-if)# exit
+R3(config)# interface GigabitEthernet 0/1
+R3(config-if)# ip address 192.168.4.1 255.255.255.0
+R3(config-if)# no shutdown
+R3(config-if)# end
+R3# show run
+```
+
+2. Configure Routes for Jumps
+With ip route command sintax
+ip route TAGET_NETWORK_IP TARGET_MASK TABLE_GATEWAY
+
+**R1**
+```
+R1(config)# ip route 192.168.3.0 255.255.255.0 192.168.2.2
+R1(config)# ip route 192.168.4.0 255.255.255.0 192.168.2.2
+R1(config)# end
+R1# show ip route
+```
+
+**R2**
+```
+R2(config)# ip route 192.168.1.0 255.255.255.0 192.168.2.1
+R2(config)# ip route 192.168.4.0 255.255.255.0 192.168.3.2
+R2(config)# end
+R2# show ip route
+```
+
+**R3**
+```
+R3(config)# ip route 192.168.1.0 255.255.255.0 192.168.3.1
+R3(config)# ip route 192.168.2.0 255.255.255.0 192.168.3.1
+R3(config)# end
+R3# show ip route
+```
+
+3. Create PCs in nets with IP, Mask and GATEWAY
+
+
+-----------------------------------------------------------------------------------
+
+
