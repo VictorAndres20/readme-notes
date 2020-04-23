@@ -1793,7 +1793,69 @@ http://host:port/swagger-ui.html
 ```
 		
 		
+###############################################################################################
 		
+# Generate jar with dependencies
+
+Add in POM build >> plugins section		
+```
+<build>
+  <plugins>
+    <plugin>
+      <artifactId>maven-assembly-plugin</artifactId>
+      <configuration>
+        <archive>
+          <manifest>
+            <mainClass>path.to.package.MainClass</mainClass>
+          </manifest>
+        </archive>
+        <descriptorRefs>
+          <descriptorRef>jar-with-dependencies</descriptorRef>
+        </descriptorRefs>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+```
+
+OR in Spring Boot
+
+```
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    
+	<!-- This if you have System Scope dependencies -->
+	
+	<configuration>
+        <includeSystemScope>true</includeSystemScope>
+    </configuration>
+	
+	<!-- -->
+	
+    <executions>
+        <execution>
+            <goals>
+                <goal>repackage</goal>
+            </goals>
+            <configuration>
+                <classifier>exec</classifier>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+		
+###############################################################################################
+		
+# Generate jar as maven dependency in .m2/repository
+
+Execute
+```
+$ mvn install:install-file –Dfile=/absolute/path/to/app.jar -DgroupId=com.vapedraza.group -DartifactId=example-app -Dversion=1.0 -Dpackaging=jar
+```		
+
 
 
 ###############################################################################################
