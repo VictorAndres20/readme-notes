@@ -246,6 +246,31 @@ X.X.4.0/24 --- 0 ----------------- Connected --------------- Fa0/1
 - Only if this network is small.
 - Need to configure manualy
 
+### Dynamic Routing.
+**Types by Mask**
+- Nets with same Mask:
+	- Classfull
+	
+- Nets with diffrentes Mask:
+	- Classless
+
+**Protocols**
+- IGP: LAN
+	- RIP: 
+		Look Jumps. 
+		Update currently. 
+		Incomplete Topology.
+		Max jumps 15
+			V1: Classfull
+			V2: Classless
+	- IGRP: Look Jump CISCO
+	- EIGRP:
+	- OSPF: See ping, see brandwith. Dont update currently. Complete Topology
+	
+- EGP: External
+	- BGP: Look Jumps
+
+
 
 
 -----------------------------------------------------------------------------------
@@ -686,6 +711,140 @@ R3# show ip route
 ```
 
 3. Create PCs in nets with IP, Mask and GATEWAY
+
+
+-----------------------------------------------------------------------------------
+
+### Dynamic Routing
+
+- Router 2911
+
+**Example topology**
+
+				                         |
+                                         |  192.168.4.0 /24
+                                         |
+                                         |
+								         |
+								        0/1
+								         |
+                                         R2
+                                        |  |
+									  0/0  0/2
+									  |      |
+			172.16.20.0/30           |        |        172.16.20.4/30
+									|          |
+								0/1              0/1	
+192.168.2.0 /24                  |                |               192.168.3.0 /24
+---------------------- 0/0 -- R1 --0/2--------0/0-- R3 ---0/2-----------------------------
+
+                                   172.16.20.8/30 
+
+0. Config IP Analysis
+**R1**
+Gb 0/0 -> 192.168.2.1 255.255.255.0
+Gb 0/1 -> 172.16.20.1 255.255.255.252
+Gb 0/2 -> 172.16.20.10 255.255.255.252
+
+**R2**
+Gb 0/0 -> 172.16.20.2 255.255.255.252
+Gb 0/1 -> 192.168.4.1 255.255.255.0
+Gb 0/2 -> 172.16.20.5 255.255.255.252
+
+**R3**
+Gb 0/0 -> 172.16.20.9 255.255.255.252
+Gb 0/1 -> 172.16.20.6 255.255.255.252
+Gb 0/2 -> 192.168.3.1 255.255.255.0
+
+1. Configure interfaces in Routers
+**R1**
+```
+R1(config)# interface GigabitEthernet 0/0
+R1(config-if)# ip address 192.168.2.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)# exit
+R1(config)# interface GigabitEthernet 0/1
+R1(config-if)# ip address 172.16.20.1 255.255.255.252
+R1(config-if)# no shutdown
+R1(config-if)# exit
+R1(config)# interface GigabitEthernet 0/2
+R1(config-if)# ip address 172.16.20.10 255.255.255.252
+R1(config-if)# no shutdown
+R1(config-if)# end
+R1# show run
+```
+
+**R2**
+```
+R2(config)# interface GigabitEthernet 0/0
+R2(config-if)# ip address 172.16.20.2 255.255.255.252
+R2(config-if)# no shutdown
+R2(config-if)# exit
+R2(config)# interface GigabitEthernet 0/1
+R2(config-if)# ip address 192.168.4.1 255.255.255.0
+R2(config-if)# no shutdown
+R2(config-if)# exit
+R2(config)# interface GigabitEthernet 0/2
+R2(config-if)# ip address 172.16.20.5 255.255.255.252
+R2(config-if)# no shutdown
+R2(config-if)# end
+R2# show run
+```
+
+**R3**
+```
+R3(config)# interface GigabitEthernet 0/0
+R3(config-if)# ip address 172.16.20.9 255.255.255.252
+R3(config-if)# no shutdown
+R3(config-if)# exit
+R3(config)# interface GigabitEthernet 0/1
+R3(config-if)# ip address 172.16.20.6 255.255.255.252
+R3(config-if)# no shutdown
+R3(config-if)# exit
+R3(config)# interface GigabitEthernet 0/2
+R3(config-if)# ip address 192.168.3.1 255.255.255.0
+R3(config-if)# no shutdown
+R3(config-if)# end
+R3# show run
+```
+
+
+2. Set dynamic routing in routers. 
+
+In rip, you set NEIGHBOR NETWORKS
+Only IP Network, without Mask
+
+**R1**
+```
+R1(config)# router rip
+R1(config-router)# version 2
+R1(config-router)# network 192.168.2.0
+R1(config-router)# network 172.16.20.0
+R1(config-router)# network 172.16.20.8
+R1(config-router)# end
+```
+
+**R2**
+```
+R2(config)# router rip
+R2(config-router)# version 2
+R2(config-router)# network 172.16.20.0
+R2(config-router)# network 192.168.4.0
+R2(config-router)# network 172.16.20.4
+R2(config-router)# end
+```
+
+**R3**
+```
+R3(config)# router rip
+R3(config-router)# version 2
+R3(config-router)# network 172.16.20.4
+R3(config-router)# network 172.16.20.8
+R3(config-router)# network 192.168.3.0
+R3(config-router)# end
+```
+
+3. Connect PCs and set IP, Mask, Gateway
 
 
 -----------------------------------------------------------------------------------
