@@ -1,0 +1,420 @@
+TOPOLOGY
+-------------------------------------------------------------------------------------------------------------
+  BUILDING 1                                                       BUILDING 2
+  8 VLAN                                                            8 VLAN 
+			         
+				   Router 2 ---------------------- Router 3
+                   |				                      |
+			     |                                         |
+           Router1                                         Router4
+           |                                                     |
+         |                                                         |
+   Switch1                                                          Switch4
+     |                                                                |
+     |                                                                |
+     |                                                                |
+   Switch4                                                          Switch5
+     |                                                                |
+     |                                                                |
+     |                                                                |
+     |                                                                |
+   Switch4                                                          Switch6
+			                    
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Building 1
+-------------------------------------------------------------------------------------------------------------
+Create VLAN
+---------------------------------------------------------------
+vlan 2
+name Ingeniería
+exit
+vlan 3
+name Comercial
+exit
+vlan 4
+name Administrativos
+exit
+vlan 5
+name WIFI-Empresa
+exit
+vlan 6
+name WIFI-Redes
+exit
+vlan 7
+name WIFI-Invitados
+exit
+vlan 8
+name Gerencia
+exit
+vlan 9
+name Impresoras
+end
+show vlan
+---------------------------------------------------------------
+Configure VLAN Interfaces
+---------------------------------------------------------------
+interface range FastEthernet 0/1-3
+switchport access vlan 2
+no shutdown
+exit
+interface range FastEthernet 0/4-6
+switchport access vlan 3
+no shutdown
+exit
+interface range FastEthernet 0/7-9
+switchport access vlan 4
+no shutdown
+exit
+interface range FastEthernet 0/10-12
+switchport access vlan 5
+no shutdown
+exit
+interface range FastEthernet 0/13-15
+switchport access vlan 6
+no shutdown
+exit
+interface range FastEthernet 0/16-18
+switchport access vlan 7
+no shutdown
+exit
+interface range FastEthernet 0/19-21
+switchport access vlan 8
+no shutdown
+exit
+interface range FastEthernet 0/22-24
+switchport access vlan 9
+no shutdown
+end
+show vlan
+---------------------------------------------------------------
+Configure Giga Interface to connect Switch to Switch
+---------------------------------------------------------------
+SW1
+-----------------------------------
+interface GigabitEthernet0/2
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+-----------------------------------
+SW2
+-----------------------------------
+interface GigabitEthernet0/1
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+exit
+interface GigabitEthernet0/2
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+-----------------------------------
+SW3
+-----------------------------------
+interface GigabitEthernet0/1
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+---------------------------------------------------------------
+Configure Giga Interface to connect Router1 to Switch1
+---------------------------------------------------------------
+R1
+-----------------------------------
+interface GigabitEthernet 0/0.2
+encapsulation dot1Q 2
+ip address 192.168.113.1 255.255.255.128
+exit
+interface GigabitEthernet 0/0.3
+encapsulation dot1Q 3
+ip address 192.168.113.129 255.255.255.224
+exit
+interface GigabitEthernet 0/0.4
+encapsulation dot1Q 4
+ip address 192.168.113.161 255.255.255.240
+exit
+interface GigabitEthernet 0/0.5
+encapsulation dot1Q 5
+ip address 192.168.113.177 255.255.255.240
+exit
+interface GigabitEthernet 0/0.6
+encapsulation dot1Q 6
+ip address 192.168.113.193 255.255.255.240
+exit
+interface GigabitEthernet 0/0.7
+encapsulation dot1Q 7
+ip address 192.168.113.209 255.255.255.240
+exit
+interface GigabitEthernet 0/0.8
+encapsulation dot1Q 8
+ip address 192.168.113.225 255.255.255.248
+exit
+interface GigabitEthernet 0/0.9
+encapsulation dot1Q 9
+ip address 192.168.113.233 255.255.255.248
+exit
+interface GigabitEthernet 0/0
+no shutdown
+end
+show run
+-----------------------------------
+SW1
+-----------------------------------
+interface GigabitEthernet0/1
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Building 2
+-------------------------------------------------------------------------------------------------------------
+Create VLAN
+---------------------------------------------------------------
+vlan 2
+name Desarrollo
+exit
+vlan 3
+name Administrativos
+exit
+vlan 4
+name Gerencia
+exit
+vlan 5
+name Impresoras
+exit
+vlan 6
+name Comercial
+exit
+vlan 7
+name WIFI-Empresa
+exit
+vlan 8
+name WIFI-Redes
+exit
+vlan 9
+name WIFI-Invitados
+end
+show vlan
+---------------------------------------------------------------
+Configure VLAN Interfaces
+---------------------------------------------------------------
+interface range FastEthernet 0/1-3
+switchport access vlan 2
+no shutdown
+exit
+interface range FastEthernet 0/4-6
+switchport access vlan 3
+no shutdown
+exit
+interface range FastEthernet 0/7-9
+switchport access vlan 4
+no shutdown
+exit
+interface range FastEthernet 0/10-12
+switchport access vlan 5
+no shutdown
+exit
+interface range FastEthernet 0/13-15
+switchport access vlan 6
+no shutdown
+exit
+interface range FastEthernet 0/16-18
+switchport access vlan 7
+no shutdown
+exit
+interface range FastEthernet 0/19-21
+switchport access vlan 8
+no shutdown
+exit
+interface range FastEthernet 0/22-24
+switchport access vlan 9
+no shutdown
+end
+show vlan
+---------------------------------------------------------------
+Configure Giga Interface to connect Switch to Switch
+---------------------------------------------------------------
+SW4
+-----------------------------------
+interface GigabitEthernet0/2
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+-----------------------------------
+SW5
+-----------------------------------
+interface GigabitEthernet0/1
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+exit
+interface GigabitEthernet0/2
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+-----------------------------------
+SW6
+-----------------------------------
+interface GigabitEthernet0/1
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+---------------------------------------------------------------
+Configure Giga Interface to connect Router4 to Switch4
+---------------------------------------------------------------
+R4
+-----------------------------------
+interface GigabitEthernet 0/0.2
+encapsulation dot1Q 2
+ip address 192.168.114.1 255.255.255.128
+exit
+interface GigabitEthernet 0/0.3
+encapsulation dot1Q 3
+ip address 192.168.114.129 255.255.255.240
+exit
+interface GigabitEthernet 0/0.4
+encapsulation dot1Q 4
+ip address 192.168.114.145 255.255.255.248
+exit
+interface GigabitEthernet 0/0.5
+encapsulation dot1Q 5
+ip address 192.168.114.153 255.255.255.248
+exit
+interface GigabitEthernet 0/0
+no shutdown
+end
+show run
+-----------------------------------
+SW4
+-----------------------------------
+interface GigabitEthernet0/1
+switchport mode trunk
+switchport trunk allowed vlan 2,3,4,5,6,7,8,9
+no shutdown
+end
+show run
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Creating static routes
+-------------------------------------------------------------------------------------------------------------
+Set Router interfaces IP
+--------------------------------------------------------------------------------
+R1
+------------------------------------
+interface GigabitEthernet 0/1
+ip address 10.10.13.1 255.255.255.252
+no shutdown
+end
+show run
+
+------------------------------------
+R2
+------------------------------------
+interface GigabitEthernet 0/0
+ip address 10.10.13.2 255.255.255.252
+no shutdown
+exit
+interface GigabitEthernet 0/1
+ip address 10.10.13.5 255.255.255.252
+no shutdown
+end
+show run
+
+------------------------------------
+R3
+------------------------------------
+interface GigabitEthernet 0/0
+ip address 10.10.13.6 255.255.255.252
+no shutdown
+exit
+interface GigabitEthernet 0/1
+ip address 10.10.13.9 255.255.255.252
+no shutdown
+end
+show run
+
+------------------------------------
+R4
+------------------------------------
+interface GigabitEthernet 0/1
+ip address 10.10.13.10 255.255.255.252
+no shutdown
+end
+show run
+
+--------------------------------------------------------------------------------
+Set Router for dynamic route RIP V2
+--------------------------------------------------------------------------------
+R1
+------------------------------------
+router rip
+version 2
+network 10.10.13.0 
+network 192.168.113.0
+network 192.168.113.128
+network 192.168.113.160
+network 192.168.113.176
+network 192.168.113.192
+network 192.168.113.208
+network 192.168.113.224
+network 192.168.113.232
+end
+show ip route
+
+
+------------------------------------
+R2
+------------------------------------
+router rip
+version 2
+network 10.10.13.0
+network 10.10.13.4
+end
+show ip route
+
+------------------------------------
+R3
+------------------------------------
+router rip
+version 2
+network 10.10.13.4
+network 10.10.13.8
+end
+show ip route
+
+------------------------------------
+R4
+------------------------------------
+router rip
+version 2
+network 10.10.13.8
+network 192.168.114.0
+network 192.168.114.128
+network 192.168.114.144
+network 192.168.114.152
+end
+show ip route
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
