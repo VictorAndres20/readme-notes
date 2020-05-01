@@ -3,7 +3,8 @@ link -> https://github.com/facebook/create-react-app
 
 # Quick over view
 ```
-$ sudo npx create-react-app my-app **OR** $ sudo yarn create react-app my-app 
+$ sudo npx create-react-app my-app **OR** $ sudo yarn create react-app my-app
+$ sudo chown -R user:group my-app
 $ cd my-app
 $ npm start **OR** $ yarn start
 ```
@@ -459,10 +460,10 @@ $ sudo npm install mdbreact --save
 - index.js
 
 1. Install
-``redux, react-redux``
+``redux, react-redux, redux-thunk``
 
 2. src/_services
-Here you can write all your API calls and return promises if yuo need
+Here you can write all your API calls and return promises if you need
 
 3. actions/[setActionExample].js
 In actions folder you create all actions, for example setSession, setUsers, 
