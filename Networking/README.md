@@ -26,10 +26,10 @@ B1 D9 1E C0 0A 0A 05 C0 0A 0A 14 89 72 48 41 20 45 4F 43 4F 4E 54 52 41 44
 Preamble -- MAC Dest. -- MAC Orig. -- Package Size -- |Data Package| -- Check Frame -- Preamble
 2 Bytes --- 6 Bytes ---- 6 Bytes ---- 1 Bytes ------- |0-1500 Bytes| -- 2 Bytes ------ 2 Bytes
                                                      |              |
-												|                        |
-										  |                                    |  
+												            |                        |
+										           |                                    |
                                     |IP Orig. -- IP Dest. -- Upper Layers -- DATA (ASCII)|
-									|4 Bytes --- 4 Bytes --- 2 Bytes ------- Rest Bytes  | 
+									         |4 Bytes --- 4 Bytes --- 2 Bytes ------- Rest Bytes  | 
 ```
 
 3. With preamble 11111111 11111110
@@ -721,20 +721,20 @@ R3# show ip route
 
 **Example topology**
 
-				                         |
+				                             |
                                          |  192.168.4.0 /24
                                          |
                                          |
-								         |
-								        0/1
-								         |
+								                 |
+								                0/1
+								                 |
                                          R2
                                         |  |
-									  0/0  0/2
-									  |      |
-			172.16.20.0/30           |        |        172.16.20.4/30
-									|          |
-								0/1              0/1	
+									           0/0  0/2
+									           |      |
+			   172.16.20.0/30           |        |        172.16.20.4/30
+									         |          |
+								        0/1              0/1	
 192.168.2.0 /24                  |                |               192.168.3.0 /24
 ---------------------- 0/0 -- R1 --0/2--------0/0-- R3 ---0/2-----------------------------
 

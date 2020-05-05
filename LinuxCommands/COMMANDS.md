@@ -173,6 +173,10 @@ $ sudo kill -18 <PID>
 # kill process
 $ kill -9 <PID>
 
+# Show daemons process
+
+$ ps -eo 'tty,pid,comm' | grep ^?
+
 ------------------------------------------------------------------------------------------------------------------
 
 # Background y Foreground
