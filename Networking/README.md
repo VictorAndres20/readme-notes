@@ -3,12 +3,12 @@
 ## Some theory
 
 ### OSI Layer Model
-7. Application ........... Data
+7. Application ...... Data
 6. Presentation
 5. Session
-4. Transport .............. Segment ...... TCP/UDP, Port
-3. Network ................ Packet ....... IP Address
-2. Data Link .............. Frame
+4. Transport .... Segment .... TCP/UDP, Port .... UDP-> Gain Speed, maybe lost Packages, used in Online Games, Zoom, DNS, DHCP .... TCP-> Lost Speed, no lost package, used in HTTP, FTP, SSH 
+3. Network ...... Packet ..... IP Address
+2. Data Link .... Frame
 1. Physical
 
 ## Example Incomming Data Frame readed by Layer 1
