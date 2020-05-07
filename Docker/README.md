@@ -340,7 +340,7 @@ $ sudo docker run -i -t --name phpmyadmin-name -d --link <MySQL Container NAME>:
 
 ## MySQL container
 ```
-$ sudo docker run -i -t --name mysql-name -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 mysql:5.7
+$ sudo docker run -i -t --name mysql-name -v /my/own/datadir:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 mysql:5.7
 ```
 **Execute MySQL container**
 ```
@@ -414,6 +414,24 @@ $ sudo docker run -dit --name vitolo_apache -v /local/path:/usr/local/apache2/ht
 ## nginx
 ```
 $ sudo docker run -i -t --name container-nginx-name -v /local/path:/usr/share/nginx/html:ro -d -p 3000:80 nginx
+```
+
+## Wordpress
+```
+$ sudo docker network create -d bridge --subnet 172.18.0.0/24 --gateway 172.18.0.1 wordpress-net
+$ mkdir /usr/docker/volumes/mysql/data
+$ mkdir /usr/docker/volumes/wordpress/html
+$ sudo docker run -it --name mysql-wordpress -v /usr/docker/volumes/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passwd --network wordpress-net --ip 172.18.0.2 -d -p 3306:3306 mysql:5.7
+$ sudo docker run --name my-wordpress -v /usr/docker/volumes/wordpress/html:/var/www/html -e WORDPRESS_DB_HOST=172.18.0.2:3306 -e WORDPRESS_DB_USER=root -e WORDPRESS_DB_PASSWORD=passwd --network wordpress-net --ip 172.18.0.3 -d -p 80:80 wordpress
+```
+
+## Prestashop
+```
+$ sudo docker network create -d bridge --subnet 172.18.0.0/24 --gateway 172.18.0.1 prestashop-net
+$ mkdir /usr/docker/volumes/mysql/data
+$ mkdir /usr/docker/volumes/prestashop/html
+$ sudo docker run -it --name mysql-prestashop -v /usr/docker/volumes/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passwd --network prestashop-net --ip 172.18.0.2 -d -p 3306:3306 mysql:5.7
+$ sudo docker run --name my-prestashop -v /usr/docker/volumes/prestashop/html:/var/www/html -e DB_SERVER=mysql-prestashop -e DB_USER=root -e DB_PASSWD=passwd --network prestashop-net --ip 172.18.0.3 -d -p 80:80 prestashop/prestashop:1.7-7.2-apache
 ```
 
 ## JAR Spring Boot Application

@@ -482,3 +482,36 @@ $ cd /usr/lib/python3
 $ cd dist-packages/
 $ sudo cp apt_pkg.cpython-35m-x86_64-linux-gnu.so apt_pkg.so
 ```
+
+------------------------------------------------------------------------------------------------------------------
+
+
+## Ubuntu Server 18.04 DNS setup
+https://www.systeminside.net/como-soluciono-resolucion-dns-ubuntu/
+
+systemd-resolved mange resolv.conf file. So you can diable systemd-resolved.
+
+1. Install resolvconf
+```
+$ sudo apt-get install resolvconf
+```
+
+2. Edit nameserver
+```
+$ vi /etc/resolvconf/resolv.conf.d/tail
+```
+
+3. Add nameserver
+```
+nameserver 8.8.8.8
+```
+
+4. Diable systemd-resolved
+```
+$ sudo systemctl disable systemd-resolved
+```
+
+5. OPTIONAL remove nameserver 127.0.0.54 in /etc/resolv.conf file
+
+
+------------------------------------------------------------------------------------------------------------------
