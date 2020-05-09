@@ -272,6 +272,34 @@ X.X.4.0/24 --- 0 ----------------- Connected --------------- Fa0/1
 
 
 
+### NAT for IPv4
+
+- Translate IPv4 from many Private IPs to One Public IPs
+- COnfigure from border ROUTERS
+
+NAT
+                            <------------ PRIVATE IP
+INTERNET <------ PUBLIC IP <------------ PRIVATE IP
+                            <------------ PRIVATE IP
+
+
+
+DNAT / Port Forwarding					
+                            ------------> PRIVATE IP
+INTERNET ------> PUBLIC IP ------------> PRIVATE IP
+                            ------------> PRIVATE IP							
+							
+**Static NAT**
+- Manual Assign
+
+**Dynamic NAT**
+- Use many Public IPs and assign one to one Private IP
+
+**PAT**
+- Many private IPs to one Public IP using Port Numbers
+
+
+
 
 -----------------------------------------------------------------------------------
 
