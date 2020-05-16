@@ -236,6 +236,26 @@ read(`${__dirname}/../files/data.json`)
 .catch(err => console.log(err.message));
 ```
 
+**USING glob**
+install ``glob``
+
+```
+const glob = require('glob');
+
+//Return list of files with absolute path
+const getFiles = (absolutePath, nameExpression) => {
+    let pattern = `${absolutePath}${nameExpression}`;
+    return new Promise((resolve, reject) => {
+        glob(pattern, (err, files) => {
+            if (err) 
+                reject(err);
+            else 
+                resolve(files);
+        });
+    });
+}
+```
+
 ----------------------------------------------------------------------------------------
 
 
@@ -561,6 +581,9 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 class Server{
+
+	static REQUEST_DEFAULT_LIMIT_SIZE = '10mb';
+
     constructor(){
         this.app = express();
     }
@@ -574,8 +597,8 @@ class Server{
     }
 
     enableBodyParser() {
-        this.setMiddleware(bodyParser.urlencoded({extended: false}));
-        this.setMiddleware(bodyParser.json());
+        this.setMiddleware(bodyParser.urlencoded({limit: Server.REQUEST_DEFAULT_LIMIT_SIZE, extended: true}));
+        this.setMiddleware(bodyParser.json({limit: Server.REQUEST_DEFAULT_LIMIT_SIZE, extended: true}));
     }
 
     setRoutes() {
