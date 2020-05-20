@@ -409,12 +409,14 @@ $ ll
 
 4. Identify your ifcfg-<INTERFACE> file and edit this items
 ```
+BOOTPROTO=none
 DNS1=8.8.8.8
 DNS2=8.8.4.4
 HOSTNAME=myhost
 GATEWAY=192.168.0.1
 NETMASK=255.255.255.0
 IPADDR=192.168.0.17
+ONBOOT=yes
 ```
 
 5. Now, edit /etc/resolv.conf file writting this
