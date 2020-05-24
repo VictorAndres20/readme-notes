@@ -408,7 +408,7 @@ $ exit
 
 ## httpd container
 ```
-$ sudo docker run -dit --name vitolo_apache -v /local/path:/usr/local/apache2/htdocs/ -p 9090:80 httpd:2.4
+$ sudo docker run -dit --name vitolo_apache --restart always -v /local/path:/usr/local/apache2/htdocs/ -p 9090:80 httpd:2.4
 ```
 
 ## nginx

@@ -93,6 +93,10 @@ href=/YOUR_APP_NAME/ruta
 
 
 # Use History to push('/some/url'), goBack(), replace('/some/url')
+0. Install history package.
+```
+yarn add history
+```
 
 1. Create HistoryHelper
 ```
@@ -107,7 +111,18 @@ import HistoryHelper from '../../_helpers/HistoryHelper';
 
 export const AppRoute = () => {
     return(
-        <Router history={HistoryHelper}>
+            <BrowserRouter history={HistoryHandler} basename="/" >
+                <Switch>
+                    {/** Ruta por default */}
+                    <Route exact path='/' component={LoginModule} />}/>
+                    {/** Rutas especificas */}
+                    <Route path='/login' component={LoginModule} />}/>
+                    <Route path={SELECT_SHOP} component={ this.SelectShop} />}/>
+                    {/** Ruta no especificada */}
+                    <Route component={ErrorPage} />
+                </Switch>
+            </BrowserRouter>
+        );
 ```
 
 3. Use it on any component that has prop.history or action
