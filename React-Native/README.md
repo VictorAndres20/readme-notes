@@ -192,6 +192,8 @@ $ sudo yarn add react-native-gesture-handler
 $ sudo yarn add react-native-reanimated 
 $ sudo yarn add react-native-screens@^1.0.0-alpha.23
 $ sudo yarn add react-navigation-stack
+$ sudo yarn add react-native-safe-area-context
+$ sudo yarn add @react-native-community/masked-view
 
 **If React Native 0.6 and newer**{
 
