@@ -142,6 +142,11 @@ $ sudo git branch --contains [commit]
 $ sudo git remote -v
 ```
 
+# Change url remote repo
+```
+$ git remote set-url origin http://yourepo.git
+```
+
 -------------------------------------------------------------------------------------------------
 
 
