@@ -262,3 +262,89 @@ class Bike implements Vehicule{
 	String toString() => "[Ruedas: ${this.wheels}], Placa: ${this.id}";
 }
 ```
+
+**Mixins**
+https://medium.com/flutter-community/dart-what-are-mixins-3a72344011f3
+```
+void main() {
+	final dog = new Dog();
+	final bat = new Bat();
+  
+	dog.swim();
+	bat.fly();
+}
+
+abstract class Animal {}
+
+abstract class Mammal extends Animal {}
+abstract class Bird extends Animal {}
+abstract class Fish extends Animal {}
+
+abstract class Walker {
+	void walk() => print('I am walking');
+}
+
+abstract class Flyer {
+	void fly() => print('Fly you fools');
+}
+
+abstract class Swimmer {
+	void swim() => print('I am swimming');
+}
+
+class Dolphin extends Mammal with Swimmer {}
+class Dog extends Mammal with Swimmer, Walker {}
+class Bat extends Mammal with Flyer {}
+
+class Dove extends Bird with Flyer, Walker {}
+class Duck extends Bird with Swimmer, Walker {}
+
+class Shark extends Fish with Swimmer {}
+class FlyFish extends Fish with Flyer, Swimmer {}
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+# Futures
+
+**Basic example**
+```
+void main() {
+	print("Init code");
+	httpDemo("domain.com")
+	.then((res){
+		print(res);
+	})
+	.catchError((err){
+		print("Some error");
+	});
+	print("End code");
+}
+
+Future<String> httpDemo( String url){
+	return Future.delayed(new Duration( seconds: 4), () {
+		return "Llegué";
+	});
+}
+```
+
+## Async Await
+```
+void main() async {
+	print("Init code");
+	print(await getResponse("domain.com"));
+	print("End code");
+}
+
+Future<String> httpDemo( String url) {
+	return Future.delayed(new Duration( seconds: 4), () {
+		return "Llegué";
+	});
+}
+
+Future<String> getResponse(String url) async {
+	return await httpDemo(url);
+}
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------------
