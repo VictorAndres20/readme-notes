@@ -230,18 +230,6 @@ class HomeModule extends StatefulWidget{
 }
 ```
 
-
-----------------------------------------------------------------------------------------------------------
-
-# Use structure
-**You can delete de initial test folder, create new one when you need**
-
-0. Structure
-- lib
-- lib/main.dart
-- lib/src/app.dart
-- lib/src/modules/home_module.dart
-
 ----------------------------------------------------------------------------------------------------------
 
 # Columns and Rows layout from 'package:flutter/material.dart'
@@ -308,15 +296,243 @@ Material Design
 Icon(Icons.[name])
 ```
 
+### Icon helper by name
+```
+import 'package:flutter/material.dart';
+
+final iconsData = <String, IconData>{
+  'add_alert': Icons.add_alert,
+  'accessibility': Icons.accessibility,
+  'folder_open' : Icons.folder_open
+};
+
+Icon getIconFromStr(String iconKey) => Icon(iconsData[iconKey], color: Colors.blue,);
+```
+
 ----------------------------------------------------------------------------------------------------------
 
-# Common Flutter Material Widgets
+# Simple Navigation
+
+1. Create Modules Widgets in lib/src/modules
+In this examples, created 3 modules. Home, Alerts, Avatars. As StatelessWidgets.
+
+2. Create lib/src/routes/app_routes.dart
+```
+import 'package:flutter/material.dart';
+
+import 'package:componentsTemplateFlutter/src/modules/HomeModule.dart';
+import 'package:componentsTemplateFlutter/src/modules/AlertsModule.dart';
+import 'package:componentsTemplateFlutter/src/modules/AvatarsModule.dart';
+
+// Route '/' is the initial route
+Map<String, WidgetBuilder> getApplicationRoutes() {
+  return <String, WidgetBuilder>{
+    "/": (context) => HomeModule(),
+    "alert": (context) => ALertsModule(),
+    "avatar": (context) => AvatarsModule(),
+  };
+}
+
+MaterialPageRoute getNotFoundModule(BuildContext context) {
+  return MaterialPageRoute(
+      builder: (BuildContext context) => Center(child: Text("Ruta no existe"))
+  );
+}
+
+```
+
+3. Create lib/src/App.dart
+```
+import 'package:flutter/material.dart';
+
+import 'package:componentsTemplateFlutter/src/routes/app_routes.dart';
+
+class App extends StatelessWidget {
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Components Template App',
+      debugShowCheckedModeBanner: false,
+      initialRoute: "/",
+      routes: getApplicationRoutes(),
+      onGenerateRoute: ( RouteSettings settings ) => getNotFoundModule(context)
+    );
+  }
+}
+```
+
+4. Main
+```
+import 'package:flutter/material.dart';
+
+import 'package:componentsTemplateFlutter/src/app.dart';
+
+void main() {
+  runApp(App());
+}
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+# Image and FadeInImage Widgets
+**NOTE**
+Dont forget to register your assets in `pubspec.yaml`
+
+### Image. Util with local images
+```
+Image(
+  image: AssetImage('resources/images/logo.png'),
+)
+```
+
+### FadeInImage. Util with NetWork image
+```
+FadeInImage(
+  placeholder: AssetImage('resources/images/loading.gif'), 
+  image: NetworkImage('https://www.yourtrainingedge.com/wp-content/uploads/2019/05/background-calm-clouds-747964.jpg'),
+  fadeInDuration: Duration(milliseconds: 300),
+)
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# Flutter Widgets Catalog
+https://flutter.dev/docs/development/ui/widgets
+
+## Common Layout Widgets
+
+- Center
+- Padding
+- SizedNox
+- Transform
+- Column
+- Row
+- GridView
+- ListView -> This has scroll by default
+```
+import 'package:flutter/material.dart';
+
+//To use in other as Widget, use SimpleListView(items: [Map<String,dynamic>,...]).build(context)
+class SimpleListView extends StatelessWidget{
+  final List<dynamic> items;
+
+  SimpleListView({this.items});
+
+  @override
+  Widget build( context ){
+    return ListView(
+      children: this.buildItems()
+    );
+  }
+
+  List<Widget> buildItems(){
+    return this.items.map(( item ){
+      return Column(
+        children: <Widget>[
+          ListTile(
+            title: Text(item['text']),
+			leading: Icon(Icons.arrow_forward_ios), //Left Widget example icon,
+            trailing: Icon(Icons.arrow_forward_ios), //Rigth Widget example icon
+            onTap: (){print("Tapped");},
+          ),
+		  Divider()
+        ],
+      );
+    }).toList();
+  }
+}
+```
+
+- And MORE...
+
+## Common Widgets Scroll
+
+Example
+- ScrollView
+
+## Common Flutter Material Widgets
 https://flutter.dev/docs/development/ui/widgets/material
 
 When you `import 'package:flutter/material.dart';`, you can use all Flutter Material Widgets
 
-## Scaffold
+- Scaffold
 Classic Material Structure Screen
+
+----------------------------------------------------------------------------------------------------------
+
+# FutureBuilder for Widgets that need AsyncData access
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+# Use static resources like files.json or Images
+
+1. Create you folder resources in root package project
+
+2. Add your structure
+- resources/images
+- resources/files
+
+3. Uncomment assets section in pubspec.yaml and register your files with absolute path
+```
+  assets:
+    - resources/image/img.png
+    - resources/files/menu.json
+```
+
+4. Save, detach and execute again `flutter run`
+
+**To use this files like JSON**
+1. Create folder `lib/src/providers`
+
+2. Here, create your class that get the data.
+JSON file menu.json
+```
+{"routes":[
+        {"route":"alert","icon":"add_alert","text":"Alertas"},
+        {"route":"avatar","icon":"accessibility","text":"Avatars"},
+        {"route":"card","icon":"folder_open","text":"Cards - Tarjetas"}]}
+```
+Provider PRIVATE class. To get instance one
+```
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
+
+class _MenuProvider{
+
+  final String pathFile = "resources/files/";
+  final String fileName = "menu.json";
+  List<dynamic> options = [];
+
+  Future<List<dynamic>> loadOptions() async{
+    String data = await rootBundle.loadString("${pathFile + fileName}");
+    Map dataMap = json.decode(data);
+    options = dataMap['routes'];
+    print(options);
+    return options;
+  }
+}
+
+final menuProvider = new _MenuProvider();
+```
+
+3. Now, you can use menuProvider.loadOptions() with FutureBuilder inside Widget
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+# Use structure
+**You can delete de initial test folder, create new one when you need**
+
+0. Structure
+- lib
+- lib/main.dart
+- lib/src/app.dart
+- lib/src/modules/home_module.dart
 
 ----------------------------------------------------------------------------------------------------------
 
