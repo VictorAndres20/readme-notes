@@ -43,7 +43,9 @@ $ flutter doctor
 ```
 
 7. OPTIONAL VSCode config
-Extensions / Flutter
+Extensions:
+- Flutter
+- Dart
 
 
 
@@ -63,6 +65,9 @@ $ flutter run
 ## Reload and Restart
 On terminal press "r" Reload but when application finish, changes dont save on Devie
 On terminal press "R" Restart
+
+## Stop flutter run
+On terminal press "d"
 
 ## Some usefull things
 https://flutter.dev/docs/cookbook
@@ -94,6 +99,8 @@ import 'package:package_name/class.dart';
 ----------------------------------------------------------------------------------------------------------
 
 # Root Application Widget
+In Flutter, as Dart, need main function!!
+In Flutter, in main you need to execute runApp(AppWidget) function.
 ```
 import 'package:flutter/material.dart';
 
@@ -104,6 +111,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+	  debugShowCheckedModeBanner: false, //To dismiss debug advice
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -121,6 +129,194 @@ class MyApp extends StatelessWidget {
 }
 ```
 
+**IMPORTANT**
+If you change the name of your MyApp Widget, make sure to change it in test class
+
+----------------------------------------------------------------------------------------------------------
+
+# Steps to create StatelessWidget
+
+0. Need `import 'package:flutter/material.dart';` import
+1. Create class and extends from StatelessWidget
+```
+class HomeModule extends StatelessWidget{
+
+}
+```
+
+2. Override build method that return `Widget` and has `context` parameter
+```
+  @override
+  Widget build(context){
+    return [Widget]
+  }
+```
+
+StatelessWidget has inmutable attributes
+
+-----------------------------------------------
+
+# Steps to create StatefulWidget
+
+0. Need `import 'package:flutter/material.dart';` import
+1. Create private class that will be the state of the Widget ans extends from State<StatefulWidget>, and put all private attributes
+This attributes will be all states that can refresh with `setState((){})` function.
+```
+class _HomeModuleState extends State<StatefulWidget>{
+	int _counter = 0;
+}
+```
+
+2. In state class, override build method that return `Widget` and has `context` parameter
+```
+// StateFullWidget above
+
+class _HomeModuleState extends State<StatefulWidget>{
+
+  final textStyle = new TextStyle(fontSize: 30);
+
+  int _counter = 0;
+
+  @override
+  Widget build(context){
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Title Home"),
+        backgroundColor: Color.fromRGBO(0, 0, 0, 0.1),
+      ),
+      body: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text("Taps: ",style: textStyle,),
+            Text('$_counter', style: textStyle,)
+          ],
+        ),
+      ),
+      floatingActionButton: buildButtons(),
+    );
+  }
+
+  Widget buildButtons(){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        SizedBox(width: 30),
+        FloatingActionButton(onPressed: (){setState(() => _counter=0);},backgroundColor: Colors.red,child: Icon(Icons.add),),
+        Expanded(child: SizedBox()),
+        FloatingActionButton(onPressed: (){setState(() => _counter--);},backgroundColor: Colors.orange,child: Icon(Icons.add),),
+        SizedBox(width: 5),
+        FloatingActionButton(onPressed: (){setState(() => _counter++);},backgroundColor: Colors.green,child: Icon(Icons.add),),
+        SizedBox(width: 5)
+      ],
+    );
+  }
+}
+```
+
+3. Create class and extends from StatefulWidget
+```
+class HomeModule extends StatefulWidget{
+
+}
+```
+
+4. Override createState method that return the private state class instance
+```
+class HomeModule extends StatefulWidget{
+
+  @override
+  State<StatefulWidget> createState() => _HomeModuleState();
+}
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+# Use structure
+**You can delete de initial test folder, create new one when you need**
+
+0. Structure
+- lib
+- lib/main.dart
+- lib/src/app.dart
+- lib/src/modules/home_module.dart
+
+----------------------------------------------------------------------------------------------------------
+
+# Columns and Rows layout from 'package:flutter/material.dart'
+
+### Column Widget
+```
+  @override
+  Widget build(context){
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Title Home"),
+        backgroundColor: Color.fromARGB(1, 200, 200, 200),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "Hello World",
+              style: TextStyle(
+                fontSize: 30
+              ),
+            ),
+            Text("Hello World")
+          ],
+        ),
+      ),
+    );
+  }
+```
+
+### Row Widget
+```
+  @override
+  Widget build(context){
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Title Home"),
+        backgroundColor: Color.fromARGB(1, 200, 200, 200),
+      ),
+      body: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "Hello World",
+              style: TextStyle(
+                fontSize: 30
+              ),
+            ),
+            Text("Hello World")
+          ],
+        ),
+      ),
+    );
+  }
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# Icons pre loaded
+Material Design
+```
+Icon(Icons.[name])
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# Common Flutter Material Widgets
+https://flutter.dev/docs/development/ui/widgets/material
+
+When you `import 'package:flutter/material.dart';`, you can use all Flutter Material Widgets
+
+## Scaffold
+Classic Material Structure Screen
 
 ----------------------------------------------------------------------------------------------------------
 
@@ -259,6 +455,5 @@ class RandomWordsState extends State
   }
 }
 ```
-
 
 ----------------------------------------------------------------------------------------------------------
