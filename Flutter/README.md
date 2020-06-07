@@ -159,7 +159,7 @@ StatelessWidget has inmutable attributes
 # Steps to create StatefulWidget
 
 0. Need `import 'package:flutter/material.dart';` import
-1. Create private class that will be the state of the Widget ans extends from State<StatefulWidget>, and put all private attributes
+1. Create private class that will be the state of the Widget ans extends from State<YourStatefulWidget>, and put all private attributes
 This attributes will be all states that can refresh with `setState((){})` function.
 ```
 class _HomeModuleState extends State<StatefulWidget>{
@@ -169,9 +169,11 @@ class _HomeModuleState extends State<StatefulWidget>{
 
 2. In state class, override build method that return `Widget` and has `context` parameter
 ```
-// StateFullWidget above
+class HomeModule extends StatefulWidget{
 
-class _HomeModuleState extends State<StatefulWidget>{
+}
+
+class _HomeModuleState extends State<HomeModule>{
 
   final textStyle = new TextStyle(fontSize: 30);
 
@@ -226,7 +228,7 @@ class HomeModule extends StatefulWidget{
 class HomeModule extends StatefulWidget{
 
   @override
-  State<StatefulWidget> createState() => _HomeModuleState();
+  _HomeModuleState createState() => _HomeModuleState();
 }
 ```
 
@@ -373,6 +375,86 @@ void main() {
 }
 ```
 
+5. Navigate like this in HomeModule
+```
+import 'package:componentsTemplateFlutter/src/containers/AppBars/TransparentAppBar.dart';
+import 'package:componentsTemplateFlutter/src/containers/ListViews/MapListView.dart';
+import 'package:componentsTemplateFlutter/src/providers/menu_provider.dart';
+import 'package:flutter/material.dart';
+
+class HomeModule extends StatelessWidget{
+
+  final _titleScreen = "HomeScreen";
+
+  @override
+  Widget build( context ){
+    print(menuProvider.options);
+    return Scaffold(
+      appBar: TransparentAppBar(titleAppBar: _titleScreen,).build(context),
+      body: buildList()
+    );
+  }
+
+  Widget buildList(){
+    return FutureBuilder(
+      future: menuProvider.loadOptions(), // function that return the data as Future
+      initialData: [], // Initial data
+      builder: (context , AsyncSnapshot<List<dynamic>> snapshot) {
+        print(snapshot.data);
+
+        return MapListView(items: snapshot.data);
+      },
+    );
+  }
+}
+```
+
+6. Custom StatelessWidget MapListView is tha widget that use `Navigator.pushNamed(context, item['route']);`.
+```
+import 'package:componentsTemplateFlutter/src/_helpers/icon_string_helper.dart';
+import 'package:flutter/material.dart';
+
+class MapListView extends StatelessWidget{
+  final List<dynamic> items;
+
+  MapListView({this.items});
+
+  @override
+  Widget build( context ){
+    return ListView(
+      children: this.buildItems( context )
+    );
+  }
+
+  List<Widget> buildItems(BuildContext context){
+    return this.items.map(( item ){
+      return Column(
+        children: <Widget>[
+          ListTile(
+            title: Text(item["text"]),
+            leading: getIconFromStr(item['icon']), //Left icon,
+            trailing: Icon(Icons.arrow_forward_ios), //Rigth icon
+            onTap: (){Navigator.pushNamed(context, item['route']);},
+          ),
+          Divider()
+        ],
+      );
+    }).toList();
+  }
+}
+```
+
+### Navigator methods
+
+#### Navigate with route name
+```
+Navigator.pushNamed(context, item['route_name'])
+```
+
+#### Go back
+```
+Navigator.of(context).pop()
+```
 
 ----------------------------------------------------------------------------------------------------------
 
@@ -401,12 +483,24 @@ FadeInImage(
 # Flutter Widgets Catalog
 https://flutter.dev/docs/development/ui/widgets
 
+## Style Classes
+- Padding()
+- padding: EdgeInsets.
+- margin: EdgeInsets.
+- color: Colors.
+- decoration: BoxDecoration({borderRadius, color, boxShadow: <BoxShadow>[BoxShadow({color, blurRadius, spredRadius, offset(Offset(20,10))})]})
+- elevation: double
+- shape: RoundedRectangleBorder(borderRadius: BorderRadius. )
+- mainAxisAligment: MainAxisAlignment.
+- crossAxisAlignment: CrossAxisAlignment.
+- mainAxisSize: 
+
 ## Common Layout Widgets
 
 - Center
-- Padding
-- SizedNox
+- SizedBox
 - Transform
+- Container
 - Column
 - Row
 - GridView
@@ -525,6 +619,70 @@ final menuProvider = new _MenuProvider();
 
 ----------------------------------------------------------------------------------------------------------
 
+# Animated Container
+```
+import 'dart:math';
+
+import 'package:componentsTemplateFlutter/src/_helpers/color_random.dart';
+import 'package:componentsTemplateFlutter/src/containers/AppBars/avatar_appbar.dart';
+import 'package:flutter/material.dart';
+
+class AnimatedModule extends StatefulWidget{
+
+  @override
+  _AnimatedModuleState createState() => _AnimatedModuleState();
+  
+}
+
+class _AnimatedModuleState extends State<AnimatedModule>{
+
+  final String title = "Animated";
+
+  double _width = 50.0;
+  double _heigth = 50.0;
+  Color _color = Colors.pink;
+  BorderRadiusGeometry _borderRadius = BorderRadius.circular(8.0);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: buildAvatarAppBar(title: title),
+      body: Center(
+        child: AnimatedContainer(
+		  //curve: 
+          duration: Duration(milliseconds: 300),
+          width: _width,
+          height: _heigth,
+          decoration: BoxDecoration(
+            borderRadius: _borderRadius,
+            color: _color
+          ),
+        )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => this._changeShape(),
+        backgroundColor: Colors.red,
+        child: Icon(Icons.play_arrow),
+      ),
+    );
+  }
+  void _changeShape(){
+    final random = Random();
+
+    setState(() {
+      _width = random.nextInt(200).toDouble();
+      _heigth = random.nextInt(200).toDouble();
+      _color = getRandomColor();
+    });
+  }
+}
+```
+
+## Look to Animation curves
+
+
+----------------------------------------------------------------------------------------------------------
+
 # Use structure
 **You can delete de initial test folder, create new one when you need**
 
@@ -535,6 +693,13 @@ final menuProvider = new _MenuProvider();
 - lib/src/modules/home_module.dart
 
 ----------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
 
 # Fisrt tutorial using Custom Widgets
 ```
