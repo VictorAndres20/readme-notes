@@ -178,6 +178,20 @@ class _HomeModuleState extends State<HomeModule>{
   final textStyle = new TextStyle(fontSize: 30);
 
   int _counter = 0;
+  
+  //If you need to initialize a state value
+  @override
+  void initState(){
+    super.initState();
+	
+  }
+  
+  //When Widget disposed. Exit screen. Go away mobile
+  @override
+  void dispose(){
+    super.dispose();
+
+  }
 
   @override
   Widget build(context){
