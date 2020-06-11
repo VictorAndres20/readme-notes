@@ -472,6 +472,11 @@ Navigator.of(context).pop()
 
 ----------------------------------------------------------------------------------------------------------
 
+# Notch problem
+If your device has notch and you dont use AppBar, use `SafeArea(child: Widget)`
+
+----------------------------------------------------------------------------------------------------------
+
 # Image and FadeInImage Widgets
 **NOTE**
 Dont forget to register your assets in `pubspec.yaml`
@@ -567,11 +572,6 @@ When you `import 'package:flutter/material.dart';`, you can use all Flutter Mate
 
 - Scaffold
 Classic Material Structure Screen
-
-----------------------------------------------------------------------------------------------------------
-
-# FutureBuilder for Widgets that need AsyncData access
-
 
 
 ----------------------------------------------------------------------------------------------------------
@@ -694,6 +694,315 @@ class _AnimatedModuleState extends State<AnimatedModule>{
 
 ## Look to Animation curves
 
+----------------------------------------------------------------------------------------------------------
+
+# Flutter Swipper
+https://pub.dev/packages/flutter_swiper
+
+1. Install it in pubspec.yaml under dependencies:
+```
+dependencies:
+  ...
+  flutter_swiper : ^1.1.6
+```
+
+2. Run
+```
+$ flutter packages get
+```
+
+3. Usages
+```
+import 'package:flutter/material.dart';
+import 'package:flutter_swiper/flutter_swiper.dart';
+
+Widget buildSwiper(){
+  return Container(
+    width: double.infinity,
+    height: 300.0,
+    child: Swiper(
+      itemBuilder: (BuildContext context,int index){
+        return new Image.network(
+          "http://via.placeholder.com/350x150",
+          fit: BoxFit.fill,
+        );
+      },
+      itemCount: 3,
+      //pagination: new SwiperPagination(), // This, render Dots pagination under
+      //control: new SwiperControl(), // This, render < > controller in right and left sides
+    ),
+  );
+}
+```
+
+
+----------------------------------------------------------------------------------------------------------
+
+# Http requests
+https://pub.dev/packages/http
+
+1. Install it in pubspec.yaml under dependencies:
+```
+dependencies:
+  ...
+  http: ^0.12.1
+```
+
+2. Run
+```
+$ flutter packages get
+```
+
+3. Import
+```
+import 'package:http/http.dart' as http;
+```
+
+4. Usages GET
+```
+import 'package:componentsTemplateFlutter/src/_models/movie_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class MovieService{
+
+  String _apiKey = 'f325826239831f36d9b6e2f22091b409';
+  String _url = 'api.themoviedb.org';
+  String _language = 'es-ES';
+  String _path = '3/movie/now_playing';
+
+  Future<List<Movie>> getNowPlaying() async {
+    final url = Uri.https(_url, _path,{
+      'api_key': _apiKey,
+      'language': _language,
+      'page': '1'
+    });
+    final res = await http.get( url );
+    print(res.statusCode); //STATUS CODE
+    //print(res.headers);
+    final resJson = json.decode(res.body); //Get as Map
+    Movies moviesObj = Movies.fromJsonList(resJson['results']);
+    print(moviesObj.movies.length);
+    return moviesObj.movies;
+  }
+
+}
+```
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+# FutureBuilder for Widgets that need AsyncData access
+
+1. Create your model
+```
+class Movies{
+  List<Movie> movies = new List();
+
+  Movies();
+
+  Movies.fromJsonList(List<dynamic> list){
+    if(list == null)return;
+
+    for(var item in list){
+      final movie = Movie.fromJsonMap(item);
+      this.movies.add(movie);
+    }
+  }
+}
+
+class Movie{
+
+  int voteCount;
+  int id;
+  bool video;
+  double voteAverage;
+  String title;
+  double popularity;
+  String posterPath;
+  String originalLanguage;
+  String originalTitle;
+  List<int> genereIds;
+  String backdropPath;
+  bool adult;
+  String overview;
+  String releaseDate;
+
+  Movie({
+    this.voteCount,
+    this.id,
+    this.video,
+    this.voteAverage,
+    this.title,
+    this.popularity,
+    this.posterPath,
+    this.originalLanguage,
+    this.originalTitle,
+    this.genereIds,
+    this.backdropPath,
+    this.adult,
+    this.overview,
+    this.releaseDate
+  });
+
+  Movie.fromJsonMap( Map<String, dynamic> json){
+
+    this.voteCount = json['vote_count'];
+    this.id = json['id'];
+    this.video = json['video'];
+    this.voteAverage = json['vote_average'] /1;
+    this.title = json['title'];
+    this.popularity = json['popularity'] / 1;
+    this.posterPath = json['poster_path'];
+    this.originalLanguage = json['original_language'];
+    this.originalTitle = json['original_title'];
+    this.genereIds = json['genre_ids'].cast<int>();
+    this.backdropPath = json['backdrop_path'];
+    this.adult = json['adult'];
+    this.overview = json['overview'];
+    this.releaseDate = json['release_date'];
+
+  }
+
+  String getPosterPath(){
+    if(this.posterPath == null){
+      return "https://cdn2.iconfinder.com/data/icons/photo-and-video/500/Landscape_moon_mountains_multiple_photo_photograph_pictury_sun-512.png";
+    } else {
+      return "https://image.tmdb.org/t/p/w500$posterPath";
+    }    
+  }
+
+}
+```
+
+2. Create your service with `http`
+```
+import 'package:componentsTemplateFlutter/src/_models/movie_model.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class MovieService{
+
+  String _apiKey = 'f325826239831f36d9b6e2f22091b409';
+  String _url = 'api.themoviedb.org';
+  String _language = 'es-ES';
+  String _path = '3/movie/now_playing';
+
+  Future<List<Movie>> getNowPlaying() async {
+    final url = Uri.https(_url, _path,{
+      'api_key': _apiKey,
+      'language': _language,
+      'page': '1'
+    });
+    final res = await http.get( url );
+    print(res.statusCode); //STATUS CODE
+    //print(res.headers);
+    final resJson = json.decode(res.body); //Get as Map
+    Movies moviesObj = Movies.fromJsonList(resJson['results']);
+    print(moviesObj.movies.length);
+    return moviesObj.movies;
+  }
+
+}
+```
+
+3. On Widget use FutureBuilder
+```
+import 'package:componentsTemplateFlutter/src/_services/movie_service.dart';
+import 'package:componentsTemplateFlutter/src/containers/AppBars/search_app_bar.dart';
+import 'package:componentsTemplateFlutter/src/containers/Swipers/stack_swiper.dart';
+import 'package:flutter/material.dart';
+
+class MoviesModule extends StatefulWidget{
+
+  @override
+  _MoviesModuleState createState() => _MoviesModuleState();
+  
+}
+
+class _MoviesModuleState extends State<MoviesModule>{
+
+  final MovieService movieService = MovieService();
+
+  void initState(){
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: buildSearchAppBar(
+        title: "Películas disponibles",
+        onSearch: (){
+
+        }
+      ),
+      body: Container(
+        child: Column(
+          children: <Widget>[
+            FutureBuilder(
+              future: movieService.getNowPlaying(), //Methos that return Future
+              //initialData: CircularProgressIndicator(),
+              builder: (BuildContext context, AsyncSnapshot<List> snapshot){
+                if(snapshot.hasData) {
+                  return buildStackSwiper(context: context, list: snapshot.data);
+                } else {
+                  return Container(
+                    height: 200.0,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+              }
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+4. buildStackSwiper method 
+```
+import 'package:componentsTemplateFlutter/src/_models/movie_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_swiper/flutter_swiper.dart';
+
+final double percentWidthItemSwiper = 0.7;
+final double percentHeightItemSwiper = 0.5;
+
+Widget buildStackSwiper({@required BuildContext context, @required List<Movie> list}){
+  final screenSize = MediaQuery.of(context).size;
+
+  return Container(
+    padding: EdgeInsets.all(20.0),
+    height: 300.0,
+    child: Swiper(
+      itemBuilder: (BuildContext context,int index){
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20.0),
+          child: FadeInImage(
+            placeholder: AssetImage("resources/images/loading.gif"), 
+            image: NetworkImage(list[index].getPosterPath()),
+            fit: BoxFit.cover,
+          ),
+        );
+      },
+      itemCount: list.length,
+      //pagination: new SwiperPagination(), // This, render Dots pagination under
+      //control: new SwiperControl(), // This, render < > controller in right and left sides
+      layout: SwiperLayout.STACK,
+      itemWidth: screenSize.width * percentWidthItemSwiper,
+      itemHeight: screenSize.height * percentHeightItemSwiper,
+    ),
+  );
+}
+```
 
 ----------------------------------------------------------------------------------------------------------
 
@@ -701,10 +1010,22 @@ class _AnimatedModuleState extends State<AnimatedModule>{
 **You can delete de initial test folder, create new one when you need**
 
 0. Structure
+- resources
+- resources/files
+- resources/images
 - lib
 - lib/main.dart
 - lib/src/app.dart
+- lib/src/routes/app_routes.dart
 - lib/src/modules/home_module.dart
+- lib/src/widgets/AppBars/app_bar.dart
+- lib/src/widgets/Inputs/checkbox.dart
+- lib/src/widgets/Swipers/stack_swiper.dart
+- lib/src/providers/menu_provider.dart
+- lib/src/config/api.dart
+- lib/src/_helpers/
+- lib/src/models/
+- lib/src/services/
 
 ----------------------------------------------------------------------------------------------------------
 
