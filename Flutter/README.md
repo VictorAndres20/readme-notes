@@ -789,6 +789,39 @@ class MovieService{
 }
 ```
 
+------------------------------------------------------
+
+### Example generic service
+```
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class GenericService{
+
+  Future<Map<String, dynamic>> findMany({bool https,@required String host,@required String path,@required Map<String, String> queryParameters}) async {
+    final Uri urlBuilded = this.buildUri(https: https, host: host, path: path, queryParameters: queryParameters);
+    final res = await this.fetchGet(url: urlBuilded);
+    print(res.statusCode); //STATUS CODE
+    //print(res.headers);
+    return json.decode(res.body); //Get as Map
+  }
+
+  Future<http.Response> fetchGet({@required dynamic url, Map<String, String> headers}) async {
+    if(headers != null)
+      return await http.get( url , headers: headers );
+    else
+      return await http.get( url ); 
+  }
+
+  Uri buildUri({bool https,@required String host,@required String path,@required Map<String, String> queryParameters}){
+    return https ? Uri.https(host, path, queryParameters):
+                    Uri.http(host, path,queryParameters);
+  }
+
+
+}
+```
 
 
 
@@ -1001,6 +1034,177 @@ Widget buildStackSwiper({@required BuildContext context, @required List<Movie> l
       itemHeight: screenSize.height * percentHeightItemSwiper,
     ),
   );
+}
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# Bloc Pattern
+
+DATA IN     StreamController    DATA OUT
+-------->|||||||||||||||||||||------------>
+SINK                             STREAM
+
+
+
+                      Widgets tree
+
+                           1
+                    2           3
+                 4    5       6   7
+
+Widget 4 and 7 need to communicate, so with BLOC PATTERN, you can make changes in 4 that 7 can hear
+
+
+
+1. Create your Streams Controllers in you providers from `import 'dart:async';`.
+```
+import 'dart:async';
+
+import 'package:componentsTemplateFlutter/src/_models/movie_model.dart';
+import 'package:componentsTemplateFlutter/src/_services/generic_service.dart';
+
+class MovieService extends GenericService{
+
+  final String _apiKey = 'f325826239831f36d9b6e2f22091b409';
+  final String _host = 'api.themoviedb.org';
+  final String _language = 'es-ES';
+  final String _pathNowPlaying = '3/movie/now_playing';
+  final String _pathPopular = '3/movie/popular';
+
+  //STREAM for popular movies list
+  final StreamController<List<Movie>> _popularsStreamController = StreamController<List<Movie>>.broadcast();
+  //SINK, data inputs
+  Function(List<Movie>) get popularsSink => _popularsStreamController.sink.add;
+  //STREAM, data output
+  Stream<List<Movie>> get popularsStream => _popularsStreamController.stream;
+  //ALWAYS close!!!!!!!!!
+  void dispose(){
+    _popularsStreamController?.close();
+  }
+
+  Future<List<Movie>> getPopular(List<Movie> currentMovies, int page) async {
+    final resJson = await super.findMany(https: true, host: _host, path: _pathPopular, queryParameters: {
+      'api_key': _apiKey,
+      'language': _language,
+      'page': page.toString()
+    });
+
+    List<Movie> response = buildListFromJson(resJson);
+
+    currentMovies.addAll(response);
+    popularsSink(currentMovies);
+
+    return response;
+  }
+
+  Future<List<Movie>> getNowPlaying() async {
+    final resJson = await super.findMany(https: true, host: _host, path: _pathNowPlaying, queryParameters: {
+      'api_key': _apiKey,
+      'language': _language,
+      'page': '1'
+    });
+    return buildListFromJson(resJson);
+  }
+
+  List<Movie> buildListFromJson(Map<String, dynamic> resJson){
+    Movies moviesObj = Movies.fromJsonList(resJson['results']);
+    print(moviesObj.movies.length);
+    return moviesObj.movies;
+  }
+
+}
+```
+
+2. In your StatefulWidget, call service method that return your data and use sink and stream in initState(). 
+Aditional, use StreamBuilder like FutureBuilder
+```
+import 'package:componentsTemplateFlutter/src/_models/movie_model.dart';
+import 'package:componentsTemplateFlutter/src/_services/movie_service.dart';
+import 'package:componentsTemplateFlutter/src/containers/AppBars/search_app_bar.dart';
+import 'package:componentsTemplateFlutter/src/containers/Swipers/stack_swiper.dart';
+import 'package:componentsTemplateFlutter/src/containers/Swipers/swiper_card.dart';
+import 'package:flutter/material.dart';
+
+class MoviesModule extends StatefulWidget{
+
+  @override
+  _MoviesModuleState createState() => _MoviesModuleState();
+  
+}
+
+class _MoviesModuleState extends State<MoviesModule>{
+
+  final MovieService movieService = MovieService();
+
+  List<Movie> populars = List();
+  int page = 1;
+
+  void initState(){
+    super.initState();
+    movieService.getPopular(populars, page);
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      appBar: buildSearchAppBar(
+        title: "Películas disponibles",
+        onSearch: (){
+
+        }
+      ),
+      body: ListView(
+        children: <Widget>[
+          Container(
+        child: Column(
+          crossAxisAlignment:CrossAxisAlignment.start,
+          children: <Widget>[
+            FutureBuilder(
+              future: movieService.getNowPlaying(), //Method that return Future
+              //initialData: CircularProgressIndicator(),
+              builder: (BuildContext context, AsyncSnapshot<List> snapshot){
+                if(snapshot.hasData) {
+                  return buildStackSwiper(context: context, list: snapshot.data);
+                } else {
+                  return Container(
+                    height: 200.0,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+              }
+            ),
+            Container(
+              padding: EdgeInsets.only(bottom: 5.0, left: 20.0),
+              width: 300,
+              child: Text("Top Películas", style: TextStyle(fontSize: 20.0), textAlign: TextAlign.start),
+            ),
+            StreamBuilder(
+              stream: movieService.popularsStream, //STREAM that return List<Movie>
+              //initialData: CircularProgressIndicator(),
+              builder: (BuildContext context, AsyncSnapshot<List> snapshot){
+                if(snapshot.hasData) {
+                  populars = snapshot.data;
+                  return buildSwiperCard(list: snapshot.data);
+                } else {
+                  return Container(
+                    height: 100.0,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+              }
+            )
+          ],
+        ),
+      ),
+        ],
+      )
+    );
+  }
 }
 ```
 
