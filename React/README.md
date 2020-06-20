@@ -89,6 +89,8 @@ export default Router;
 href=/YOUR_APP_NAME/ruta
 ```
 
+------------------------------------------------------
+
 # Link to navigate in HTML
 
 
@@ -160,6 +162,137 @@ const NavBar = (props) => {
 export default NavBar;
 ```
 
+------------------------------------------------------
+
+# Nested routes
+1. AppRouter
+```
+import React from 'react';
+import {BrowserRouter, Route, Switch} from 'react-router-dom';
+
+import HistoryHandler from '../../_helpers/HistoryHandler';
+
+/** Routes */
+import {SELECT_SHOP, HOME_SHOP, CREATE_SHOP, SHOP, SHOP_PRODUCTS, SHOP_ORDERS} from '../../config/Routes/shopRoutes';
+import {LOGIN} from '../../config/Routes/loginRoutes';
+import {REGISTER} from '../../config/Routes/registerRoutes';
+
+import ErrorPage from '../ErrorPage/ErrorPage.js';
+
+import WrapAuthComponent from '../Containers/Auth/WrapAuthComponent';
+
+/** Modules */
+import WelcomeModule from './Welcome';
+import LoginModule from './Login';
+import RegisterModule from './Register';
+import HomeModule from './Home';
+import SelectShopModule from './SelectShop';
+import CreateShopModule from './CreateShop';
+import ShopModule from './Shop';
+
+export default class RouterApp extends React.Component {
+
+    SelectShop = WrapAuthComponent(SelectShopModule);
+    Home = WrapAuthComponent(HomeModule);
+    CreateShop = WrapAuthComponent(CreateShopModule);
+    ShopModuleProtected = WrapAuthComponent(ShopModule);
+
+    render()
+    {
+        return(
+            <BrowserRouter history={HistoryHandler} basename="/" >
+                <Switch>
+                    {/** Ruta por default */}
+                    <Route exact path='/' component={WelcomeModule} />}/>
+                    {/** Rutas especificas */}
+                    <Route path={LOGIN} component={LoginModule} />}/>
+                    <Route path={REGISTER} component={RegisterModule} />}/>
+                    <Route path={HOME_SHOP} component={ this.Home} />}/>
+                    <Route path={SELECT_SHOP} component={ this.SelectShop} />}/>
+                    <Route path={CREATE_SHOP} component={ this.CreateShop} />}/>
+                    <Route path={`${SHOP}/:shopRoute`} component={this.ShopModuleProtected} />
+                    {/** Ruta no especificada */}
+                    <Route component={ErrorPage} />
+                </Switch>
+            </BrowserRouter>
+        );
+    }
+}
+```
+
+2. Handle route with match porp in ShopModule
+```
+import React from 'react'
+import { connect } from 'react-redux';
+import {options} from './shopOptions';
+
+import ShopNavbar from '../../Containers/NavBars/ShopNavbar';
+import ShopSidebar from '../../Containers/SideBars/ShopSidebar';
+import ShopRouter from './ShopRouter';
+import FooterMain from '../../Containers/Footers/FooterMain';
+
+
+class ShopModule extends React.Component{
+
+    constructor(props){
+        super(props);
+    }
+
+    componentDidMount(){
+        console.log("\n\n\n\n\n\n\nMOUNTED" + new Date() + "\n\n\n\n\n\n\n");
+    }
+
+    render(){
+        return(
+            <div>
+				{/* NavBar with Link as a tag*/}
+                <ShopNavbar
+                    options={options}
+                    shopRoute={this.props.match.params.shopRoute}
+                />
+                <ShopRouter 
+                    shopRoute={this.props.match.params.shopRoute}                
+                />
+                <FooterMain />
+            </div>
+        );
+    }
+}
+
+export default ShopModule;
+
+```
+
+3. And ShopRouter is like
+```
+import React from 'react';
+
+import ErrorPage from '../../ErrorPage/ErrorPage';
+
+import {SHOP_ORDERS, SHOP_PRODUCTS, SHOP_SERVICES, SHOP_STATS} from '../../../config/Routes/shopRoutes';
+
+import OrdersModule from './Orders';
+import ProductsModule from './Products';
+import ServiceModule from './Services';
+import StatsModule from './Stats';
+
+export default class ShopRouter extends React.Component{
+
+    render(){
+        if(`/${this.props.shopRoute}` === SHOP_ORDERS)
+            return(<OrdersModule childOption={this.props.childOption} />);
+        else if(`/${this.props.shopRoute}` === SHOP_PRODUCTS)
+            return(<ProductsModule childOption={this.props.childOption} />);
+        else if(`/${this.props.shopRoute}` === SHOP_SERVICES)
+            return(<ServiceModule childOption={this.props.childOption} />);
+        else if(`/${this.props.shopRoute}` === SHOP_STATS)
+            return(<StatsModule childOption={this.props.childOption} />);
+        else
+            return(<ErrorPage />);
+    }
+
+}
+```
 
 -------------------------------------------------------------------------------------------------------------------------------
 
