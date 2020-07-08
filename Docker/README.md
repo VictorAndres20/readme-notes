@@ -474,6 +474,7 @@ RUN chown -R www-data:www-data /www/html \
     && a2enmod rewrite
 RUN service apache2 restart
 ```
+
 **THIS WITH PostgreSQL extensions**
 ```
 FROM php:7.3-apache
@@ -481,6 +482,72 @@ ADD ./php-apps /www/html
 ADD vhost.conf /etc/apache2/sites-available/000-default.conf
 RUN apt-get update && apt-get install -y libpq-dev
 RUN /usr/local/bin/docker-php-ext-install mysqli pdo_mysql
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
+**This adding IMAP extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN apt-get update && apt-get install -y libc-client-dev libkrb5-dev && rm -r /var/lib/apt/lists/*
+RUN /usr/local/bin/docker-php-ext-configure imap --with-kerberos --with-imap-ssl && /usr/local/bin/docker-php-ext-install imap
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
+**This adding opcache extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN docker-php-ext-install opcache
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
+**This adding INTL extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN apt-get update && apt-get install -y zlib1g-dev libicu-dev g++
+RUN /usr/local/bin/docker-php-ext-configure intl
+RUN /usr/local/bin/docker-php-ext-install intl
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
+**This adding APCu extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN apt-get update && apt-get -y install gcc make autoconf libc-dev pkg-config
+RUN pecl install apcu && /usr/local/bin/docker-php-ext-enable apcu
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
+**This adding Glib extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+# Try without sendmail
+RUN apt-get update -y && apt-get install -y sendmail libpng-dev
+RUN /usr/local/bin/docker-php-ext-install gd
 RUN php -m
 RUN chown -R www-data:www-data /www/html \
     && a2enmod rewrite

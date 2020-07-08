@@ -613,6 +613,157 @@ $ sudo npm install mdbreact --save
 2. src/_services
 Here you can write all your API calls and return promises if you need
 
+```
+// Base service example baseService.js
+import SessionStorage from '../_helpers/SessionStorage';
+import {PARAM_TYPE, QUERY_TYPE} from '../config/API/urlParamTypes';
+
+const AUTH_TOKEN_PREFIX = 'Bearer';
+
+const setMethod = (apiResource, options) => {
+    options.method = apiResource.method;
+    return options;
+}
+
+const setHeaders = (options) => {
+    options.headers = {
+        'Accept':'application/json',
+        'Content-Type':'application/json'
+    }
+    return options;
+}
+
+const setAuth = (options) => {
+    options.headers.Authorization = `${AUTH_TOKEN_PREFIX} ${SessionStorage.getSessionToken()}`;
+    return options;
+}
+
+const buildBody = (options, body) => {
+    options.body = JSON.stringify(body);
+    return options;
+}
+
+const buildOptions = (apiResource, body) => {
+    let options = {};
+    options = setMethod(apiResource, options);
+    options = setHeaders(options);
+
+    if(apiResource.auth) options = setAuth(options);
+    if(apiResource.body) options = buildBody(options, body);
+
+    return options;
+}
+
+const buildQueries = (paramsArray) => {
+    let res = '?';
+    paramsArray.map((query, key) => {
+        res = `${res}${query.key}=${query.value}`;
+        if(key !== paramsArray.length - 1) res = `${res}&`;
+    });
+    return res;
+}
+
+const buildParams = (paramsArray) => {
+    let res = '/';
+    paramsArray.map((param, key) => {
+        res = `${res}${param}`;
+        if(key !== paramsArray.length - 1) res = `${res}/`;
+    });
+    return res;
+}
+
+const buildUrlParams = (paramType, paramArray) => {
+    if(paramType === null) return '';
+
+    switch(paramType){
+        case PARAM_TYPE:
+            return buildParams(paramArray);
+        
+        case QUERY_TYPE:
+            return buildQueries(paramArray);
+
+        default:
+            return '';
+    }
+}
+
+const sendFetch = (api, apiResource, paramArray, body) => {
+    let options = buildOptions(apiResource, body);
+    return new Promise((resolve, reject) => {
+        fetch(`${api.api_url}${apiResource.path}${buildUrlParams(apiResource.params, paramArray)}`,options)
+        .then(res => {
+            console.log("RESPUESTA" + res);
+            return res.json();
+        })
+        .then(json => resolve(json))
+        .catch(err => reject(err));
+    });
+}
+
+export default {sendFetch};
+```
+
+```
+// Service example loginService.js
+import API from '../config/API/api';
+import loginApi from '../config/API/loginApi';
+import userApi from '../config/API/userApi';
+import baseFetch from './baseFetch';
+import ServiceError from '../errors/ServiceError';
+import SessionStorage from '../_helpers/SessionStorage';
+
+export const validateInputs = (body) => {
+    if (body.login == null || body.login === '')
+        throw new ServiceError('Email vacío');
+    else if (body.pass == null || body.pass === '')
+        throw new ServiceError('Contraseña vacía');
+    else
+        return true;
+}
+
+export const validateInputsRegister = (body) => {
+    if (body.name == null || body.name === '')
+        throw new ServiceError('Nombre vacío');
+    else if (body.username == null || body.username === '')
+        throw new ServiceError('Username vacío');
+    else if (body.mail == null || body.mail === '')
+        throw new ServiceError('Email vacío');
+    else if (body.pass == null || body.pass === '')
+        throw new ServiceError('Contraseña vacía');
+    else if (body.address == null || body.address === '')
+        throw new ServiceError('Dirección vacío');
+    else if (body.phone == null || body.phone === '')
+        throw new ServiceError('Teléfono vacío');
+    else
+        return true;
+}
+
+export const login = async (input) => {
+    let data = await baseFetch.sendFetch(API, loginApi.login, [], input);
+    if (data.status.ok){
+        SessionStorage.setSessionToken(data.data.token);
+        SessionStorage.setUserId(data.data.user._id);
+    }
+    return data;
+}
+
+export const register = async (input) => {
+    let data = await baseFetch.sendFetch(API, userApi.create, [], input);
+    if (data.status.ok){
+        SessionStorage.setSessionToken(data.data.token);
+        SessionStorage.setUserId(data.data.user._id);
+    }
+    return data;
+}
+
+export const tokenUser = async () => {
+    let data = await baseFetch.sendFetch(API, userApi.findByToken, [SessionStorage.getSessionToken()], null);
+    //if (data.status.ok) SessionStorage.setSessionToken(data.data.token);
+    return data;
+}
+```
+
+
 3. actions/[setActionExample].js
 In actions folder you create all actions, for example setSession, setUsers, 
 createUser, setProducts, etc...
