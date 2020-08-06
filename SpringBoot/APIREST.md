@@ -1,6 +1,6 @@
 # Maven dependencies and PROPERTIES
 At END of this document
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Create project
 # Start project with Spring Tool Suite
@@ -45,7 +45,7 @@ src/
 				repository
 				service			
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Create Entity and Model
 Always create Entity with his Model, VERY IMPORTANT
@@ -386,7 +386,7 @@ public class ProfesionController {
 
 }
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Entities, Models and Services with Relationships
 # EXAMPLE ciudad -n----1-> departamento
@@ -831,7 +831,7 @@ public class CiudadService {
 	}
 }
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # JpaQueries and Custom Queries
 
@@ -864,7 +864,7 @@ public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
 	public List<Adulto> findByDireccionStarts(String direccion);
 }
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Spring Boot and JWT service
 
@@ -976,7 +976,7 @@ class JWTService{
 5. Validate on controller and generate token on Login
 
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Spring Boot Security with JWT
 1. Maven dependencies
@@ -1351,7 +1351,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 TOKEN will be on response header 'Authorization', just get it at frontend
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Cors error
 1. 
@@ -1396,7 +1396,7 @@ public class Adhdfl5Application {
 		http.cors();
 	}
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Example ResponserRest
 package com.novopangea.adhdfl5.adhdfl5.response;
@@ -1460,7 +1460,7 @@ public class ResponseRest<T> {
 	}
 }
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Pagination on Spring Boot like urlapi.com/profesiones?page=0&size=10
 # Using SELECT profesion.nom_profesion,profesion.val_hora FROM profesion LIMIT <startPOS>,<recordsQuantity>
@@ -1509,7 +1509,7 @@ import org.springframework.data.domain.Page;
 		return service.findByPage(pageable);
 	}
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Use Entities on different project
 If you create a project to generate Entities and import it
@@ -1527,7 +1527,7 @@ public class PetsappCoreApplication {
 ```
 
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # BCrypt usage
 
@@ -1552,9 +1552,236 @@ public final class SecurityEncoderHelper {
 }
 ```
 
+------------------------------------------------------------------------------------------------------------------------
+
+# Mapping with map struct
 
 
-###############################################################################################
+0. Intall
+In POM
+```
+	<properties>
+		<java.version>1.8</java.version>
+		<org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
+		<org.projectlombok.version>1.18.10</org.projectlombok.version>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${org.projectlombok.version}</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${org.mapstruct.version}</version>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${org.projectlombok.version}</version>
+						</path>
+						<path>
+							<groupId>org.mapstruct</groupId>
+							<artifactId>mapstruct-processor</artifactId>
+							<version>${org.mapstruct.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+```
+
+1. Generic Mapper
+```
+public interface GenericMapper<E,DI,DO> {
+
+    E domainToEntity(DI input);
+
+    DO entityToDomain(E entity);
+}
+```
+
+2. Example mapping User entity and UserOutput
+https://github.com/mapstruct/mapstruct-examples/tree/master/mapstruct-nested-bean-mappings
+https://stackoverflow.com/questions/41376695/mapstruct-send-nested-entity-having-one-to-many-relation-in-the-response
+**Entities**
+User
+```
+@Entity
+@Table(name = "users")
+@Data
+public class User implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private int id;
+
+    @ManyToOne(fetch=FetchType.LAZY,targetEntity=UserState.class)
+    @JoinColumn(name="state",nullable=false)
+    private UserState state;
+
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(
+            name = "user_profile",
+            joinColumns = @JoinColumn(name = "user"),
+            inverseJoinColumns = @JoinColumn(name = "profile"))
+    private List<Profile> profiles;
+
+    @Column(name = "username")
+    private String username;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "phone")
+    private String phone;
+}
+```
+UserState
+```
+@Entity
+@Table(name = "state_user")
+@Data
+public class UserState implements Serializable {
+
+    @Id
+    @Column(name = "code", nullable = false)
+    private String code;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+}
+```
+Profile
+```
+@Entity
+@Table(name = "profile")
+@Data
+public class Profile {
+
+    @Id
+    @Column(name = "code", nullable = false)
+    private String code;
+
+    @ManyToMany(fetch=FetchType.LAZY)
+    @JoinTable(
+            name = "profile_rol",
+            joinColumns = @JoinColumn(name = "profile"),
+            inverseJoinColumns = @JoinColumn(name = "rol"))
+    private List<Rol> roles;
+
+    @Column(name = "name")
+    private String name;
+}
+```
+Rol
+```
+@Entity
+@Table(name = "rol")
+@Data
+public class Rol {
+
+    @Id
+    @Column(name = "code", nullable = false)
+    private String code;
+
+    @Column(name = "name")
+    private String name;
+}
+```
+
+**User Domains**
+UserOutput
+```
+
+```
+UserInput
+```
+
+```
+
+**Mapper**
+```
+import org.mapstruct.InjectionStrategy;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
+
+@Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Component
+public interface UserMapper extends GenericMapper<User, UserInput, UserOutput> {
+
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+
+    @SuppressWarnings("UnmappedTargetProperties")
+    @Override
+    @Mapping(source = "stateCode", target = "state.code")
+    User domainToEntity(UserInput input);
+
+    @Override
+    @Mapping(source = "state.code", target = "state.code")
+    @Mapping(source="profiles",target = "profiles")
+    UserOutput entityToDomain(User entity);
+
+    //This line is needed because ProfileOutput list has nested RolOutput list
+    @Mapping(target = "roles", source = "roles")
+    ProfileOutput profileToProfileOutput(Profile source);
+
+}
+```
+
+3. To list with lambda
+```
+	@Override
+    public List<UserOutput> mapToDomainList(List<User> entities) {
+        return entities.stream().map(this::mapToDomain).collect(Collectors.toList());
+    }
+	
+	@Override
+    public UserOutput mapToDomain(User entity) {
+        return mapper.entityToDomain(entity);
+    }
+```
+
+
+------------------------------------------------------------------------------------------------------------------------
 
 
 # Use spring profiles in SpringBoot and Maven
@@ -1643,7 +1870,7 @@ $ mvn clean package
 
 
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # SpringBoot and Swagger documentation
 https://dzone.com/articles/spring-boot-2-restful-api-documentation-with-swagg
@@ -1793,7 +2020,7 @@ http://host:port/swagger-ui.html
 ```
 		
 		
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 		
 # Generate jar with dependencies
 
@@ -1847,7 +2074,7 @@ OR in Spring Boot
 ```
 
 		
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 		
 # Generate jar as maven dependency in .m2/repository
 
@@ -1858,7 +2085,7 @@ $ mvn install:install-file –Dfile=/absolute/path/to/app.jar -DgroupId=com.vape
 
 
 
-###############################################################################################
+------------------------------------------------------------------------------------------------------------------------
 
 # Propeties
   <properties>
