@@ -1531,6 +1531,17 @@ public class PetsappCoreApplication {
 
 # BCrypt usage
 
+Need Spring ecurity core
+```
+		<!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-core -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>5.3.2.RELEASE</version>
+		</dependency>
+```
+
+Then, create util class
 ```
 import com.sun.xml.fastinfoset.util.CharArray;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -1726,14 +1737,75 @@ public class Rol {
 }
 ```
 
-**User Domains**
+**Domains**
 UserOutput
 ```
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserOutput implements Serializable {
+
+    private int id;
+    private UserStateOutput state;
+    private List<ProfileOutput> profiles;
+    private String username;
+    private String name;
+    private String email;
+    private String phone;
+}
 ```
 UserInput
 ```
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.io.Serializable;
+import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserInput implements Serializable {
+
+    private int id;
+    private String stateCode;
+    private String username;
+    private String name;
+    private String password;
+    private String email;
+    private String phone;
+    private List<ProfileOutput> profiles;
+}
+```
+ProfileOutput
+```
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProfileOutput implements Serializable {
+
+    private String code;
+    private List<RolOutput> roles;
+    private String name;
+}
+```
+RolOuput
+```
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class RolOutput implements Serializable {
+
+    private String code;
+    private String name;
+}
 ```
 
 **Mapper**
@@ -1753,6 +1825,7 @@ public interface UserMapper extends GenericMapper<User, UserInput, UserOutput> {
     @SuppressWarnings("UnmappedTargetProperties")
     @Override
     @Mapping(source = "stateCode", target = "state.code")
+    @Mapping(source = "profiles", target = "profiles")
     User domainToEntity(UserInput input);
 
     @Override
