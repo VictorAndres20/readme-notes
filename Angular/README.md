@@ -49,6 +49,15 @@ $ ng g c folder/componentName
 
 ----------------------------------------------------------
 
+## Solution for Error
+'Experimental support for decorators is a feature that is subject to change in a future release. Set the 'experimentalDecorators''
+
+1. In VS Code, go to File > Preferences > Settings
+2. Searcho for experimentalDecorators
+3. Check it
+
+----------------------------------------------------------
+
 # ROUTING
 https://medium.com/@astamataris/setting-up-routing-in-a-multi-module-angular-4-app-using-the-router-module-d8e610196443
 

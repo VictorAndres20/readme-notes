@@ -396,7 +396,6 @@ public class ProfesionController {
 ------------
 DPARTAMENTO
 ------------
-package com.novopangea.adhdfl5.adhdfl5.entity;
 
 import java.io.Serializable;
 import java.util.List;
@@ -462,7 +461,6 @@ public class Departamento implements Serializable{
 ------
 CIUDAD
 ------
-package com.novopangea.adhdfl5.adhdfl5.entity;
 
 import java.io.Serializable;
 import javax.persistence.CascadeType;
@@ -556,9 +554,6 @@ EAGER = fetch immediately
 ------------------
 DepartamentoModel
 ------------------
-package com.novopangea.adhdfl5.adhdfl5.model;
-
-import com.novopangea.adhdfl5.adhdfl5.entity.Departamento;
 
 public class DepartamentoModel {
 	
@@ -598,16 +593,6 @@ public class DepartamentoModel {
 ------------------
 CiudadModel
 ------------------
-package com.novopangea.adhdfl5.adhdfl5.model;
-
-import com.novopangea.adhdfl5.adhdfl5.entity.Ciudad;
-import com.novopangea.adhdfl5.adhdfl5.entity.Departamento;
-
-/**
- * Modelo para la entidad Ciudad
- * @author Victor Andres Pedraza Leon - Novopangea 2019
- *
- */
 public class CiudadModel {
 	
 	private int codigo;
@@ -669,22 +654,12 @@ public class CiudadModel {
 -------------------
 DepartamentoService
 -------------------
-package com.novopangea.adhdfl5.adhdfl5.service;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import com.novopangea.adhdfl5.adhdfl5.converter.DepartamentoCoverter;
-import com.novopangea.adhdfl5.adhdfl5.entity.Departamento;
-import com.novopangea.adhdfl5.adhdfl5.model.DepartamentoModel;
-import com.novopangea.adhdfl5.adhdfl5.repository.DepartamentoRepository;
 
-/**
- * Servicio de Departamento, es aquí donde se interactua con la base de datos
- * @author Victor Andres Pedraza Leon - Novopangea 2019
- *
- */
 @Service("departamentoservice")
 public class DepartamentoService {
 	
@@ -756,17 +731,11 @@ public class DepartamentoService {
 -------------------
 CiudadService
 -------------------
-package com.novopangea.adhdfl5.adhdfl5.service;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import com.novopangea.adhdfl5.adhdfl5.converter.CiudadConverter;
-import com.novopangea.adhdfl5.adhdfl5.entity.Ciudad;
-import com.novopangea.adhdfl5.adhdfl5.model.CiudadModel;
-import com.novopangea.adhdfl5.adhdfl5.repository.CiudadRepository;
-import com.novopangea.adhdfl5.adhdfl5.repository.DepartamentoRepository;
 
 @Service("ciudadservice")
 public class CiudadService {
@@ -841,8 +810,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.novopangea.adhdfl5.adhdfl5.entity.Adulto;
-
 @Repository("adultorepository")
 public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
 	
@@ -868,7 +835,7 @@ public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
 
 # Spring Boot and JWT service
 
-1. Maven dependency
+0. Maven dependency
 ```
 		<dependency>
             <groupId>com.auth0</groupId>
@@ -877,7 +844,7 @@ public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
         </dependency>
 ```
 
-2. JWTException
+1. JWTException
 ```
 public class JWTException extends Exception {
 
@@ -893,7 +860,7 @@ public class JWTException extends Exception {
 }
 ```
 
-3. JWTService
+2. JWTUtil
 ```
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -901,39 +868,34 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-@Service
-class JWTService{
+public final class JWTUtil {
 
-	private static final String JWT_SECRET = "MwTeTnnSkhWQt8utGETcmHIGIsOzQZLsXVrpyDG1";
-
+    private static final String JWT_PREFIX = "Bearer ";
     private static final String JWT_ISSUER = "SomeIssuerHere";
 
-	@Value("${jwt.token.expiration-minutes}")
-    private int jwtExpirationMinutes;
-	
-	String generateToken(final String username) throws JWTException {
+    private JWTUtil(){}
+
+    public static String generateToken(final String content, final String secret, final int expirationMinutes) throws JWTException {
         try {
             return JWT.create()
                     .withIssuer(JWT_ISSUER)
                     .withIssuedAt(new Date())
-                    .withSubject(username) //Token Content 
-                    .withExpiresAt(addMinutes(jwtExpirationMinutes))
-                    .sign(buildAlgorithm(JWT_SECRET));
+                    .withSubject(content) //Token Content
+                    .withExpiresAt(addMinutes(expirationMinutes))
+                    .sign(buildAlgorithm(secret));
         } catch (IllegalArgumentException | JWTCreationException e) {
             throw new JWTException(e.getMessage(), e);
         }
     }
 
-    String validate(final String token) throws JWTException {
+    public static String validate(final String token, final String secret) throws JWTException {
         try {
-            final JWTVerifier verifier = JWT.require(buildAlgorithm())
+            final JWTVerifier verifier = JWT.require(buildAlgorithm(secret))
                     .build();
             final DecodedJWT decoded = verifier.verify(token);
             return decoded.getSubject();
@@ -952,28 +914,242 @@ class JWTService{
         calendar.add(Calendar.MINUTE, minutes);
         return calendar.getTime();
     }
+
+    public static String extractToken(String headerToken) throws JWTException {
+        if(! headerToken.startsWith(JWT_PREFIX))
+            throw new JWTException("Token Error Syntax");
+
+        return headerToken.split(JWT_PREFIX)[1];
+    }
 }
 ```
 
-4. Create Validate JWT method on LoginService or UserService
+3. JWTService
 ```
-//CODE
-	public UserDTO validateToken(final String token) throws JwtException {
-        
-        final String username = jwtService.validate(token);
-        final Optional<User> optional = userService.findByUsername(username);
-        if (!optional.isPresent())
-            throw new JwtException("Username is not valid.");
+import org.springframework.stereotype.Service;
 
-        final User user = optional.get();
-        final UserDTO output = new UserDTO();
-        output.setId(user.getId());
-        return output;        
+@Service
+class JWTService<E>{
+
+    public String generateToken(final E content, final String secret, final int expirationMinutes) throws JWTException {
+        return generateToken(content.toString(), secret, expirationMinutes);
     }
-//CODE
+
+    public String generateToken(final String content, final String secret, final int expirationMinutes) throws JWTException {
+        return JWTUtil.generateToken(content,secret,expirationMinutes);
+    }
+
+    public String validate(final String token, final String secret) throws JWTException {
+        return JWTUtil.validate(token,secret);
+    }
+
+    public String extractToken(String headerToken) throws JWTException {
+        return JWTUtil.extractToken(headerToken);
+    }
+}
 ```
 
-5. Validate on controller and generate token on Login
+4. Create Validate JWT method on AuthService
+```
+@Service
+public class AuthServiceImpl implements AuthService {
+
+    @Autowired
+    UserService userService;
+
+    public static final String JWT_SECRET = "HwreTnXSkhWSt9uRGOTczHQGpsEzVZLnXVwpRDG5";
+
+    @Value("${jwt.token.expiration-minutes}")
+    private int jwtExpirationMinutes;
+
+    @Autowired
+    private JWTService<Integer> jwtService;
+
+    @Override
+    public User login(AuthInput input) throws ServiceException{
+        validateInputs(input);
+
+        User user = userService.findByEmailOrUsername(input.getLogin(), input.getLogin());
+
+        if(user == null)
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "User not found");
+
+        if(! comparePassword(input.getPassword(), user.getPassword()))
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "Credentials error");
+
+        return user;
+    }
+
+    @Override
+    public boolean comparePassword(String plainPass, String encryptedPass){
+        return SecurityEncoderHelper.comparePasswordBCrypt(plainPass, encryptedPass);
+    }
+
+    @Override
+    public void validateInputs(AuthInput input) throws ServiceException{
+        if(input == null)
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "Inputs null");
+
+        if(StringUtils.isBlank(input.getLogin()))
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "Login is required");
+
+        if(StringUtils.isBlank(input.getPassword()))
+            throw new ServiceException(HttpStatus.BAD_REQUEST, "Password is required");
+    }
+
+    @Override
+    public String generateToken(UserOutput user) throws JWTException {
+        return jwtService.generateToken(user.getId(),JWT_SECRET,jwtExpirationMinutes);
+    }
+
+    @Override
+    public String validateToken(String token) throws JWTException {
+        return jwtService.validate(token, JWT_SECRET);
+    }
+
+    @Override
+    public String extractToken(String headerToken) throws ServiceException {
+        try {
+            return jwtService.extractToken(headerToken);
+        } catch (JWTException e) {
+            throw new ServiceException(HttpStatus.UNAUTHORIZED,e.getMessage());
+        }
+    }
+}
+```
+
+5. Generate token on Login and validate token on controller or use Middleware (Filter) for protection
+
+------------------------------------------------------------------------------------------------------------------------
+
+# Middlewares
+
+0. OPTIONAL class for response
+```
+@Data
+@AllArgsConstructor
+public class RestResponse<E> implements Serializable {
+
+    private int status;
+    private boolean ok;
+    private String error;
+    private String message;
+    private E content;
+
+    public String toJson(){
+        return "{" +
+                "\"status\":" + this.status + "," +
+                "\"ok\":" + this.ok + "," +
+                "\"error\":\"" + this.error + "\"," +
+                "\"message\":\"" + this.message + "\"," +
+                "\"content\":\"" + this.content + "\"" +
+                "}";
+    }
+}
+```
+
+1. Create you Middleware class
+**Interface**
+```
+public interface SecurityFilter {
+
+    void validateHeaderToken(String headerToken) throws ServiceException;
+}
+```
+**Filter Implementation**
+```
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+@Order(1)
+public class SecurityFilterImpl implements SecurityFilter,Filter {
+
+    @Override
+    public void doFilter(
+            ServletRequest servletRequest,
+            ServletResponse servletResponse,
+            FilterChain filterChain) throws IOException, ServletException {
+
+        HttpServletRequest req = (HttpServletRequest) servletRequest;
+        HttpServletResponse res = (HttpServletResponse) servletResponse;
+
+        System.out.println(String.format("Logging Request  {%s} : {%S}",req.getMethod(),
+                req.getRequestURI()));
+        try {
+            validateHeaderToken(req.getHeader("Authorization"));
+            System.out.println("GOOD");
+            filterChain.doFilter(servletRequest, servletResponse);
+        } catch (ServiceException e) {
+            System.err.println(e.getMessage());
+            res.setStatus(401);
+            try {
+                PrintWriter out = res.getWriter();
+                res.setContentType("application/json");
+                res.setCharacterEncoding("UTF-8");
+                out.print(new RestResponse<String>(
+                        401,false,e.getMessage(),null,null
+                ).toJson());
+                out.flush();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+    }
+
+    @Override
+    public void validateHeaderToken(String headerToken) throws ServiceException {
+        if(headerToken == null)
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "Token Expected");
+        try {
+            JWTUtil.validate(
+                    JWTUtil.extractToken(headerToken),AuthServiceImpl.JWT_SECRET);
+        } catch (JWTException e) {
+            throw new ServiceException(HttpStatus.UNAUTHORIZED, "Invalid token, authenticate again");
+        }
+    }
+
+
+}
+```
+
+2. Register in configuration class, and register all paths you want to make filter
+```
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class MiddlewareConfiguration {
+
+    private static final String API_VERSION_PATH = "/api/v1";
+
+    @Bean
+    public FilterRegistrationBean<SecurityFilterImpl> securityFilterImpl(){
+        FilterRegistrationBean<SecurityFilterImpl> registrationBean
+                = new FilterRegistrationBean<>();
+
+        registrationBean.setFilter(new SecurityFilterImpl());
+        registrationBean.addUrlPatterns(
+                API_VERSION_PATH + "/user/*",
+                API_VERSION_PATH + "/client/*"
+        );
+
+        return registrationBean;
+    }
+}
+```
+
+**NOTE IMPORTANT**
+If you want to use Middleware in all routes, 
+you only need to specify @Component in top of @Order(#) and NOT need register @Bean in Configuration.
+With @Component annotation, you can inject services with @Autowired.
 
 
 ------------------------------------------------------------------------------------------------------------------------
@@ -1355,7 +1531,6 @@ TOKEN will be on response header 'Authorization', just get it at frontend
 
 # Cors error
 1. 
-package com.novopangea.adhdfl5.adhdfl5;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -1376,8 +1551,8 @@ public class Adhdfl5Application {
 	 * CORS Handler
 	 */
 	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurerAdapter() {
+	public WebMvcConfigurer configureCORS() {
+		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
@@ -1399,17 +1574,10 @@ public class Adhdfl5Application {
 ------------------------------------------------------------------------------------------------------------------------
 
 # Example ResponserRest
-package com.novopangea.adhdfl5.adhdfl5.response;
 
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/**
- * Formato de respuesta para el Frontend
- * @author Victor Andres Pedraza Leon - Novopangea 2019
- *
- * @param <T> - Clase o Modelo a la que va a pertenecer la respuesta
- */
 @Component("responserest")
 public class ResponseRest<T> {
 	
@@ -1543,7 +1711,6 @@ Need Spring ecurity core
 
 Then, create util class
 ```
-import com.sun.xml.fastinfoset.util.CharArray;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public final class SecurityEncoderHelper {
@@ -1555,9 +1722,7 @@ public final class SecurityEncoderHelper {
     }
 
     public static boolean comparePasswordBCrypt(String plainPassword, String hashedPassword){
-        char[] charArrayPasswordInput = plainPassword.toCharArray();
-        CharSequence charSequence = new CharArray(charArrayPasswordInput,0,charArrayPasswordInput.length,true);
-        return new BCryptPasswordEncoder().matches(charSequence,hashedPassword);
+        return new BCryptPasswordEncoder().matches(plainPassword,hashedPassword);
     }
 
 }
@@ -1983,11 +2148,11 @@ import static com.google.common.base.Predicates.or;
 
 @Configuration
 @EnableSwagger2
-public class SwaggerConfig {
+public class SwaggerConfiguration {
 
     @Bean
     public Docket postsApi() {
-        return new Docket(DocumentationType.SWAGGER_2).groupName("Novopangea Software Engineering Team")
+        return new Docket(DocumentationType.SWAGGER_2).groupName("Software Engineering Team")
                 .apiInfo(apiInfo()).select().paths(allPaths()).paths(excludePaths()).build();
     }
 
