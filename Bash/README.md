@@ -166,6 +166,15 @@ IFS=';' read -r -a array <<< "$a";
 
 ----------------------------------------------------------
 
+# Example start jar
+```
+jarname="app-1.0.jar";
+today=`date +%m-%d-%Y`;
+java -jar -Dspring.config.location=/path/to/application.properties /path/to/$jarname >> logs/app_$today.log & disown
+```
+
+----------------------------------------------------------
+
 # Dialog boxes
 
 https://aplicacionesysistemas.com/dialog-crear-menus-tus-scripts/
