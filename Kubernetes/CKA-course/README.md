@@ -117,15 +117,105 @@ pod-definition
 ```
 apiVersion: v1
 kind: Pod
-meta-data:
+metadata:
   name: my-app
   labels:
     app: myapp
     type: front-end
 spec:
   containers:
-    - name: nginx-container
-	  image: nginx
+  - name: nginx-container
+	image: nginx
+  restartPolicy: always
 ```
+
+--------------------------------------------------------------------------------------------------------------
+
+## Essentials
+
+## Get Pods
+```
+kubectl get pods
+```
+----------------------------------------------------------
+
+## Create POD with command
+```
+kubectl run <pod-name> --image=<docker-image-name>
+```
+
+----------------------------------------------------------
+
+## Delete POD with command
+```
+kubectl delete pod <pod-name>
+```
+**Force delete**
+```
+kubectl delete pod <pod-name> --force
+```
+**Delete all**
+```
+kubectl delete pods --all
+```
+
+----------------------------------------------------------
+
+## Create POD with YAML
+1. pod definition YAML
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app
+  labels:
+    app: myapp
+    type: front-end
+spec:
+  containers:
+  - name: nginx-container
+	image: nginx
+  restartPolicy: always
+```
+
+2. Create command with File YAML 
+```
+kubectl create -f /path/to/pod-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Create YAML file by create POD command
+1. pod definition YAML
+```
+kubectl run <pod-name> --image=<docker-image-name> --dry-run=client -o yaml > pod-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Update POD created by YAML
+1. Update pod definition YAML file
+
+2. Apply command
+```
+kubectl apply -f /path/to/pod-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Delete POD created by YAML
+```
+kubectl delete -f /path/to/pod-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Get info about the POD
+```
+kubectl describe pod <name-pod>
+```
+
+
+
 
 --------------------------------------------------------------------------------------------------------------
