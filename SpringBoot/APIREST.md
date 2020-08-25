@@ -1092,7 +1092,15 @@ public class SecurityFilterImpl implements SecurityFilter,Filter {
                 PrintWriter out = res.getWriter();
                 res.setContentType("application/json");
                 res.setCharacterEncoding("UTF-8");
-                out.print(new RestResponse<String>(
+				
+				//CORS problem soved with this
+				res.setHeader("Access-Control-Allow-Origin", "*");
+                res.setHeader("Access-Control-Allow-Credentials", "true");
+                res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+                res.setHeader("Access-Control-Max-Age", "3600");
+                res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
+                
+				out.print(new RestResponse<String>(
                         401,false,e.getMessage(),null,null
                 ).toJson());
                 out.flush();
@@ -1555,13 +1563,16 @@ public class Adhdfl5Application {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				registry.addMapping("/**").allowedOrigins("http://localhost:3000");
+				registry.addMapping("/**")
+						.allowedHeaders("*")
+						.allowedMethods("*")
+						.allowedOrigins("*");
 			}
 		};
 	}
 }
 
-2. If You are using a WebSecurityConfigurerAdapter son class
+2. If You are using a WebSecurityConfigurerAdapter on class
 
 @Override
 	protected void configure(HttpSecurity http) throws Exception {
