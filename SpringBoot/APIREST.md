@@ -1078,37 +1078,35 @@ public class SecurityFilterImpl implements SecurityFilter,Filter {
 
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse res = (HttpServletResponse) servletResponse;
-
-        System.out.println(String.format("Logging Request  {%s} : {%S}",req.getMethod(),
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+        res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+        res.setHeader("Access-Control-Max-Age", "3600");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me, Cache-Control, Authorization");
+        System.out.println(String.format("Logging Protected Request  {%s} : {%S}",req.getMethod(),
                 req.getRequestURI()));
-        try {
-            validateHeaderToken(req.getHeader("Authorization"));
-            System.out.println("GOOD");
-            filterChain.doFilter(servletRequest, servletResponse);
-        } catch (ServiceException e) {
-            System.err.println(e.getMessage());
-            res.setStatus(401);
+        System.out.println(req.getHeader("Authorization"));
+
+        if(! req.getMethod().equalsIgnoreCase("OPTIONS")){
             try {
-                PrintWriter out = res.getWriter();
-                res.setContentType("application/json");
-                res.setCharacterEncoding("UTF-8");
-				
-				//CORS problem soved with this
-				res.setHeader("Access-Control-Allow-Origin", "*");
-                res.setHeader("Access-Control-Allow-Credentials", "true");
-                res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-                res.setHeader("Access-Control-Max-Age", "3600");
-                res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
-                
-				out.print(new RestResponse<String>(
-                        401,false,e.getMessage(),null,null
-                ).toJson());
-                out.flush();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+                validateHeaderToken(req.getHeader("Authorization"));
+                filterChain.doFilter(servletRequest, servletResponse);
+            } catch (ServiceException e) {
+                res.setStatus(401);
+                try {
+                    System.out.println("With error" + e.getMessage());
+                    PrintWriter out = res.getWriter();
+                    out.print(new RestResponse<String>(
+                            401,false,e.getMessage(),null,null
+                    ).toJson());
+                    out.flush();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
-
     }
 
     @Override
