@@ -113,7 +113,7 @@ Smallest Object you can create with Kubernetes.
 Encapsulate only ONE container, unless you need Helper container.
 
 #### Create with YAML
-pod-definition
+pod-definition.yaml
 ```
 apiVersion: v1
 kind: Pod
@@ -127,6 +127,102 @@ spec:
   - name: nginx-container
 	image: nginx
   restartPolicy: always
+```
+
+----------------------------------------------------------
+
+## Replication Controller
+Specify replicas of a POD
+
+### Create with YAML
+rc-definition.yaml
+Inside spec section, put the POD structure since metadata and add replicas section
+```
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myapp-rc
+  labels:
+    app: myapp
+	type: front-end
+spec:
+  template:
+    metadata:
+      name: my-app
+    labels:
+      app: myapp
+      type: front-end
+    spec:
+      containers:
+      - name: nginx-container
+	    image: nginx
+      restartPolicy: always
+	replicas: 3
+```
+
+----------------------------------------------------------
+
+## Replica Set
+Specify replicas of a POD. Difference with Replica Controller, you can use 'selector' section
+
+### Create with YAML
+rc-definition.yaml
+Inside spec section, put the POD structure since metadata and add replicas section
+```
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myapp-rc
+  labels:
+    app: myapp
+	type: front-end
+spec:
+  template:
+    metadata:
+      name: my-app
+    labels:
+      app: myapp
+      type: front-end
+    spec:
+      containers:
+      - name: nginx-container
+	    image: nginx
+      restartPolicy: always
+	replicas: 3
+	selector:
+	  matchLabels:
+	    type: front-end
+```
+
+----------------------------------------------------------
+
+## Replica Set
+Specify replicas of a POD
+
+### Create with YAML
+replicaset-definition.yaml
+Inside spec section, put the POD structure since metadata and add replicas section
+```
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myapp-replicaset
+  labels:
+    app: myapp
+	type: front-end
+spec:
+  template:
+    metadata:
+      name: my-app
+    labels:
+      app: myapp
+      type: front-end
+    spec:
+      containers:
+      - name: nginx-container
+	    image: nginx
+      restartPolicy: always
+	replicas: 3
 ```
 
 --------------------------------------------------------------------------------------------------------------
@@ -162,21 +258,7 @@ kubectl delete pods --all
 ----------------------------------------------------------
 
 ## Create POD with YAML
-1. pod definition YAML
-```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-app
-  labels:
-    app: myapp
-    type: front-end
-spec:
-  containers:
-  - name: nginx-container
-	image: nginx
-  restartPolicy: always
-```
+1. create pod definition YAML
 
 2. Create command with File YAML 
 ```
@@ -186,7 +268,7 @@ kubectl create -f /path/to/pod-definition.yaml
 ----------------------------------------------------------
 
 ## Create YAML file by create POD command
-1. pod definition YAML
+1. execute
 ```
 kubectl run <pod-name> --image=<docker-image-name> --dry-run=client -o yaml > pod-definition.yaml
 ```
@@ -215,7 +297,88 @@ kubectl delete -f /path/to/pod-definition.yaml
 kubectl describe pod <name-pod>
 ```
 
+----------------------------------------------------------
 
+## Get Replication Controllers
+```
+kubectl get replicationcontroller
+```
 
+----------------------------------------------------------
+
+## Create Replication Controller
+1. Create Replication Controller definition YAML
+
+2. Create command with File YAML 
+```
+kubectl create -f /path/to/rc-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Get Replica Set
+```
+kubectl get replicaset
+```
+
+----------------------------------------------------------
+
+## Create ReplicaSet
+1. Create ReplicaSet definition YAML
+
+2. Create command with File YAML 
+```
+kubectl create -f /path/to/replicaset-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Delete ReplicaSet
+Also deletes all underlying PODs
+```
+kubectl delete -f /path/to/replicaset-definition.yaml
+```
+
+## Info ReplicaSet
+```
+kubectl describe replicaset.apps <NAME>
+```
+
+----------------------------------------------------------
+
+## Increse number of replicaSet updating YAML file
+1. Update 'replicas' section with another number
+
+2. Execute
+```
+kubectl replace -f /path/to/replicaset-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Increse number of replicaSet with kubectl command
+This will not change file replicas
+```
+kubectl scale --replicas=6 -f /path/to/replicaset-definition.yaml
+```
+
+**OR**
+```
+kubectl scale --replicas=6 <TYPE=replicaset> <NAME=myapp-replicaset>
+```
+
+----------------------------------------------------------
+
+## Edit ReplicaSet
+You can fix image problems or some error in replica set PODs 
+using 'kubectl edit' command
+```
+kubectl edit replicaset.apps <NAME>
+```
+
+## Info ReplicaSet
+```
+kubectl describe replicaset.apps <NAME>
+```
 
 --------------------------------------------------------------------------------------------------------------
