@@ -160,39 +160,6 @@ spec:
 	replicas: 3
 ```
 
-----------------------------------------------------------
-
-## Replica Set
-Specify replicas of a POD. Difference with Replica Controller, you can use 'selector' section
-
-### Create with YAML
-rc-definition.yaml
-Inside spec section, put the POD structure since metadata and add replicas section
-```
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  name: myapp-rc
-  labels:
-    app: myapp
-	type: front-end
-spec:
-  template:
-    metadata:
-      name: my-app
-    labels:
-      app: myapp
-      type: front-end
-    spec:
-      containers:
-      - name: nginx-container
-	    image: nginx
-      restartPolicy: always
-	replicas: 3
-	selector:
-	  matchLabels:
-	    type: front-end
-```
 
 ----------------------------------------------------------
 
@@ -225,9 +192,47 @@ spec:
 	replicas: 3
 ```
 
+----------------------------------------------------------
+
+## Replica Set
+Deployments are hight encapsulations of a POD with a container and a replicaSet
+
+### Create with YAML
+deployemnt-definition.yaml
+Inside spec section, put the POD structure since metadata and add replicas section
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+  labels:
+    app: myapp
+	type: front-end
+spec:
+  template:
+    metadata:
+      name: my-app
+    labels:
+      app: myapp
+      type: front-end
+    spec:
+      containers:
+      - name: nginx-container
+	    image: nginx
+      restartPolicy: always
+	replicas: 3
+```
+
 --------------------------------------------------------------------------------------------------------------
 
 ## Essentials
+
+----------------------------------------------------------
+
+## Get All essential components
+```
+kubectl get all
+```
 
 ## Get Pods
 ```
@@ -238,6 +243,10 @@ kubectl get pods
 ## Create POD with command
 ```
 kubectl run <pod-name> --image=<docker-image-name>
+```
+**OR**
+```
+kubectl run --generator=run-pod/v1 <pod-name> --image=<docker-image-name>
 ```
 
 ----------------------------------------------------------
@@ -271,6 +280,10 @@ kubectl create -f /path/to/pod-definition.yaml
 1. execute
 ```
 kubectl run <pod-name> --image=<docker-image-name> --dry-run=client -o yaml > pod-definition.yaml
+```
+**OR**
+```
+kubectl run --generator=run-pod/v1 <pod-name> --image=<docker-image-name> --dry-run=client -o yaml > pod-definition.yaml
 ```
 
 ----------------------------------------------------------
@@ -379,6 +392,45 @@ kubectl edit replicaset.apps <NAME>
 ## Info ReplicaSet
 ```
 kubectl describe replicaset.apps <NAME>
+```
+
+----------------------------------------------------------
+
+## Create Deployment
+1. Create Deployment definition YAML
+
+2. Create command with File YAML 
+```
+kubectl create -f /path/to/deployment-definition.yaml
+```
+Can Automatically create a ReplicaSet and all the Pods specified in number of replicas
+
+----------------------------------------------------------
+
+## Create Deployment with command kubectl
+```
+kubectl create deployment --image=nginx nginx
+```
+
+----------------------------------------------------------
+
+## Generate Deployment definition YAML with command kubectl
+```
+kubectl create deployment --image=nginx nginx --dry-run -o yaml > nginx-deployment.yaml
+```
+
+----------------------------------------------------------
+
+## List Deployments
+```
+kubectl get deployments
+```
+
+----------------------------------------------------------
+
+## Get info about the Deployment
+```
+kubectl describe deployment <name-deployment>
 ```
 
 --------------------------------------------------------------------------------------------------------------

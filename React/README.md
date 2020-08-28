@@ -64,6 +64,7 @@ class Router extends React.Component
         return(
             <BrowserRouter basename="/YOUR_APP_NAME" >
                 <Switch>
+				<Route exact path={['/','/user']} render={(props)=> <Inicio user={this.props.user}/>}/>
                     <Route exact path='/user' render={(props)=> <Inicio user={this.props.user}/>}/>
                     <Route exact path='/user/inicio' render={(props)=> <Inicio user={this.props.user}/>}/>
                     <Route exact path='/user/cuidadores' render={(props)=> <Cares user={this.props.user}/>}/>
