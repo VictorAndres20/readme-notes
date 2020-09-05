@@ -119,6 +119,22 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: my-app
+  namespace: dev
+  labels:
+    app: myapp
+    type: front-end
+spec:
+  containers:
+  - name: nginx-container
+	image: nginx
+  restartPolicy: always
+```
+pod-definition.yaml with namespace
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app
   labels:
     app: myapp
     type: front-end
@@ -223,6 +239,53 @@ spec:
 	replicas: 3
 ```
 
+----------------------------------------------------------
+
+# Namespaces
+Created automatically by Kubernetes
+- kube-system
+- Default (Where you work if you dont specify)
+- kube-public
+
+You can specify limit resources
+
+## Handle DNS for services inside cluster
+Cluster name: Default
+DNS: service-name
+
+Cluster name: dev
+DNS: service-name.dev.svc.cluster.local
+
+If pods are in the same namespace, you can simply use service-name as DNS
+
+## Create namespace with YAML
+namespace-dev.yaml
+```
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+```
+
+## Specify Resource Limit to Namespace(Resource Quota)
+resource-quota.yaml
+```
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: dev
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "4"
+    requests.memory: 5Gi
+    limits.cpu: "10"
+    limits.memory: 10Gi
+```
+
+
+
 --------------------------------------------------------------------------------------------------------------
 
 ## Essentials
@@ -238,6 +301,17 @@ kubectl get all
 ```
 kubectl get pods
 ```
+
+## Get Pods specify namespace
+```
+kubectl get pods --namespace=<namespace-name>
+```
+
+## Get Pods in all namespace
+```
+kubectl get pods --all-namespaces
+```
+
 ----------------------------------------------------------
 
 ## Create POD with command
@@ -272,6 +346,10 @@ kubectl delete pods --all
 2. Create command with File YAML 
 ```
 kubectl create -f /path/to/pod-definition.yaml
+```
+**If you want to specify namespace in command**
+```
+kubectl create -f /path/to/pod-definition.yaml -namespace=dev
 ```
 
 ----------------------------------------------------------
@@ -431,6 +509,23 @@ kubectl get deployments
 ## Get info about the Deployment
 ```
 kubectl describe deployment <name-deployment>
+```
+
+----------------------------------------------------------
+
+## Create Namespace
+1. Create Namespace definition YAML
+
+2. Create command with File YAML 
+```
+kubectl create -f /path/to/namespace-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Create Namespace with command kubectl
+```
+kubectl create namespace dev
 ```
 
 --------------------------------------------------------------------------------------------------------------
