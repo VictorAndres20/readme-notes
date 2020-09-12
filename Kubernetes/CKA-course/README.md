@@ -210,37 +210,6 @@ spec:
 
 ----------------------------------------------------------
 
-## Replica Set
-Deployments are hight encapsulations of a POD with a container and a replicaSet
-
-### Create with YAML
-deployemnt-definition.yaml
-Inside spec section, put the POD structure since metadata and add replicas section
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: myapp-deployment
-  labels:
-    app: myapp
-	type: front-end
-spec:
-  template:
-    metadata:
-      name: my-app
-    labels:
-      app: myapp
-      type: front-end
-    spec:
-      containers:
-      - name: nginx-container
-	    image: nginx
-      restartPolicy: always
-	replicas: 3
-```
-
-----------------------------------------------------------
-
 # Namespaces
 Created automatically by Kubernetes
 - kube-system
@@ -282,6 +251,64 @@ spec:
     requests.memory: 5Gi
     limits.cpu: "10"
     limits.memory: 10Gi
+```
+
+----------------------------------------------------------
+
+# Services
+Object that listen a port and you can access external
+Types:
+- NodePort : Ranges 30000 - 32767
+- CLusterIP
+- LoadBalancer
+
+### NodePort Service YAML
+Inside selector section, put same POD's labels that you are linking
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-service
+spec:
+  type:NodePort
+  ports:
+   - targetPort: 80
+     port: 80
+     nodePort: 30000
+  selector:
+    app: myapp [SAME POD LABEL NAME]
+    type: front-end [SAME POD LABEL TYPE]
+```
+
+### ClusterIP Service YAML
+Inside selector section, put same POD's labels that you are linking
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: back-end
+spec:
+  type:ClusterIP
+  ports:
+   - targetPort: 80
+     port: 80
+  selector:
+    app: myapp [SAME POD LABEL NAME]
+    type: front-end [SAME POD LABEL TYPE]
+```
+
+### LoadBalancer Service YAML
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp-load-balancer
+spec:
+  type:LoadBalancer
+  ports:
+   - targetPort: 80
+     port: 80
+     nodePort: 30000
 ```
 
 
@@ -527,5 +554,30 @@ kubectl create -f /path/to/namespace-definition.yaml
 ```
 kubectl create namespace dev
 ```
+
+----------------------------------------------------------
+
+## Create Service
+1. Create Service definition YAML
+
+2. Create command with File YAML 
+```
+kubectl create -f /path/to/service-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Create YAML Service with command kubectl
+```
+kubectl expose deployment [name-deployment] --name=[service-name] --targetPort=8080 --tyoe=NodePort --port=8080 --dry-run=client -o yaml > service-definition.yaml
+```
+
+----------------------------------------------------------
+
+## Get services
+```
+kubectl get services
+```
+
 
 --------------------------------------------------------------------------------------------------------------
