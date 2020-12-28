@@ -7,6 +7,24 @@ install with an older version
 # LINK TO Official Docker Images
 https://hub.docker.com/search?q=&type=image
 
+# Error in Ubuntu 18.04
+Error response from daemon: Get https://registry-1.docker.io/v2/: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+
+This error was fixed when DNS nameserver in HOST or SERVER was changed to
+nameserver 8.8.4.4
+nameserver 8.8.8.8
+
+In Ubuntu 18.04 you can change DNS with
+https://datawookie.netlify.app/blog/2018/10/dns-on-ubuntu-18.04/
+
+- sudo apt-get install resolvconf
+- Edit /etc/resolvconf/resolv.conf.d/head and add the following:
+```
+nameserver 8.8.4.4
+nameserver 8.8.8.8
+```
+- sudo systemctl restart resolvconf
+
 ------------------------------------------------------------------------------------------------
 
 # Images
