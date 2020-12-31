@@ -270,7 +270,7 @@ kind: Service
 metadata:
   name: myapp-service
 spec:
-  type:NodePort
+  type: NodePort
   ports:
    - targetPort: 80
      port: 80
@@ -363,6 +363,13 @@ kubectl delete pod <pod-name> --force
 **Delete all**
 ```
 kubectl delete pods --all
+```
+
+----------------------------------------------------------
+
+# Create POD and expose container port in 8080
+```
+kubectl run <pod-name> --image=<docker-image-name> --port=8080
 ```
 
 ----------------------------------------------------------
@@ -519,6 +526,27 @@ kubectl create deployment --image=nginx nginx
 
 ----------------------------------------------------------
 
+## Create Deployment with command kubectl with replicas
+```
+kubectl create deployment nginx --image=nginx --replicas=4
+```
+
+----------------------------------------------------------
+
+## Sacale Deployment replicas
+```
+kubectl scale deployment nginx --replicas=2
+```
+
+----------------------------------------------------------
+
+## Sacale Deployment with command kubectl with replicas and set in namespace
+```
+kubectl create deployment redis-deploy --image redis --namespace=dev-ns
+```
+
+----------------------------------------------------------
+
 ## Generate Deployment definition YAML with command kubectl
 ```
 kubectl create deployment --image=nginx nginx --dry-run -o yaml > nginx-deployment.yaml
@@ -579,5 +607,18 @@ kubectl expose deployment [name-deployment] --name=[service-name] --targetPort=8
 kubectl get services
 ```
 
+----------------------------------------------------------
+
+## Create a Service named redis-service of type ClusterIP to expose pod redis on port 6379
+```
+kubectl expose pod redis --port=6379 --name redis-service --dry-run=client -o yaml > svc-def.yaml
+```
+
+----------------------------------------------------------
+
+## Create a Service named nginx of type NodePort to expose pod nginx's port 80 on port 30080 on the nodes
+```
+kubectl expose pod nginx --port=80 --name nginx-service --type=NodePort --dry-run=client -o yaml > svc-def.yaml
+```
 
 --------------------------------------------------------------------------------------------------------------
