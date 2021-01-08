@@ -11,6 +11,13 @@ $ npm start **OR** $ yarn start
 
 Then open http://localhost:3000/ to see your app on development server.
 
+# Errors
+
+## System limit for number of file watchers reached, 
+```
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+```
+
 
 
 -------------------------------------------------------------------------------------------------------------------------------
