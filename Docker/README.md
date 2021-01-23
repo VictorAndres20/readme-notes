@@ -600,6 +600,43 @@ $ sudo docker build /path/to/folder/Dockerfile/ -t php-apache-name
 $ sudo docker run -i -t --name php-apache-name -d -p 80:80 php-apache-name
 ```
 
+## Os Ticket
+
+##### Os Ticket DB
+
+docker run -i -t --restart=always --network net-os-ticket --ip 172.124.10.10 --name mysql-os-ticket -v /opt/os-ticket-db:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passwd -d -p 3306:3306 mysql:5.7
+
+##### Os Ticket PHP
+
+docker run -i -t --restart=always --network net-os-ticket --ip 172.124.10.11 --name prod-os-ticket -v /opt/os-ticket/html:/var/www/html -d -p 8080:80 php:7.3-apache
+docker exec -it prod-os-ticket bash
+
+/usr/local/bin/docker-php-ext-install mysqli pdo_mysql
+
+apt-get update && apt-get install -y libc-client-dev libkrb5-dev && rm -r /var/lib/apt/lists/*
+/usr/local/bin/docker-php-ext-configure imap --with-kerberos --with-imap-ssl && /usr/local/bin/docker-php-ext-install imap
+
+docker-php-ext-install opcache
+
+apt-get update && apt-get install -y zlib1g-dev libicu-dev g++
+/usr/local/bin/docker-php-ext-configure intl
+/usr/local/bin/docker-php-ext-install intl
+
+apt-get autoremove
+
+apt-get update && apt-get -y install gcc make autoconf libc-dev pkg-config
+pecl install apcu
+/usr/local/bin/docker-php-ext-enable apcu
+
+apt-get install -y sendmail libpng-dev
+/usr/local/bin/docker-php-ext-install
+
+php -m
+chown -R www-data:www-data /var/www/html
+a2enmod rewrite
+service apache2 restart
+
+
 
 ## Node Web App container
 https://nodejs.org/de/docs/guides/nodejs-docker-webapp/
