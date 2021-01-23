@@ -98,14 +98,32 @@ Documentation https://lumen.laravel.com/docs/5.7/middleware
 https://www.codementor.io/chiemelachinedum/steps-to-enable-cors-on-a-lumen-api-backend-e5a0s1ecx
 
 1. handle method for Cross origin
-	public function handle($request, Closure $next)
+<?php
+
+/**
+* Location: /app/Http/Middleware
+*/
+namespace App\Http\Middleware;
+
+use Closure;
+
+class CorsMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
     {
         $headers = [
             'Access-Control-Allow-Origin'      => '*',
             'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE',
             'Access-Control-Allow-Credentials' => 'true',
             'Access-Control-Max-Age'           => '86400',
-            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With'
+            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With, Accept'
         ];
 
         if ($request->isMethod('OPTIONS'))
@@ -116,11 +134,12 @@ https://www.codementor.io/chiemelachinedum/steps-to-enable-cors-on-a-lumen-api-b
         $response = $next($request);
         foreach($headers as $key => $value)
         {
-            $response->header($key, $value);
+            $response->headers->set($key, $value);
         }
 
         return $response;
     }
+}
 
 2. On bootstrap/App.php
 
