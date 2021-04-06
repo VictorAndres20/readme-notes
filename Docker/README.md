@@ -434,6 +434,11 @@ $ sudo docker run -dit --name vitolo_apache --restart always -v /local/path:/usr
 $ sudo docker run -i -t --name container-nginx-name -v /local/path:/usr/share/nginx/html:ro -d -p 3000:80 nginx
 ```
 
+## Spoon web
+```
+$ sudo docker run -i -t --name spoon -v /local/path:/home/pentaho -d -p 8080:8080 hiromuhota/webspoon
+```
+
 ## Wordpress
 ```
 $ sudo docker network create -d bridge --subnet 172.18.0.0/24 --gateway 172.18.0.1 wordpress-net
@@ -499,7 +504,7 @@ FROM php:7.3-apache
 ADD ./php-apps /www/html
 ADD vhost.conf /etc/apache2/sites-available/000-default.conf
 RUN apt-get update && apt-get install -y libpq-dev
-RUN /usr/local/bin/docker-php-ext-install mysqli pdo_mysql
+RUN /usr/local/bin/docker-php-ext-install pdo_pgsql pgsql
 RUN php -m
 RUN chown -R www-data:www-data /www/html \
     && a2enmod rewrite
