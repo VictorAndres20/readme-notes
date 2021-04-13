@@ -926,25 +926,27 @@ networks:
 
 ------------------------------------------------------------------------------------------------
 
-## nginx-proxy to uase subdomains
+## nginx-proxy to use subdomains
 https://blog.florianlopes.io/host-multiple-websites-on-single-host-docker/
+https://github.com/nginx-proxy/nginx-proxy
 
 
 SCHEMA
 
 
-                                                             |--> Node Api Container  | VIRTUAL_HOST=api.domain.com
+                                                             |--> Node Api Container  | VIRTUAL_HOST=api.domain.com,www.api.domain.com
                                                              |        port:49255      | VIRTUAL_PORT=8000
      http://api.domain.com      |                            |
 ---> http://gitlab.domain.com   |-->  nginx-proxy Container  |--> Gitlab Container    | VIRTUAL_HOST=gitlab.domain.com
-     http://jenkins.domain.com  |           port:80          |        port:49255      |
+     http://jenkins.domain.com  |           port:80          |        port:49256      | VIRTUAL_PORT=80,443
+									                VIRTUAL_PROTO=https
                                                              |
-												             |--> Jenkins Container   | VIRTUAL_HOST=jenkins.domain.com
-												                      port:49255      |
+						             |--> Jenkins Container   | VIRTUAL_HOST=45.345.67.54,domain.com
+						   	     |        port:49257      | VIRTUAL_PORT=80
 
 1. Run nginx-proxy
 ```
-$ sudo docker run -d -p 80:80 -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy
+$ sudo docker run --restart always --name nginx_reverse_proxy -d -p 80:80 -p 443:443 -v /path/to/certs:/etc/nginx/certs -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy
 ```
 If you want to use nginx custom config file add
 ```
@@ -953,10 +955,19 @@ If you want to use nginx custom config file add
 
 2. Run other container with VIRTUAL_HOST env variable
 ```
-$ sudo docker run -d --expose 8000 -e VIRTUAL_HOST=api.domain.com -e VIRTUAL_PORT=8000 api-image
-$ sudo docker run -d --expose 80 -e VIRTUAL_HOST=gitlab.domain.com gitlab
-$ sudo docker run -d --expose 80 -e VIRTUAL_HOST=jenkins.domain.com jenkins
+$ sudo docker run -d --expose 80 -e VIRTUAL_HOST=domain.com jenkins
+$ sudo docker run -d --expose 8000 -e VIRTUAL_HOST=api.domain.com,www.api.domain.com -e VIRTUAL_PORT=8000 api-image
+$ sudo docker run -d --expose 80,443 -e VIRTUAL_HOST=gitlab.domain.com -e VIRTUAL_PORT=80,443 -e VIRTUAL_PROTO=https gitlab
 ```
+
+**SSL**
+Note that nginx proxy need -p 443:443 and volume to /etc/nginx/certs.
+The certificate and keys should be named after the virtual host with a .crt and .key extension and .pem. 
+For example, a container with VIRTUAL_HOST=foo.bar.com should have a foo.bar.com.crt and foo.bar.com.key and foo.bar.com.dhparam.pem file in the certs directory
+
+
+# Secure nginx proxy from scratch
+https://www.freecodecamp.org/news/docker-nginx-letsencrypt-easy-secure-reverse-proxy-40165ba3aee2/
 
 
 ------------------------------------------------------------------------------------------------
