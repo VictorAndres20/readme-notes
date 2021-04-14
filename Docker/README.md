@@ -965,9 +965,305 @@ Note that nginx proxy need -p 443:443 and volume to /etc/nginx/certs.
 The certificate and keys should be named after the virtual host with a .crt and .key extension and .pem. 
 For example, a container with VIRTUAL_HOST=foo.bar.com should have a foo.bar.com.crt and foo.bar.com.key and foo.bar.com.dhparam.pem file in the certs directory
 
+------------------------------------------------------------------------------------------------
 
-# Secure nginx proxy from scratch
+# nginx proxy from scratch and Secure SSL
+https://dev.to/sukhbirsekhon/what-is-docker-reverse-proxy-45mm
 https://www.freecodecamp.org/news/docker-nginx-letsencrypt-easy-secure-reverse-proxy-40165ba3aee2/
+
+## Create your proxy network
+```
+sudo docker network create -d bridge --subnet 172.124.10.0/24 --gateway 172.124.10.1 network_proxy
+```
+
+## Create yor web service containers inside network proxy.
+Example:
+```
+docker run --restart always --network network_proxy --ip 172.124.10.10 --name apache -v /usr/local/docker/vols/apache:/var/www/html -d -p 8000:80 php:7.3-apache
+docker run --restart always --network network_proxy --ip 172.124.10.11 --name apache1 -v /usr/local/docker/vols/apache1:/var/www/html -d -p 8001:80 php:7.3-apache
+```
+
+If you want to expose those containers only by proxy, change '-p 8000:80' to '--expose 80' or port that container expose.
+
+## Create nginx container to configure as a reverse proxy
+```
+docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.9
+```
+
+## Create www/html folders inside nginx_proxy container
+```
+docker exec -it nginx_proxy bash
+mkdir /var/www
+mkdir /var/www/html
+```
+
+## install vim inside nginx_proxy container
+```
+apt-get update; apt-get install vim -y
+```
+
+## Create /var/www/html/backend-not-found.html inside nginx_proxy container
+```
+vi /var/www/html/backend-not-found.html
+```
+
+Set you html for not found resourse
+```
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sorry</title>
+</head>
+<body>
+<h1>Resourse not found</h1>
+</body>
+</html>
+```
+
+## create /etc/nginx/includes folder inside nginx_proxy container
+```
+mkdir /etc/nginx/includes/
+```
+ 
+## create /etc/nginx/includes/proxy.conf file inside nginx_proxy container
+```
+vi /etc/nginx/includes/proxy.conf
+```
+
+Write
+```
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_buffering off;
+proxy_request_buffering off;
+proxy_http_version 1.1;
+proxy_intercept_errors on;
+```
+
+## Set /etc/nginx/conf.d/default.conf inside nginx_proxy container
+```
+vi /etc/nginx/conf.d/default.conf
+```
+
+To create proxy you need to edit this file like this
+```
+#Web Service 1 config
+upstream centos{
+             #container-name:port-inside-container
+      server apache:80;
+}
+#Web Service 1 config proxy
+server {
+    listen 80;
+    #listen 443 ssl http2;
+                #domain.com to use
+    server_name centos.com;
+
+    # Path for SSL config/key/certificate
+    #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
+    #ssl_certificate_key /etc/ssl/certs/nginx/site1.key;
+    #include /etc/nginx/includes/ssl.conf;
+
+    location / {
+        include /etc/nginx/includes/proxy.conf;
+                   #http://container-name
+        proxy_pass http://apache;
+    }
+
+    access_log off;
+    error_log  /var/log/nginx/error.log error;
+}
+
+#Web Service 2 config
+upstream pro{
+      server apache1:80;
+}
+#Web Service 2 config proxy
+server {
+    listen 80;
+    #listen 443 ssl http2;
+    server_name pro.centos.com;
+
+    # Path for SSL config/key/certificate
+    #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
+    #ssl_certificate_key /etc/ssl/certs/nginx/site1.key;
+    #include /etc/nginx/includes/ssl.conf;
+
+    location / {
+        include /etc/nginx/includes/proxy.conf;
+        proxy_pass http://apache1;
+    }
+
+    access_log off;
+    error_log  /var/log/nginx/error.log error;
+}
+
+
+#Default
+server {
+    listen 80 default_server;
+
+    server_name _;
+    root /var/www/html;
+
+    charset UTF-8;
+
+    error_page 404 /backend-not-found.html;
+    location = /backend-not-found.html {
+        allow   all;
+    }
+    location / {
+        return 404;
+    }
+
+    access_log off;
+    log_not_found off;
+    error_log  /var/log/nginx/error.log error;
+}
+
+```
+
+## Exit from nginx_proxy container and restart nginx_proxy container
+```
+exit
+docker restart nginx_proxy
+``` 
+
+TEST IT
+
+---------------
+
+## ADD SSL
+
+## Generate crets and keys for all domains you want to protect 
+If you want auto signed use
+```
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /root/certs-auto/centos.com.key -out /root/certs-auto/centos.com.crt
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /root/certs-auto/pro.centos.com.key -out /root/certs-auto/pro.centos.com.crt
+```
+
+## create /etc/ssl/certs/nginx folder inside nginx_proxy container
+```
+docker exec nginx_proxy bash -c "mkdir /etc/ssl/certs/nginx"
+```
+
+## Move all certs from local machine to /etc/ssl/certs/nginx inside nginx_proxy container
+```
+docker cp /root/certs-auto/centos.com.key nginx_proxy:/etc/ssl/certs/nginx/centos.com.key
+docker cp /root/certs-auto/centos.com.crt nginx_proxy:/etc/ssl/certs/nginx/centos.com.crt
+docker cp /root/certs-auto/pro.centos.com.key nginx_proxy:/etc/ssl/certs/nginx/pro.centos.com.key
+docker cp /root/certs-auto/pro.centos.com.crt nginx_proxy:/etc/ssl/certs/nginx/pro.centos.com.crt
+```
+
+## create /etc/nginx/includes/ssl.conf file inside nginx_proxy container
+```
+docker exec -it nginx_proxy bash
+vi /etc/nginx/includes/ssl.conf
+```
+
+Write
+```
+ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+ssl_ecdh_curve              secp384r1;
+ssl_ciphers                 "ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384 OLD_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 OLD_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256";
+ssl_prefer_server_ciphers   on;
+ssl_session_timeout         10m;
+ssl_session_cache           shared:SSL:10m;
+ssl_session_tickets         off;
+```
+
+## Uncomment SSL config in /etc/nginx/conf.d/default.conf inside nginx_proxy container and rename certs
+```
+vi /etc/nginx/conf.d/default.conf
+```
+
+Uncomment SSL in proxy conf you need and rename certs .key .crt
+```
+#Web Service 1 config
+upstream centos{
+             #container-name:port-inside-container
+      server apache:80;
+}
+#Web Service 1 config proxy
+server {
+    listen 80;
+    listen 443 ssl http2;
+                #domain.com to use
+    server_name centos.com;
+
+    # Path for SSL config/key/certificate
+    ssl_certificate /etc/ssl/certs/nginx/centos.com.crt;
+    ssl_certificate_key /etc/ssl/certs/nginx/centos.com.key;
+    include /etc/nginx/includes/ssl.conf;
+
+    location / {
+        include /etc/nginx/includes/proxy.conf;
+                   #http://container-name
+        proxy_pass http://apache;
+    }
+
+    access_log off;
+    error_log  /var/log/nginx/error.log error;
+}
+
+#Web Service 2 config
+upstream pro{
+      server apache1:80;
+}
+#Web Service 2 config proxy
+server {
+    listen 80;
+    listen 443 ssl http2;
+    server_name pro.centos.com;
+
+    # Path for SSL config/key/certificate
+    ssl_certificate /etc/ssl/certs/nginx/pro.centos.com.crt;
+    ssl_certificate_key /etc/ssl/certs/nginx/pro.centos.com.key;
+    include /etc/nginx/includes/ssl.conf;
+
+    location / {
+        include /etc/nginx/includes/proxy.conf;
+        proxy_pass http://apache1;
+    }
+
+    access_log off;
+    error_log  /var/log/nginx/error.log error;
+}
+
+
+#Default
+server {
+    listen 80 default_server;
+
+    server_name _;
+    root /var/www/html;
+
+    charset UTF-8;
+
+    error_page 404 /backend-not-found.html;
+    location = /backend-not-found.html {
+        allow   all;
+    }
+    location / {
+        return 404;
+    }
+
+    access_log off;
+    log_not_found off;
+    error_log  /var/log/nginx/error.log error;
+}
+
+```
+
+## Exit from nginx_proxy container and restart nginx_proxy container
+```
+exit
+docker restart nginx_proxy
+``` 
+
+TEST IT
 
 
 ------------------------------------------------------------------------------------------------
