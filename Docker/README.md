@@ -1137,12 +1137,54 @@ TEST IT
 
 ## ADD SSL
 
-## Generate crets and keys for all domains you want to protect 
-If you want auto signed use
+**Autosigned certs**
+https://www.alcancelibre.org/staticpages/index.php/como-apache-ssl
+## Generate RSA password
 ```
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /root/certs-auto/centos.com.key -out /root/certs-auto/centos.com.crt
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /root/certs-auto/pro.centos.com.key -out /root/certs-auto/pro.centos.com.crt
+openssl genrsa -des3 -out /root/certs-auto/private/centos.com.key 4096
+openssl genrsa -des3 -out /root/certs-auto/private/pro.centos.com.key 4096
 ```
+
+You will need to set a password
+
+## Generate digital sign RSA
+```
+openssl rsa -in /root/certs-auto/private/centos.com.key -out /root/certs-auto/private/centos.com.pem
+openssl rsa -in /root/certs-auto/private/pro.centos.com.key -out /root/certs-auto/private/pro.centos.com.pem
+```
+
+You will need to enter password
+
+## Generate CSR (Certificate Signing Request) file
+```
+openssl req -sha256 -new -key /root/certs-auto/private/centos.com.key -out /root/certs-auto/certs/centos.com.csr
+openssl req -sha256 -new -key /root/certs-auto/private/pro.centos.com.key -out /root/certs-auto/certs/pro.centos.com.csr
+```
+
+Se pediran los siguientes datos:
+Código de dos letras para el país. CO
+Estado o provincia. Cundinamarca
+Ciudad. Bogota
+Nombre de la empresa o razón social. Empresa SAS
+Unidad o sección. Direccion TI
+Nombre del anfitrión. Debe ser el nombre con el que se accederá hacia el servidor y dicho nombre deberá estar resuelto en un DNS. centos.com
+Dirección de correo electrónico válida del administrador del sistema. vpedraza@unbosque.edu.co
+De manera opcional se puede añadir otra contraseña y nuevamente el nombre de la empresa. Poco recomendado, a menos que quiera ingresar ésta cada vez que se inicie o reinicie el servicio httpd.
+
+
+## Generate autosigned cert for 5 years
+```
+openssl x509 -sha256 -req -days 1825 -in /root/certs-auto/certs/centos.com.csr -signkey /root/certs-auto/private/centos.com.key -out /root/certs-auto/certs/centos.com.crt
+openssl x509 -sha256 -req -days 1825 -in /root/certs-auto/certs/pro.centos.com.csr -signkey /root/certs-auto/private/pro.centos.com.key -out /root/certs-auto/certs/pro.centos.com.crt
+```
+You will need to enter password
+
+## Change permissions
+```
+chmod -R 600 /root/certs-auto
+```
+
+**When you have Certs**
 
 ## create /etc/ssl/certs/nginx folder inside nginx_proxy container
 ```
@@ -1151,10 +1193,10 @@ docker exec nginx_proxy bash -c "mkdir /etc/ssl/certs/nginx"
 
 ## Move all certs from local machine to /etc/ssl/certs/nginx inside nginx_proxy container
 ```
-docker cp /root/certs-auto/centos.com.key nginx_proxy:/etc/ssl/certs/nginx/centos.com.key
-docker cp /root/certs-auto/centos.com.crt nginx_proxy:/etc/ssl/certs/nginx/centos.com.crt
-docker cp /root/certs-auto/pro.centos.com.key nginx_proxy:/etc/ssl/certs/nginx/pro.centos.com.key
-docker cp /root/certs-auto/pro.centos.com.crt nginx_proxy:/etc/ssl/certs/nginx/pro.centos.com.crt
+docker cp /root/certs-auto/private/centos.com.pem nginx_proxy:/etc/ssl/certs/nginx/centos.com.pem
+docker cp /root/certs-auto/certs/centos.com.crt nginx_proxy:/etc/ssl/certs/nginx/centos.com.crt
+docker cp /root/certs-auto/private/pro.centos.com.pem nginx_proxy:/etc/ssl/certs/nginx/pro.centos.com.pem
+docker cp /root/certs-auto/certs/pro.centos.com.crt nginx_proxy:/etc/ssl/certs/nginx/pro.centos.com.crt
 ```
 
 ## create /etc/nginx/includes/ssl.conf file inside nginx_proxy container
@@ -1179,7 +1221,7 @@ ssl_session_tickets         off;
 vi /etc/nginx/conf.d/default.conf
 ```
 
-Uncomment SSL in proxy conf you need and rename certs .key .crt
+Uncomment SSL in proxy conf you need and rename certs .key->.pem .crt
 ```
 #Web Service 1 config
 upstream centos{
@@ -1195,7 +1237,7 @@ server {
 
     # Path for SSL config/key/certificate
     ssl_certificate /etc/ssl/certs/nginx/centos.com.crt;
-    ssl_certificate_key /etc/ssl/certs/nginx/centos.com.key;
+    ssl_certificate_key /etc/ssl/certs/nginx/centos.com.pem;
     include /etc/nginx/includes/ssl.conf;
 
     location / {
@@ -1220,7 +1262,7 @@ server {
 
     # Path for SSL config/key/certificate
     ssl_certificate /etc/ssl/certs/nginx/pro.centos.com.crt;
-    ssl_certificate_key /etc/ssl/certs/nginx/pro.centos.com.key;
+    ssl_certificate_key /etc/ssl/certs/nginx/pro.centos.com.pem;
     include /etc/nginx/includes/ssl.conf;
 
     location / {
