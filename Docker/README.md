@@ -1066,6 +1066,10 @@ server {
     #ssl_certificate_key /etc/ssl/certs/nginx/site1.key;
     #include /etc/nginx/includes/ssl.conf;
 
+    #if ($scheme != "https") {
+    #    return 301 https://$host$request_uri;
+    #}
+
     location / {
         include /etc/nginx/includes/proxy.conf;
                    #http://container-name
@@ -1090,6 +1094,10 @@ server {
     #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
     #ssl_certificate_key /etc/ssl/certs/nginx/site1.key;
     #include /etc/nginx/includes/ssl.conf;
+
+    #if ($scheme != "https") {
+    #    return 301 https://$host$request_uri;
+    #}
 
     location / {
         include /etc/nginx/includes/proxy.conf;
@@ -1121,8 +1129,6 @@ server {
     access_log off;
     log_not_found off;
     error_log  /var/log/nginx/error.log error;
-
-    #return 301 https://$host$request_uri;
 }
 
 ```
@@ -1242,6 +1248,10 @@ server {
     ssl_certificate_key /etc/ssl/certs/nginx/centos.com.pem;
     include /etc/nginx/includes/ssl.conf;
 
+    if ($scheme != "https") {
+        return 301 https://$host$request_uri;
+    }
+
     location / {
         include /etc/nginx/includes/proxy.conf;
                    #http://container-name
@@ -1266,6 +1276,10 @@ server {
     ssl_certificate /etc/ssl/certs/nginx/pro.centos.com.crt;
     ssl_certificate_key /etc/ssl/certs/nginx/pro.centos.com.pem;
     include /etc/nginx/includes/ssl.conf;
+
+    if ($scheme != "https") {
+        return 301 https://$host$request_uri;
+    }
 
     location / {
         include /etc/nginx/includes/proxy.conf;
@@ -1297,8 +1311,6 @@ server {
     access_log off;
     log_not_found off;
     error_log  /var/log/nginx/error.log error;
-
-    return 301 https://$host$request_uri;
 }
 
 ```
