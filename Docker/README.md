@@ -1121,6 +1121,8 @@ server {
     access_log off;
     log_not_found off;
     error_log  /var/log/nginx/error.log error;
+
+    #return 301 https://$host$request_uri;
 }
 
 ```
@@ -1295,6 +1297,8 @@ server {
     access_log off;
     log_not_found off;
     error_log  /var/log/nginx/error.log error;
+
+    return 301 https://$host$request_uri;
 }
 
 ```
