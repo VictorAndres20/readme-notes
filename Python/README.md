@@ -64,6 +64,26 @@ $ sudo apt-get install python3-pip
 $ pip3 --version
 ```
 
+----------------------------------------------------------------------------------
+
+# Requirements.txt
+
+Create a virtual environment.
+```
+python3 -m venv /path/to/new/virtual/env
+```
+
+In virtual env you can generate file with dependencies to easy install
+```
+pip freeze > requirements.txt
+```
+
+In virtual env to install packages
+```
+pip install -r requirements.txt
+```
+
+**NOTE: Be sure to use same python versions**
 
 ----------------------------------------------------------------------------------
 
@@ -94,7 +114,270 @@ from src.package2.module2 import func2
 from src.package2.module2 import variable2 
 ```
 
+----------------------------------------------------------------------------------
 
+# Create Docker container
+
+- Add .dockerignore file to project
+```
+venv
+```
+
+- Add Dockerfile to project
+```
+FROM python:3.6
+
+WORKDIR /usr/src/app
+
+COPY . .
+RUN pip --version
+RUN python --version
+RUN pip install -r requirements.txt
+
+
+CMD [ "python", "./main.py" ]
+```
+
+- Build image
+```
+sudo docker build /path/Dockerfile/ -t app_name
+```
+
+- Now you can run container!!!
+```
+sudo docker run --name app_name -p 9002:9002 -d app_name
+```
+
+
+----------------------------------------------------------------------------------
+# Send mail
+Utils mime_multipart
+```
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from typing import List
+from email import encoders
+from email.mime.base import MIMEBase
+import os
+
+
+def build_mime_multi_msg(sender_email, recipients, subject, msg):
+    message = MIMEMultipart("alternative")
+    message["Subject"] = subject
+    message["From"] = sender_email
+    message["To"] = ", ".join(recipients)
+    message.attach(MIMEText(msg, "html"))
+    return message
+
+
+def build_att_dict(mime_base: MIMEBase, path_file, filename):
+    return {"path_file": path_file, "filename": filename, "mime_base": mime_base}
+
+
+def add_attachment(message: MIMEMultipart, mime_base: MIMEBase, path_file, filename):
+    with open(os.path.join(path_file, filename), "rb") as attachment:
+        # part = MIMEBase("application", "octet-stream")
+        part = mime_base
+        part.set_payload(attachment.read())
+    encoders.encode_base64(part)
+    part.add_header(
+        "Content-Disposition",
+        f"attachment; filename= {filename}",
+    )
+    message.attach(part)
+    return message
+
+
+def add_many_attachments(message: MIMEMultipart, attach_conf_list: List[dict]):
+    mime_message = message
+    for att_conf in attach_conf_list:
+        path_file = att_conf['path_file']
+        filename = att_conf['filename']
+        mime_base = att_conf['mime_base']
+        mime_message = add_attachment(mime_message, mime_base, path_file, filename)
+    return mime_message
+
+```
+
+Utils HTML message
+```
+def build_html_message(message):
+    return """\
+    <html>
+      <body>
+        <p><strong>Estimados, </strong><br>
+           """ + message + """<br>
+        </p>
+        <p>Saludos.</p>
+      </body>
+    </html>
+    """
+
+```
+
+Abstract Class Mail
+```
+class Mail:
+
+    def __init__(self, host, port, user, password):
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+
+```
+
+Sender SMTP
+```
+import smtplib
+import ssl
+from src.services.mail.mail import Mail
+from src.utils.html_mails import build_html_message
+from src.utils.mime_multipart import build_mime_multi_msg, add_many_attachments
+
+
+class SMTPSender(Mail):
+
+    def __init__(self, host, port, user, password, name_from):
+        super().__init__(host, port, user, password)
+        self.name_from = name_from
+        if port != 465 and port != 587:
+            raise Exception("Port " + str(self.port) + " unsupported")
+
+    def send_ssl(self, recipients, subject, msg):
+        context = ssl.create_default_context()
+        message = build_mime_multi_msg(self.name_from, recipients, subject, build_html_message(msg))
+        with smtplib.SMTP_SSL(self.host, self.port, context=context) as server:
+            server.login(self.user, self.password)
+            server.sendmail(self.user, recipients, message.as_string())
+
+    def send_tls(self, recipients, subject, msg):
+        context = ssl.create_default_context()
+        message = build_mime_multi_msg(self.name_from, recipients, subject, build_html_message(msg))
+        with smtplib.SMTP(self.host, self.port) as server:
+            server.ehlo()  # Can be omitted
+            server.starttls(context=context)
+            server.ehlo()  # Can be omitted
+            server.login(self.user, self.password)
+            server.sendmail(self.user, recipients, message.as_string())
+
+    def send_ssl_with_attachments(self, recipients, subject, msg, attach_conf_list):
+        context = ssl.create_default_context()
+        message = build_mime_multi_msg(self.name_from, recipients, subject, build_html_message(msg))
+        message = add_many_attachments(message, attach_conf_list)
+        with smtplib.SMTP_SSL(self.host, self.port, context=context) as server:
+            server.login(self.user, self.password)
+            server.sendmail(self.user, recipients, message.as_string())
+
+    def send_tls_with_attachments(self, recipients, subject, msg, attach_conf_list):
+        context = ssl.create_default_context()
+        message = build_mime_multi_msg(self.name_from, recipients, subject, build_html_message(msg))
+        message = add_many_attachments(message, attach_conf_list)
+        with smtplib.SMTP(self.host, self.port) as server:
+            server.ehlo()  # Can be omitted
+            server.starttls(context=context)
+            server.ehlo()  # Can be omitted
+            server.login(self.user, self.password)
+            server.sendmail(self.user, recipients, message.as_string())
+
+    def send_mail(self, recipients, subject, msg, attachment_list=None):
+        if self.port == 465:
+            if attachment_list is not None:
+                self.send_ssl_with_attachments(recipients, subject, msg, attachment_list)
+            else:
+                self.send_ssl(recipients, subject, msg)
+        elif self.port == 587:
+            if attachment_list is not None:
+                self.send_tls_with_attachments(recipients, subject, msg, attachment_list)
+            else:
+                self.send_tls(recipients, subject, msg)
+        else:
+            raise Exception("Port " + str(self.port) + " unsupported")
+
+    def test_ssl(self):
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(self.host, self.port, context=context) as server:
+            server.login(self.user, self.password)
+
+    def test_tls(self):
+        context = ssl.create_default_context()
+        with smtplib.SMTP(self.host, self.port) as server:
+            server.ehlo()  # Can be omitted
+            server.starttls(context=context)
+            server.ehlo()  # Can be omitted
+            server.login(self.user, self.password)
+
+    def test_mail(self):
+        if self.port == 465:
+            self.test_ssl()
+            return "Conectado correctamente con puerto para SSL."
+        elif self.port == 587:
+            self.test_tls()
+            return "Conectado correctamente con puerto para TLS."
+        else:
+            raise Exception("Port " + str(self.port) + " unsupported")
+
+```
+
+# Read mails
+https://medium.com/paul-zhao-projects/sending-emails-with-python-c084b55a2857
+
+IMAP reader mails
+```
+import os
+from imbox import Imbox
+from src.services.mail.mail import Mail
+
+
+class IMAPReader(Mail):
+
+    def __init__(self, host, port, user, password, download_folder):
+        super().__init__(host, port, user, password)
+        self.download_folder = download_folder
+        if self.port == 465:
+            self.ssl = True
+            self.tls = False
+        elif self.port == 587:
+            self.ssl = False
+            self.tls = True
+        else:
+            raise Exception("Port " + str(self.port) + " unsupported")
+
+    def verify_download_folder(self):
+        if not os.path.isdir(self.download_folder):
+            os.makedirs(self.download_folder, exist_ok=True)
+
+    def download_att(self):
+        success = True
+        mail = Imbox(self.host, username=self.user, password=self.password, ssl=self.ssl,
+                     ssl_context=None, starttls=self.tls)
+        messages = mail.messages(unread=True)  # get unread messages
+        print("Cantidad de mensajes: " + str(len(messages)))
+        try:
+            for (uid, message) in messages:
+                mail.mark_seen(uid)  # mark message as read
+
+                for idx, attachment in enumerate(message.attachments):
+                    att_fn = attachment.get('filename')
+                    download_path = f"{self.download_folder}/{att_fn}"
+                    # print(download_path)
+                    with open(download_path, "wb") as fp:
+                        fp.write(attachment.get('content').read())
+        except Exception as e:
+            print(str(e))
+            success = False
+
+        mail.logout()
+        return success
+
+    def read_emails(self):
+        mail = Imbox(self.host, username=self.user, password=self.password, ssl=self.ssl,
+                     ssl_context=None, starttls=self.tls)
+        messages = mail.messages(unread=True)  # get unread messages
+        print("Cantidad de mensajes: " + str(len(messages)))
+        return len(messages)
+
+```
 
 
 ----------------------------------------------------------------------------------
@@ -393,3 +676,9 @@ if(__name__ == "__main__"):
 
 
 ----------------------------------------------------------------------------------
+
+# Structure for API with fastapi 
+
+----------------------------------------------------------------------------------
+
+

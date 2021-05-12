@@ -457,6 +457,38 @@ $ sudo docker run -it --name mysql-prestashop -v /usr/docker/volumes/mysql/data:
 $ sudo docker run --name my-prestashop -v /usr/docker/volumes/prestashop/html:/var/www/html -e DB_SERVER=mysql-prestashop -e DB_USER=root -e DB_PASSWD=passwd --network prestashop-net --ip 172.18.0.3 -d -p 80:80 prestashop/prestashop:1.7-7.2-apache
 ```
 
+## Python project application
+- Add .dockerignore file to project
+```
+venv
+```
+
+- Add Dockerfile to project
+```
+FROM python:3.6
+
+WORKDIR /usr/src/app
+
+COPY . .
+RUN pip --version
+RUN python --version
+RUN pip install -r requirements.txt
+
+
+CMD [ "python", "./main.py" ]
+```
+
+- Build image
+```
+sudo docker build /path/Dockerfile/ -t app_name
+```
+
+- Now you can run container!!!
+```
+sudo docker run --name app_name -p 9002:9002 -d app_name
+```
+
+
 ## JAR Spring Boot Application
 1. Dockerfile next to jar. Name of Dockerfile 'Dockerfile'
 ```

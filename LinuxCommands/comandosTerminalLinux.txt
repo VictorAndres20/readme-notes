@@ -831,14 +831,69 @@ Instalaciones.
 	___________________________________________________________________________________________________________________________________
 
 ---
-### Intall WineHQ on ubuntu 16.04
+### Install WineHQ on ubuntu 16.04
 See https://wiki.winehq.org/Ubuntu to verify
 ```
 $ sudo dpkg --add-architecture i386
 $ wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
 $ sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ xenial main'
+sudo add-apt-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
 $ sudo apt-get update
 $ sudo apt-get install --install-recommends winehq-stable
 $ wine --version
 ```
-	
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+### Install WineHQ on Ubuntu 18.04
+See if 32-bit architecture is installed. The following command should respond with "i386".
+```
+dpkg --print-foreign-architectures
+```
+If "i386" is not displayed, execute the following.
+```
+sudo dpkg --add-architecture i386
+```
+Recheck with.
+```
+dpkg --print-foreign-architectures
+```
+Add the WineHQ Ubuntu repository.
+Get and install the repository key.
+```
+wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+```
+OR
+```
+wget -nc https://dl.winehq.org/wine-builds/winehq.key
+sudo gpg -o /etc/apt/trusted.gpg.d/winehq.key.gpg --dearmor winehq.key
+```
+Add the repository.
+```
+sudo apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main'
+```
+Update the package database.
+```
+sudo apt-get update
+```
+
+Beginning with Wine 4.5, both Wine Stable and Wine Development require amd64 and i386 versions of libfaudio0, 
+but libfaudio0 is not available from the repository. Therefore, libfaudio0 must be downloaded and installed manually. 
+The procedure in this section takes care of this. For more information, see libfaudio0 special handlingNew Window Icon.
+
+The next two commands download the libfaudio0 .deb packages into the local active directory.
+```
+wget -nc https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/amd64/libfaudio0_19.07-0~bionic_amd64.deb
+wget -nc https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/i386/libfaudio0_19.07-0~bionic_i386.deb
+```
+And these two commands do the installations.
+```
+sudo apt install ./libfaudio0_19.07-0~bionic_amd64.deb
+sudo apt install ./libfaudio0_19.07-0~bionic_i386.deb
+```
+
+Install Wine
+```
+sudo apt install --install-recommends winehq-stable
+wine --version
+```
