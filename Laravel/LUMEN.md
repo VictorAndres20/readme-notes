@@ -679,6 +679,180 @@ if($t)
 
 ###############################################################################
 
+# JWT custom library
+Sample on haow use JWT from scratch
+
+0. Add to .env file
+```
+SECRET_JWT=4425c016ba2b445cb29af8f1465b121c533572c687c21db90fcd7b04a5e8be13
+```
+
+1. JWT Util
+```
+<?php
+
+namespace App\Utils;
+
+use Illuminate\Support\Facades\Hash;
+//composer require nesbot/carbon
+use Carbon\Carbon;
+
+
+class JWTHandler {
+
+    public static function generateSecret(){
+        return bin2hex(random_bytes(32));
+    }
+
+    public static function generateToken($user_id, $role, $days_exp){
+        $base64UrlHeader = JWTHandler::base64UrlEncode(JWTHandler::buildHeader());
+        $base64UrlPayload = JWTHandler::base64UrlEncode(JWTHandler::buildPayload($user_id, $role, $days_exp));
+        $signature = JWTHandler::hash($base64UrlHeader, $base64UrlPayload);
+        $base64UrlSignature = JWTHandler::base64UrlEncode($signature);
+        return $base64UrlHeader.".".$base64UrlPayload.".".$base64UrlSignature;
+    }
+
+    public static function validateToken($token){
+        if($token == null){
+            //throw new \Exception("Token not present");
+            return false;
+        }
+        $tokenParts = explode(".", $token);
+        $header = base64_decode($tokenParts[0]);
+        $payload = base64_decode($tokenParts[1]);
+        $signatureProvided = $tokenParts[2];
+        if(JWTHandler::isExpired(json_decode($payload)->exp)){
+            //throw new \Exception("Token expired");
+            return false;
+        }
+        $base64UrlHeader = JWTHandler::base64UrlEncode($header);
+        $base64UrlPayload = JWTHandler::base64UrlEncode($payload);
+        $signature = JWTHandler::hash($base64UrlHeader, $base64UrlPayload);
+        $base64UrlSignature = JWTHandler::base64UrlEncode($signature);
+        return ($base64UrlSignature == $signatureProvided);
+    }
+
+    private static function buildHeader(){
+        return json_encode([
+            'typ' => 'JWT',
+            'alg' => 'HS256'
+        ]);
+    }
+
+    private static function buildPayload($user_id, $role, $days_exp){
+        return json_encode([
+            'user_id' => $user_id,
+            'rol' => $role,
+            'exp' => JWTHandler::buildExpTime($days_exp)
+        ]);
+    }
+
+    private static function base64UrlEncode($text){
+        return str_replace(
+            ['+', '/', '='],
+            ['-', '_', ''],
+            base64_encode($text)
+        );
+    }
+
+    private static function buildExpTime($days){
+        if($days == null){
+            return null;
+        }
+        return Carbon::now()->add($days, 'day')->timestamp;
+    }
+
+    private static function isExpired($exp){
+        if($exp == null){
+            return false;
+        }
+        $expiration = Carbon::createFromTimestamp($exp);
+        return (Carbon::now()->diffInSeconds($expiration, false) < 0);
+    }
+
+    private static function hash($base64UrlHeader, $base64UrlPayload){
+        $secret = env('SECRET_JWT', '4225c016ba2c445cb29ac8f1465b121c533572c687c21db90fcd7b04a5e8be12');
+        return hash_hmac('sha256', $base64UrlHeader.".".$base64UrlPayload, $secret, true);
+    }
+}
+```
+
+2. Use IT in login to generate!
+```
+    public function login(Request $request){
+        $res = new Response;
+        try
+        {
+            $user = $this->service->login($request);
+            $res->cod = 200;
+            $res->ok = true;
+            $res->data = $user;
+            $res->token = \App\Utils\JWTHandler::generateToken($user->id, $user->rol, null);
+            return response()->json($res,200);
+        }
+        catch(\Exception $e)
+        {
+            $res->error = 'FATAL ERROR: '.$e->getMessage();
+            return response()->json($res,500);
+        }
+
+    }
+```
+
+3. Create Middleware to validateToken
+```
+<?php
+
+/**
+* Location: /app/Http/Middleware
+*/
+namespace App\Http\Middleware;
+
+use Closure;
+
+class JWTMiddleware
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
+    {
+        $auth = $request->header('Authorization');
+        if($auth == null){
+            return response()->json(['ok' => false, 'error' => 'Invalid Authentication'], 401);
+        }
+        if(! \App\Utils\JWTHandler::validateToken(explode("Bearer ", $auth)[1])){
+            return response()->json(['ok' => false, 'error' => 'Invalid Authentication'], 401);
+        }
+        
+
+        $response = $next($request);
+
+        return $response;
+    }
+}
+```
+
+4. Protect routes
+Add routeMiddleware on bootstrap/app.php
+
+	$app->routeMiddleware([
+    	'jwt' => App\Http\Middleware\JWTMiddleware::class,
+	]);
+
+Middleware group on routes to protecte them
+
+	$router->group(['middleware' => 'jwt'],function() use ($router){
+			$router->get('/users','Controller@method');
+			// OTHER ROUTES
+    	});
+
+
+
 ###############
 # JWT
 
