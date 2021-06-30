@@ -22,6 +22,12 @@ $ sudo service postgresql status
 
 ###############################################################################################################################
 
+# Random UUID as ID primary key postgres v9
+alter table my_table add uuid varchar(100) default gen_random_uuid();
+alter table my_table add constraint table_pk_uui primary key(uuid);
+
+###############################################################################################################################
+
 # Upgrade PostgreSQL
 https://stackoverflow.com/questions/46687645/upgrade-postgresql-from-9-6-to-10-0-on-ubuntu-16-10
 https://www.postgresql.org/docs/9.5/app-pg-dumpall.html

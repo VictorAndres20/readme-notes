@@ -54,7 +54,7 @@ Yo can rename to label it with double click
 - Firewall >> NAT
 - Click +
 - General
-Chain: arcnat
+Chain: srcnat
 out. interface: WAN interface
 - Action
 Action: masquerade
@@ -76,3 +76,7 @@ To Port: Port exposed in Machine LAN
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/ip firewall filter add chain=input protocol=tcp connection-limit=10,32 action=add-src-to-address-list address-list=blocked-addr address-list-timeout=1d
+
+/ip firewall filter add chain=input protocol=tcp src-address-list=blocked-addr connection-limit=10,32 action=tarpit

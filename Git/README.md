@@ -197,6 +197,28 @@ $ sudo git clean -xdf		--> eliminar archivos o directorios sin seguimiento o ign
 
 -------------------------------------------------------------------------------------------------
 
+# Save credentials in git-credentials store (When you create a personal access token in GitHub and use it as passwd)
+
+```
+git config credential.helper store
+git fetch
+```
+Give user and 'personal access token' as passwd
+
+This will save your personal access token as passwd
+This credentials are store in your local machine in '/home/<user>/.git-credentials' file
+The content is something like this
+```
+https://GIT_USER:TOKEN@github.com
+```
+And in project/.git/config file, this lines will be added
+```
+[credential]
+        helper = store
+```
+
+-------------------------------------------------------------------------------------------------
+
 # GIT FLOW
 	https://nvie.com/posts/a-successful-git-branching-model/
 
