@@ -199,6 +199,9 @@ $ sudo git clean -xdf		--> eliminar archivos o directorios sin seguimiento o ign
 
 # Save credentials in git-credentials store (When you create a personal access token in GitHub and use it as passwd)
 
+**First time creating a token**
+Create personal access token, in GitHub, got to your Avatar/Setting/Developer Settings
+Then execute in a project
 ```
 git config credential.helper store
 git fetch
@@ -212,6 +215,13 @@ The content is something like this
 https://GIT_USER:TOKEN@github.com
 ```
 And in project/.git/config file, this lines will be added
+```
+[credential]
+        helper = store
+```
+
+**Config a project to use your personal access token created**
+In project/.git/config file, add at the bottom this lines
 ```
 [credential]
         helper = store
