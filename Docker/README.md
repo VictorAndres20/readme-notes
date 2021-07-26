@@ -457,6 +457,42 @@ $ sudo docker run -it --name mysql-prestashop -v /usr/docker/volumes/mysql/data:
 $ sudo docker run --name my-prestashop -v /usr/docker/volumes/prestashop/html:/var/www/html -e DB_SERVER=mysql-prestashop -e DB_USER=root -e DB_PASSWD=passwd --network prestashop-net --ip 172.18.0.3 -d -p 80:80 prestashop/prestashop:1.7-7.2-apache
 ```
 
+## React in Apache container
+```
+sudo docker run -it --name apache_react -v /usr/local/docker/vols/apache_react/:/var/www/html/ -p 3001:80 -d php:7.3-apache
+```
+
+Changes in virtual host to use build as root directory
+
+```
+sudo vi 000-default.conf
+
+
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName localhost
+    DocumentRoot /var/www/html/build
+
+    <Directory "/var/www/html/build">
+	Options Indexes FollowSymLinks MultiViews
+        AllowOverride all
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+
+
+sudo docker cp 000-default.conf apache_react:/etc/apache2/sites-available/000-default.conf
+sudo docker exec apache_react chown -R www-data:www-data /var/www/html/build
+sudo docker exec apache_react a2enmod rewrite
+sudo docker exec apache_react service apache2 restart
+sudo rm -rf 000-default.conf
+```
+
+
 ## Python project application
 - Add .dockerignore file to project
 ```
