@@ -678,6 +678,176 @@ if(__name__ == "__main__"):
 ----------------------------------------------------------------------------------
 
 # Structure for API with fastapi 
+```
+pip install fastapi
+pip install uvicorn[standard]
+pip install pydantic
+``` 
+
+- project-name/src/api/controllers
+- project-name/src/api/mappers
+- project-name/src/api/entry_points
+- project-name/src/api/models
+- project-name/src/api/services
+- project-name/src/api/repo
+- project-name/main.py
+
+**project-name/src/api/models/response.py**
+```
+from pydantic import BaseModel
+from typing import List, Optional
+
+
+class ResponseList(BaseModel):
+    code: int
+    ok: bool
+    msg: str
+    error: str
+    data: List = []
+
+
+class ResponseDictionary(BaseModel):
+    code: int
+    ok: bool
+    msg: str
+    error: str
+    data: Optional[dict] = None
+
+```
+
+**project-name/src/api/models/my_model.py**
+```
+from pydantic import BaseModel
+
+
+class MyModel(BaseModel):
+    # All attributes
+    company_id: int
+
+```
+
+**project-name/src/api/repo/my_repo.py**
+```
+This need to use with SQLAlquemy 
+
+
+class MyRepo():
+    
+
+```
+
+**project-name/src/api/services/my_service.py**
+```
+from src.api.repo.my_repo import MyRepo
+
+
+class MyService:
+    def __init__(self):
+        self.repo = MyRepo()
+
+    def service_action():
+        #Action
+```
+
+**project-name/src/api/mappers/my_mapper.py**
+```
+from src.api.mappers.my_mapper import MyMapper
+
+
+class MyMapper:
+
+    def static entity_to_Model(entity):
+        #USE pydantic for this. checkout https://pydantic-docs.helpmanual.io/usage/exporting_models/
+```
+
+**project-name/src/api/controllers/my_controller.py**
+```
+from src.api.services.my_service import MyService
+from src.api.mappers.my_mapper import MyMapper
+
+
+class MyController:
+    def __init__(self):
+        self.service = MyService()
+
+    def controller_action():
+        return MyMapper,entity_to_model(self.service.service_action())
+
+```
+
+**project-name/src/api/entry_points/my_entry_point.py**
+```
+from fastapi import APIRouter
+from src.api.models.reponse import ResponseDictionary
+from src.api.models.email_fact_conf_domain import EmailFactConfDomain
+from src.api.controllers import email_fact_controller
+
+router = APIRouter(
+    prefix="/email-fact",
+    responses={
+        404: {"Description": "Not found"}
+    }
+)
+
+
+@router.get("/all")
+async def find() -> ResponseDictionary:
+    return email_fact_controller.find_configuration()
+
+
+@router.post("/save")
+async def save(body: EmailFactConfDomain) -> ResponseDictionary:
+    return email_fact_controller.save_configuration(body)
+
+
+@router.get("/test")
+async def test() -> ResponseDictionary:
+    return email_fact_controller.test_configuration()
+
+```
+
+**project-name/main.py**
+```
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_utils.tasks import repeat_every
+from src.api.entry_points import integration, email_fact, email_notification, schedule_integration
+from src.services.tasks.process_task_scheduled import process_by_task, MINUTES_EXECUTE
+import uvicorn
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+def read_root():
+    return {"data": "Hello there!"}
+
+
+@app.on_event("startup")
+@repeat_every(seconds=60*MINUTES_EXECUTE)
+def integration_task_scheduled():
+    process_by_task()
+
+
+app.include_router(integration.router)
+app.include_router(email_fact.router)
+app.include_router(email_notification.router)
+app.include_router(schedule_integration.router)
+
+
+if __name__ == '__main__':
+    uvicorn.run("main:app", host="0.0.0.0", port=9002, reload=True)
+
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+```
 
 ----------------------------------------------------------------------------------
 
