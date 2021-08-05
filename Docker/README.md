@@ -185,6 +185,16 @@ $ sudo docker cp container-name:/path/inside/container /path/local/machine
 $ sudo docker logs -f <CONTAINER-ID>
 ```
 
+**Logs file path**
+```
+$ sudo docker container inspect  --format='{{.LogPath}}' <CONTAINER_NAME>
+```
+
+**Clean logs**
+```
+$ truncate -s 0 <LOG_FILE-json.log>
+```
+
 
 ------------------------------------------------------------------------------------------------
 
