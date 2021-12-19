@@ -52,6 +52,11 @@ npm
 $ npm install --save react-router-dom
 ```
 
+# React Router Dom V6
+**You need to change 'Switch' to Routes**
+**You need to change Route property 'component' to 'element'**
+**Declare component in element property with tags '<MyComp />'**
+
 # USAGE React Router Dom
 
 1. Router.js FILE

@@ -23,6 +23,9 @@ $ sudo service postgresql status
 ###############################################################################################################################
 
 # Random UUID as ID primary key postgres v9
+uuid character varying(100) DEFAULT gen_random_uuid() NOT NULL
+alter table my_table add constraint table_pk_uui primary key(uuid);
+**OR**
 alter table my_table add uuid varchar(100) default gen_random_uuid();
 alter table my_table add constraint table_pk_uui primary key(uuid);
 
