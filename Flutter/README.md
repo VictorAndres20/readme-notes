@@ -162,7 +162,12 @@ StatelessWidget has inmutable attributes
 1. Create private class that will be the state of the Widget ans extends from State<YourStatefulWidget>, and put all private attributes
 This attributes will be all states that can refresh with `setState((){})` function.
 ```
-class _HomeModuleState extends State<StatefulWidget>{
+class HomeModule extends StatefulWidget{
+
+}
+
+class _HomeModuleState extends State<HomeModule>{
+	//private attributes
 	int _counter = 0;
 }
 ```
@@ -179,7 +184,7 @@ class _HomeModuleState extends State<HomeModule>{
 
   int _counter = 0;
   
-  //If you need to initialize a state value
+  //If you need to initialize a state value. Like componentDidMount() in React
   @override
   void initState(){
     super.initState();
@@ -218,11 +223,11 @@ class _HomeModuleState extends State<HomeModule>{
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         SizedBox(width: 30),
-        FloatingActionButton(onPressed: (){setState(() => _counter=0);},backgroundColor: Colors.red,child: Icon(Icons.add),),
+        FloatingActionButton(heroTag: 'btn1', onPressed: (){setState(() => _counter=0);},backgroundColor: Colors.red,child: Icon(Icons.add),),
         Expanded(child: SizedBox()),
-        FloatingActionButton(onPressed: (){setState(() => _counter--);},backgroundColor: Colors.orange,child: Icon(Icons.add),),
+        FloatingActionButton(heroTag: 'btn2', onPressed: (){setState(() => _counter--);},backgroundColor: Colors.orange,child: Icon(Icons.add),),
         SizedBox(width: 5),
-        FloatingActionButton(onPressed: (){setState(() => _counter++);},backgroundColor: Colors.green,child: Icon(Icons.add),),
+        FloatingActionButton(heroTag: 'btn3', onPressed: (){setState(() => _counter++);},backgroundColor: Colors.green,child: Icon(Icons.add),),
         SizedBox(width: 5)
       ],
     );
@@ -464,6 +469,9 @@ class MapListView extends StatelessWidget{
 ```
 Navigator.pushNamed(context, item['route_name'])
 ```
+```
+Navigator.pushNamedAndRemoveUntil(context, 'login', (route) => false);
+```
 
 #### Go back
 ```
@@ -474,6 +482,17 @@ Navigator.of(context).pop()
 
 # Notch problem
 If your device has notch and you dont use AppBar, use `SafeArea(child: Widget)`
+
+----------------------------------------------------------------------------------------------------------
+
+# SizedBox to set width and hegith to button
+```
+SizedBox(
+  width: double.infinity, // <-- match_parent
+  height: double.infinity, // <-- match-parent
+  child: ElevatedButton(...)
+)
+```
 
 ----------------------------------------------------------------------------------------------------------
 
