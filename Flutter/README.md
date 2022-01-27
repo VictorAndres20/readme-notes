@@ -485,11 +485,33 @@ If your device has notch and you dont use AppBar, use `SafeArea(child: Widget)`
 
 ----------------------------------------------------------------------------------------------------------
 
+# Change display name app
+https://stackoverflow.com/questions/49353199/how-can-i-change-the-app-display-name-build-with-flutter
+
+1. On Android go to android/app/src/main/AndroidManifest.xml and change
+```
+<application
+    android:label="App Name"
+```
+
+2. On IOS go to ios/Runner/info.plist and change
+```
+<key>CFBundleName</key>
+<string>App Name</string>
+```
+
+3. Clean executing
+```
+flutter clean
+```
+
+----------------------------------------------------------------------------------------------------------
+
 # SizedBox to set width and hegith to button
 ```
 SizedBox(
-  width: double.infinity, // <-- match_parent
-  height: double.infinity, // <-- match-parent
+  width: double.infinity, // match_parent
+  height: double.infinity, // match-parent
   child: ElevatedButton(...)
 )
 ```
@@ -515,6 +537,11 @@ FadeInImage(
   fadeInDuration: Duration(milliseconds: 300),
 )
 ```
+
+----------------------------------------------------------------------------------------------------------
+
+# Storage key value kind
+https://docs.flutter.dev/cookbook/persistence/key-value
 
 ----------------------------------------------------------------------------------------------------------
 
@@ -712,6 +739,72 @@ class _AnimatedModuleState extends State<AnimatedModule>{
 ```
 
 ## Look to Animation curves
+
+----------------------------------------------------------------------------------------------------------
+
+# Custom Swipper
+```
+import 'package:flutter/material.dart';
+import 'package:rhinos_natural_app/src/_models/subscription.model.dart';
+
+Widget buildSubsSwiper({required List<Subscription> list}) {
+
+  return SizedBox(
+    height: 320,
+    child: PageView(
+      children: buildCards(300,list),
+    ),
+  );
+}
+
+List<Widget> buildCards(double height ,List<Subscription> list) {
+  return list.map((sub) {
+    return Card(
+      child: Container(
+        height: height,
+        padding: const EdgeInsets.only(right: 10.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.only(bottom: 7.0),
+              alignment: Alignment.center,
+              height: height * 0.1,
+              child: Text(sub.name),
+            ),
+            Container(
+              padding: const EdgeInsets.only(bottom: 7.0),
+              height: height * 0.7,
+              alignment: Alignment.center,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20.0),
+                child: FadeInImage(
+                  placeholder: const AssetImage("resources/images/logo1.png"),
+                  image: NetworkImage(sub.getImagePath()),
+                  fit: BoxFit.fitHeight,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.only(bottom: 7.0),
+              alignment: Alignment.center,
+              height: height * 0.1,
+              child: Text(sub.description),
+            ),
+            Container(
+              padding: const EdgeInsets.only(bottom: 7.0),
+              alignment: Alignment.center,
+              height: height * 0.1,
+              child: Text(sub.price.toString()),
+            ),
+          ],
+        )
+      ),
+    );
+  }).toList();
+}
+```
 
 ----------------------------------------------------------------------------------------------------------
 
