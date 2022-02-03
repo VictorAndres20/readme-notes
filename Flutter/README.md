@@ -311,6 +311,141 @@ class HomeModule extends StatefulWidget{
 
 ----------------------------------------------------------------------------------------------------------
 
+# Nice Carousel Widget
+Add carousel_slider: ^4.0.0 to your pubspec.yaml dependencies. And import it
+
+Example:
+```
+import 'package:carousel_slider/carousel_slider.dart';
+
+...
+
+@override
+  Widget build(context){
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Rhinos Natural App"),        
+        backgroundColor: const Color.fromRGBO(0, 0, 0, 0.1),
+      ),
+      drawer: buildMainDrawer(context: context),
+      backgroundColor: Colors.black12,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 5),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              CarouselSlider(
+                options: CarouselOptions(
+                  height: 180.0,
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 3),
+                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                  autoPlayCurve: Curves.fastOutSlowIn,
+                ),
+                items: [1,2,3,4,5].map((i) {
+                  return Builder(
+                      builder: (BuildContext context) {
+                        return Container(
+                          margin: const EdgeInsets.all(8.0),
+                          child: Card(
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch, // To scale image
+                              children: <Widget>[
+                                Expanded(
+                                  flex: 5,
+                                  child: Container(
+                                    color:const Color.fromRGBO(0, 0, 0, 1),
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(8.0),
+                                        topRight: Radius.circular(8.0),
+                                        bottomLeft: Radius.circular(8.0),
+                                        bottomRight: Radius.circular(8.0),
+                                      ),
+                                      child: Image.network(
+                                          'https://placeimg.com/640/480/any',                                          
+                                          fit:BoxFit.fill
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 5,
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    color: Colors.white,
+                                    child: Text('$i'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                }).toList(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 35, horizontal: 0),
+                child: CarouselSlider(
+                  options: CarouselOptions(
+                    height: 400.0,
+                    autoPlay: false,
+                    scrollDirection: Axis.vertical
+                  ),
+                  items: ["Cardio","Abdomen","Brazo","Espalda","Pierna"].map((i) {
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return Container(
+                          margin: const EdgeInsets.all(8.0),
+                          child: Card(
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                            child: InkWell(
+                              onTap: () => print("ciao"),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(8.0),
+                                      topRight: Radius.circular(8.0),
+                                    ),
+                                    child: Image.network(
+                                        'https://placeimg.com/640/480/any',
+                                      // width: 300,
+                                        height: 200,
+                                        fit:BoxFit.fill
+
+                                    ),
+                                  ),
+                                  ListTile(
+                                    title: Text('$i'),
+                                    subtitle: Text('Location $i'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        )
+      )
+    );
+  }
+
+...
+```
+
+----------------------------------------------------------------------------------------------------------
+
 # Icons pre loaded
 Material Design
 ```
