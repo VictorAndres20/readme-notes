@@ -53,12 +53,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'mysql',
+      type: 'mysql', //'postgres'
       host: 'localhost',
       port: 3306,
       username: 'root',
       password: 'root',
       database: 'test',
+      //schema: 'ks',
       entities: [],
       synchronize: false,
       logging: false,
@@ -95,13 +96,13 @@ https://docs.nestjs.com/middleware
 
 - src/api/module_name
 - src/api/module_name/entity
-- src/api/module_name/module_name_entity.builder.ts
-- src/api/module_name/module_name.dto.ts
-- src/api/module_name/module_name.entity.ts
+- src/api/module_name/entity/module_name_entity.builder.ts
+- src/api/module_name/entity/module_name.dto.ts
+- src/api/module_name/entity/module_name.entity.ts
 - src/api/module_name/service
-- src/api/module_name/module_name.service.ts
+- src/api/module_name/service/module_name.service.ts
 - src/api/module_name/controller
-- src/api/module_name/module_name.controller.ts
+- src/api/module_name/controller/module_name.controller.ts
 - src/api/module_name/module_name.module.ts
 **Like this with all modules in API**
 
@@ -275,13 +276,13 @@ export class UserService {
 
 - src/api/user/controller/user.controller.ts
 ´´´
-import { Controller, Get, Post, HttpCode, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpException } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { User } from '../entity/user.entity';
 import { UserDTO } from '../entity/user.dto';
 import { HttpResponse } from '../../../commons/responses/http_response';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
     constructor(private service: UserService) {}
 
@@ -291,18 +292,17 @@ export class UserController {
             let list = await this.service.findAll();
             return new HttpResponse<User>().setList(list).build(true);
         } catch(err){
-            return new HttpResponse<User>().setError(err.message).build(false);
+            throw new HttpException(new HttpResponse<User>().setError(err.message).build(false), 500);
         }
     }
 
     @Post('create')
-    @HttpCode(201)
     async createOne(@Body() userDTO: UserDTO): Promise<HttpResponse<User>> {
         try{
             let data = await this.service.createOne(userDTO);
             return new HttpResponse<User>().setData(data).build(true);
         } catch(err){
-            return new HttpResponse<User>().setError(err.message).build(false);
+            throw new HttpException(new HttpResponse<User>().setError(err.message).build(false), 500);
         }
     }
 }
@@ -315,14 +315,15 @@ Make sure to register all providers (services) and controllers.
 If you need to export your service, you can register it in exports array
 ´´´
 import { Module } from '@nestjs/common';
-// Imports
+
+// Imports (TypeORM to register Module Entity, Other api modules, imports that needs IoC)
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entity/user.entity';
 
-// Providers
+// Providers (Module Service)
 import { UserService } from './service/user.service';
 
-// Controllers
+// Controllers (Module controller)
 import { UserController } from './controller/user.controller';
 
 @Module({
@@ -354,8 +355,8 @@ import { UserModule } from './user/user.module';
     controllers: [],
     providers: [],
     exports: []
-  })
-  export class ApiModule {}
+})
+export class ApiModule {}
 ´´´
 
 **App Module and Main**
@@ -370,6 +371,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 //API Module
 import { ApiModule } from './api/api.module';
 
+//You can use dotenv
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -379,6 +381,7 @@ import { ApiModule } from './api/api.module';
       username: 'postgres',
       password: 'secret',
       database: 'db_name',
+      //schema: 'ks',
       synchronize: false,
       logging: false,
       autoLoadEntities: true,
@@ -411,5 +414,133 @@ async function bootstrap() {
 bootstrap();
 
 ´´´
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# Example of mapping with Many to One and Many to Many entities
+UserState -----=> User
+Exercise ------=> exercise_user <=-------- User
+
+**UserState Entity**
+```
+import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
+import { User } from '../../user/entity/user.entity';
+
+@Entity({name: "user_state"})
+export class UserState {
+  @PrimaryColumn() 
+  cod: string
+
+  @Column()
+  name: string
+
+  @OneToMany(() => User, user => user.state)
+  users: User[];
+
+}
+```
+
+**Exercise Entity**
+```
+import { Entity, Column, PrimaryColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { User } from '../../user/entity/user.entity';
+
+@Entity({name: "exercise"})
+export class Exercise {
+  @PrimaryColumn()
+  uuid: string;
+
+  @Column()
+  name: string
+
+  @Column()
+  video_path: string
+  
+  @Column()
+  image_path: string
+  
+  @Column()
+  type: string
+  
+  @Column()
+  description: string
+
+  @ManyToMany(() => User, user => user.exercises)
+  @JoinTable({
+    // Many to many TABLE name
+    name: 'user_exercise',
+    // Column in many to many TABLE and Actual Primary Key key reference
+    joinColumn: {name: 'exercise', referencedColumnName: 'uuid'},
+    // Connection with other entity Column in many to many TABLE and Other Entity Primary Key key reference
+    inverseJoinColumn: { name: 'user_uuid', referencedColumnName: 'uuid'}
+  })
+  users: User[]
+}
+``` 
+
+**User Entity**
+```
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
+import { UserState } from '../../user_state/entity/user_state.entity';
+import { Exercise } from '../../exercise/entity/exercise.entity';
+
+@Entity({name: "users"})
+export class User {
+  @PrimaryColumn() 
+  uuid: string
+
+  @Column()
+  full_name: string
+
+  @Column()
+  username: string
+  
+  @Column({ select: false })
+  password: string
+
+  @Column()
+  email: string
+
+  @Column()
+  identification: string
+
+  @Column()
+  telephone: string
+
+  @ManyToOne(() => UserState, userState => userState.users, {
+    onDelete: "CASCADE",
+    eager: true
+  })
+  @JoinColumn({ name: "state" })
+  state: UserState
+
+  @Column()
+  image_path: string
+
+  @Column()
+  subscription: string
+
+  @Column()
+  subscription_date_creation: Date
+  
+  @Column()
+  subscription_date_due: Date
+
+  @ManyToMany(() => Exercise, exercise => exercise.users,{ 
+    eager: true, 
+    cascade: true 
+  })
+  @JoinTable({
+    // Many to many TABLE name
+    name: 'user_exercise',
+    // Column in many to many TABLE and Primary Key key reference
+    joinColumn: {name: 'user_uuid', referencedColumnName: 'uuid'},
+    // Connection with other entity Column in many to many TABLE and Primary Key other entity reference
+    inverseJoinColumn: { name: 'exercise', referencedColumnName: 'uuid'}
+  })
+  exercises: Exercise[]
+}
+
+``` 
 
 ---------------------------------------------------------------------------------------------------------------------------------------

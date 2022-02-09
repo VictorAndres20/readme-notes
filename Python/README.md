@@ -675,6 +675,61 @@ if(__name__ == "__main__"):
 
 
 
+----------------------------------------------------------------------------------
+
+# Scheduled or crontab with fastapi 
+```
+pip install fastapi
+pip install uvicorn[standard]
+``` 
+
+**project-name/main.py**
+```
+from fastapi import FastAPI
+from fastapi_utils.tasks import repeat_every
+from src.api.entry_points import integration, email_fact, email_notification, schedule_integration
+from src.services.tasks.process_task_scheduled import process_by_task, MINUTES_EXECUTE
+import uvicorn
+
+app = FastAPI()
+
+
+@app.on_event("startup")
+@repeat_every(seconds=60*MINUTES_EXECUTE)
+def integration_task_scheduled():
+    process_by_task()
+
+
+if __name__ == '__main__':
+    uvicorn.run("main:app", host="0.0.0.0", port=9002, reload=True)
+
+```
+
+----------------------------------------------------------------------------------
+
+# UUID as primary key example
+```
+from uuid import uuid4
+from sqlalchemy import Column, String
+from src.api.config import Base
+
+
+class User(Base):
+
+    __tablename__ = "users"
+    __table_args__ = {
+        'schema': 'ks'
+    }
+
+    uuid = Column(String(100), primary_key=True, default=uuid4)
+    seller_cod = Column(String(10))
+    full_name = Column(String(80))
+    login = Column(String(90))
+    password = Column(String(100))
+    rol = Column(String(6))
+    state = Column(String(6))
+
+```
 
 ----------------------------------------------------------------------------------
 
@@ -683,7 +738,17 @@ if(__name__ == "__main__"):
 pip install fastapi
 pip install uvicorn[standard]
 pip install pydantic
+pip install SQLAlchemy
+pip install python-dotenv
 ``` 
+
+Install db driver depending your database for SQL Alchemy
+https://docs.sqlalchemy.org/en/14/core/engines.html
+
+Postgres
+```
+pip install psycopg2-binary
+```
 
 - project-name/src/api/controllers
 - project-name/src/api/mappers
@@ -691,6 +756,7 @@ pip install pydantic
 - project-name/src/api/models
 - project-name/src/api/services
 - project-name/src/api/repo
+- project-name/src/api/routes
 - project-name/main.py
 
 **project-name/src/api/models/response.py**
@@ -807,23 +873,46 @@ async def test() -> ResponseDictionary:
 
 ```
 
-**project-name/main.py**
+**project-name/src/api/routes/routes.py**
+```
+from src.api.entry_points import my_entry_point
+from fastapi import FastAPI
+
+
+def set_api_routes(app: FastAPI):
+    app.include_router(my_entry_point.router)
+
+```
+
+**project-name/src/api/middlewares/cors_middleware.py**
 ```
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_utils.tasks import repeat_every
-from src.api.entry_points import integration, email_fact, email_notification, schedule_integration
-from src.services.tasks.process_task_scheduled import process_by_task, MINUTES_EXECUTE
+
+
+def set_cors(app: FastAPI):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+```
+
+**project-name/main.py**
+```
+from fastapi import FastAPI
+from src.api.routes.routes import set_api_routes
+from src.api.middlewares.cors_middleware import set_cors
 import uvicorn
+from dotenv import dotenv_values
 
 app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# Middlewares
+set_cors(app)
 
 
 @app.get("/")
@@ -831,22 +920,11 @@ def read_root():
     return {"data": "Hello there!"}
 
 
-@app.on_event("startup")
-@repeat_every(seconds=60*MINUTES_EXECUTE)
-def integration_task_scheduled():
-    process_by_task()
-
-
-app.include_router(integration.router)
-app.include_router(email_fact.router)
-app.include_router(email_notification.router)
-app.include_router(schedule_integration.router)
-
+# Routes
+set_api_routes(app)
 
 if __name__ == '__main__':
-    uvicorn.run("main:app", host="0.0.0.0", port=9002, reload=True)
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    uvicorn.run("main:app", host="0.0.0.0", port=9001, reload=True)
 
 ```
 
