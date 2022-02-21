@@ -23,7 +23,7 @@ $ ./file.sh
 ```
 $ sh file.sh
 ```
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 ## Write on screen
 
@@ -46,7 +46,7 @@ printf "Hello, %s\n" "$wordVar"
 ```
 
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 ## Work with variables
 
@@ -73,7 +73,7 @@ printf "Hello, %s\n" "$1"
 ```
 
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 ## Read data input on keyboard
 ```
@@ -83,7 +83,7 @@ read name
 echo "Eres $name"
 ```
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 
 ## if statemnet - BE CAREFUL WITH SPACES!!!!
@@ -94,8 +94,32 @@ then
 fi
 ```
 
+**Comparing strings**
+```
+# global variables for create image
+porjectPath=$1;
+imageVersion=$2;
+imageName=$3;
 
-----------------------------------------------------------
+# Validations
+if [ "$porjectPath" = "" ]
+then
+    printf "Project path empty\n\n";
+fi
+
+if [ "$imageVersion" = "" ]
+then
+    printf "Image version empty\n\n";
+fi
+
+if [ "$imageName" = "" ]
+then
+    printf "Image name empty\n\n";
+fi
+```
+
+
+--------------------------------------------------------------------------------------------------------------------
 
 ## For loop
 ```
@@ -132,7 +156,7 @@ echo "Peso total es de $suma bytes";
 ```
 
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 # Functions
 
@@ -156,7 +180,7 @@ adition $n1 $n2;
 ```
 
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 # Split on bash
 ```
@@ -164,7 +188,7 @@ IFS=';' read -r -a array <<< "$a";
 ```
 
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 # Example start jar
 ```
@@ -173,7 +197,7 @@ today=`date +%m-%d-%Y`;
 java -jar -Dspring.config.location=/path/to/application.properties /path/to/$jarname >> logs/app_$today.log & disown
 ```
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
 
 # Dialog boxes
 
@@ -251,4 +275,55 @@ clear;
 ```
 
 
-----------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------
+
+# Script to build docker image
+```
+#!/usr/bin/env bash
+function stopScript(){
+    printf "\n\nSTOPING SCRIPT...\n\n";
+    exit 1;
+}
+
+
+printf "\n\nCreating image...\n\n";
+
+# global variables for create image
+porjectPath=$1;
+imageName=$2;
+imageVersion=$3;
+
+# Validations
+if [ "$porjectPath" = "" ]
+then
+    printf "Project path empty\n\n";
+    stopScript;
+fi
+
+if [ "$imageName" = "" ]
+then
+    printf "Image name empty\n\n";
+    stopScript;
+fi
+
+if [ "$imageVersion" = "" ]
+then
+    printf "Image version empty\n\n";
+    printf "Image version as actual date\n\n";
+    imageVersion=`date +%Y.%m.%d`
+fi
+
+# Display info
+printf "Project path: %s\n" "$porjectPath";
+printf "Image version: %s\n" "$imageVersion";
+printf "Image name: %s\n" "$imageName";
+
+# create image
+commandExec="docker build $porjectPath -t $imageName:$imageVersion";
+printf "\nCommand to exec:\n";
+printf "%s\n" "$commandExec";
+res=`docker build $porjectPath -t $imageName:$imageVersion`;
+echo "$res";
+```
+
+--------------------------------------------------------------------------------------------------------------------
