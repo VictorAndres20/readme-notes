@@ -4,7 +4,7 @@ mysql -u USERNAME -p
 -- Show Databases
 show databases;
 
--- Crear usuario
+-- Create user
 CREATE USER 'newuser'@'%' IDENTIFIED BY 'user_password'; -- 'Username'@'TYPE-ACCESS' localhost or IP or %
 -- Grant privileges
 --    ALL PRIVILEGES – grants all privileges to a user account.
@@ -31,6 +31,36 @@ DROP USER 'dbadmin'@'%';
 -- Show processlist
 
 SHOW PROCESSLIST;
+
+-- Show tables
+SHOW TABLES;
+
+-- Show db size
+SELECT
+    table_schema AS 'DB Name',
+    ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) AS 'DB Size in MB'
+FROM
+    information_schema.tables
+GROUP BY
+    table_schema;
+
+-- Show db size Specifying db
+-- in WHERE table_schema
+SELECT
+    table_schema AS 'DB Name',
+    ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) AS 'DB Size in MB'
+FROM
+    information_schema.tables
+WHERE
+    table_schema = 'db_name'
+GROUP BY
+    table_schema;
+
+
+----------------------------------------------------------------------------------------
+
+-- Exit
+exit;
 
 
 ----------------------------------------------------------------------------------------
