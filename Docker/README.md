@@ -602,6 +602,21 @@ RUN chown -R www-data:www-data /www/html \
 RUN service apache2 restart
 ```
 
+**This adding ZIP extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN apt-get update && apt-get install -y \
+        libzip-dev \
+        zip \
+  && docker-php-ext-install zip
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
 **This adding opcache extension**
 ```
 FROM php:7.3-apache

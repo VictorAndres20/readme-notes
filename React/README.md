@@ -37,8 +37,111 @@ this.setState(
 );
 ```
 
+-------------------------------------------------------------------------------------------------------------------------------
 
+# React Router Dom V6
+Yarn
+```
+$ sudo yarn add react-router-dom
+```
+npm
+```
+$ npm install --save react-router-dom
+```
 
+**App.js**
+```
+import React, {Fragment} from 'react';
+import {
+  BrowserRouter as Router,
+  Routes as Switch,
+  Route
+} from "react-router-dom";
+import {MAIN_ROUTES} from './_config/routes';
+
+import Login from './modules/login';
+import AppModules from './modules/app_modules';
+
+function App() {
+  return (
+    <Router>
+      <Fragment>
+        <Switch>
+          <Route exact path={MAIN_ROUTES.login} element={<Login />} />
+          <Route exact path={`${MAIN_ROUTES.app_modules}/:module`} element={<AppModules />} />
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+      </Fragment>
+    </Router>
+  );
+}
+
+function NotFound() {
+  return(
+    <>Not found</>
+  );
+}
+
+export default App;
+```
+
+**AppModules**
+Nested routes. 
+To change pages inside a Module
+```
+import React, {Fragment} from 'react';
+import {
+    Link,
+    useParams
+} from "react-router-dom";
+import {
+    MAIN_ROUTES, 
+    APP_ROUTES
+} from '../../_config/routes';
+
+import Orders from './orders';
+import Departures from './departures';
+
+const MODULES = {
+    orders: <Orders />,
+    departures: <Departures />
+}
+
+const AppModules = () => {
+    let { module } = useParams();
+    return (
+        <Fragment>
+            <nav>
+                <ul>
+                    <li>
+                        <Link to={`${MAIN_ROUTES.app_modules}${APP_ROUTES.orders}`}>Pedidos</Link>
+                    </li>
+                    <li>
+                        <Link to={`${MAIN_ROUTES.app_modules}${APP_ROUTES.departures}`}>Despachos</Link>
+                    </li>
+                </ul>
+            </nav>
+            {renderModule(module)}
+        </Fragment>
+    );
+}
+
+const renderModule = (module) => {
+    if(module in MODULES){
+        return MODULES[module];
+    } else {
+        return <NotFound />
+    }
+}
+
+function NotFound() {
+    return(
+      <>Not found</>
+    );
+  }
+  
+export default AppModules;
+```
 
 -------------------------------------------------------------------------------------------------------------------------------
 
