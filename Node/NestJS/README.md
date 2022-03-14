@@ -405,7 +405,7 @@ async function bootstrap() {
   app.enableCors({
     "origin": "*",
     "methods": "OPTIONS,GET,HEAD,PUT,PATCH,POST,DELETE",
-    "allowedHeaders":"Content-Type,Authorization,accept",
+    "allowedHeaders":"Content-Type,Authorization,Accept",
     "preflightContinue": false,
     "optionsSuccessStatus": 204
   });
@@ -542,5 +542,79 @@ export class User {
 }
 
 ``` 
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# JWT implementation 
+https://dev.to/raguilera82/autenticacion-con-jwt-en-nestjs-147a
+
+Need install
+```
+npm install --save @nestjs/passport passport @nestjs/jwt passport-jwt
+npm install --save-dev @types/passport-jwt
+```
+
+
+**Generate token**
+1. Create AuthModule package
+- src/api/auth
+- src/api/auth/entity
+- src/api/auth/entity/auth.dto.ts
+- src/api/auth/service
+- src/api/auth/service/auth.service.ts
+- src/api/auth/service/jwt.payload.ts
+- src/api/auth/auth.module.ts
+
+JWTPayload
+```
+export interface JWTPayload {
+    userId: string;
+}
+```
+
+AuthService
+```
+import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { JWTPayload } from './jwt.payload';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private jwtService: JwtService
+  ) {}
+
+  generateAccessToken(id: string): string {
+    const payload: JWTPayload = { userId: id };
+    return this.jwtService.sign(payload);
+  }
+}
+```
+
+AuthModule
+```
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthService } from './service/auth.service';
+
+@Module({
+  imports: [
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '30d' },
+    }),
+  ],
+  controllers: [],
+  providers: [AuthService],
+  exports: [AuthService],
+})
+export class AuthModule {}
+```
+
+Now you can import AuthModule in other modules, for example UserModule, and use AuthService in Services with IoC
+
+
+
+**Protect routes**
 
 ---------------------------------------------------------------------------------------------------------------------------------------
