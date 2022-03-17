@@ -270,7 +270,7 @@ LANGUAGE plpgsql;
 
 --2. Create TRIGGER using the function as the procedure
 
-CREATE OR REPLACE TRIGGER
+CREATE TRIGGER trigger_name
 AFTER INSERT ON MOVIMIENTO
 FOR EACH ROW
 EXECUTE PROCEDURE tf_update_saldo();

@@ -545,6 +545,56 @@ export class User {
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+# Many to Many with extra fields is another entity
+
+```
+@Entity()
+export class User {
+    @PrimaryGeneratedColumn()
+    id: number;
+    @Column()
+    name: string;
+    @OneToMany(() => UserGroup, userGroup => userGroup.user)
+    userGroups: UserGroup[];
+}
+@Entity()
+export class UserGroup {
+    @Column()
+    isActive: boolean;
+    @ManyToOne(() => User, user => user.userGroups, { primary: true })
+    user: User;
+    @ManyToOne(() => Group, group => group.userGroups, {
+    primary: true,
+    onDelete: "CASCADE",
+    eager: true
+    })
+    @JoinColumn({ name: "group_id" })
+    group: Group;
+}
+@Entity()
+export class Group {
+    @PrimaryGeneratedColumn()
+    id: number;
+    @Column()
+    name: string;
+    @OneToMany(() => UserGroup, userGroup => userGroup.group)
+    userGroups: UserGroup[];
+}
+``` 
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# Maybe ManyToOne is referenced to a column UNIQUE that is not PK
+
+You can set referenceColumnName in JoinColumn
+```
+@ManyToOne(type => Category)
+@JoinColumn({ name: "cat_id", referencedColumnName: "cod_unique" })
+category: Category;
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
 # JWT implementation 
 https://dev.to/raguilera82/autenticacion-con-jwt-en-nestjs-147a
 
