@@ -70,6 +70,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 export class AppModule {}
 ```
 
+
+**FIND options TypeORM**
+https://github.com/typeorm/typeorm/blob/master/docs/find-options.md
+
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 

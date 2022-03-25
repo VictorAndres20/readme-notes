@@ -383,6 +383,39 @@ class IMAPReader(Mail):
 
 ----------------------------------------------------------------------------------
 
+# Read Excel from bytes as DataFrame
+Need to install
+```
+pip install pandas
+pip install xlrd
+pip install openpyxl
+```
+
+```
+import base64
+import io
+import pandas as pd
+
+
+class ByteReader:
+
+    @staticmethod
+    def read_bytes(bytes_64: str, extension: str) -> pd.DataFrame:
+        decrypted = base64.b64decode(bytes_64)
+        toread = io.BytesIO()
+        toread.write(decrypted)  # pass your `decrypted` string as the argument here
+        toread.seek(0)  # reset the pointer
+        if extension == 'xlsx':
+            df = pd.read_excel(toread, engine='openpyxl')
+        else:
+            df = pd.read_excel(toread)
+        df = df.fillna('')
+        print(df.head())
+        return df
+``` 
+
+----------------------------------------------------------------------------------
+
 # ORM peewee
 
 1. Install pewee
