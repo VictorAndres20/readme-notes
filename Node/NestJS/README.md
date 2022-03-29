@@ -76,6 +76,31 @@ https://github.com/typeorm/typeorm/blob/master/docs/find-options.md
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+# Use createQueryBuilder TypeORM to complex queries
+
+Many
+```
+  async updateManyStates(dto: OrderDTO, state: string): Promise<void>{
+    this.repo.createQueryBuilder()
+    .update(EntityClass)
+    .set({ state: build_state(state) })
+    .where("uuid IN (:...uuids)", { uuids: dto.toAproveUUID })
+    .execute();
+  }
+```
+One
+```
+  async updateManyStates(dto: OrderDTO, state: string): Promise<void>{
+    this.repo.createQueryBuilder()
+    .update(EntityClass)
+    .set({ state: build_state(state) })
+    .where("uuid IN (:uuid)", { uuid: dto.uuid })
+    .execute();
+  }
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
 
 ## Full structure API app
 
