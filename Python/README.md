@@ -1,4 +1,4 @@
-# Install python 3.7 in Ubuntu 16.04
+# Install python in Ubuntu 16.04
 https://linoxide.com/install-python-ubuntu/
 https://linuxize.com/post/how-to-install-python-3-7-on-ubuntu-18-04/
 http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
@@ -11,15 +11,12 @@ $ sudo apt-get update
 $ sudo apt-get autoremove
 ```
 
-2. Install software-properties-common
+2. Install software-properties-common and 
 ```
 $ sudo apt-get install software-properties-common
 ```
 
-3. Add repo deadsnakes
-```
-$ sudo add-apt-repository ppa:deadsnakes/ppa
-```
+3. Install gcc and g++ compiler
 
 4. Update
 ```
@@ -27,8 +24,27 @@ $ sudo apt-get update
 $ sudo apt-get autoremove
 ```
 
-5. Install python 3.7
+5. Download and extract tar from python.org. Read README to install
+Maybe get 1 error in test with test_pdb, i installed any way and work fine at the moment
 ```
+./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+make
+make test
+sudo make install
+```
+
+6. Maybe install
+```
+$ sudo apt-get python3-dev
+$ sudo apt-get python-dev
+```
+
+
+**OPTION Install python 3.7**
+```
+$ sudo add-apt-repository ppa:deadsnakes/ppa
+$ sudo apt-get update
+$ sudo apt-get autoremove
 $ sudo apt-get install python3.7
 $ sudo apt-get install python3.7-gdbm
 $ sudo apt-get install python3-pip
@@ -65,16 +81,68 @@ $ sudo apt-get install python3-pip
 $ pip3 --version
 ```
 
+**Upgrade pip**
+```
+python3 -m pip install --upgrade pip
+```
+
+**pip errors**
+*pip is configured with locations that require TLS/SSL, however the ssl module in Python is not available.*
+*Could not fetch URL https://pypi.org/simple/pandas/: There was a problem confirming the ssl certificate*
+https://askubuntu.com/questions/1164352/cannot-use-pip-ubuntu-pip-is-configured-with-locations-that-require-tls-ssl
+
+1. Install necessary packages for Python and ssl
+```
+sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
+```
+2. Download python tar from python.org and execite tar -xvf to extract it.
+
+3. Install or re install. See README in Python folder downloaded
+```
+./configure --prefix=/usr/local --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+make
+make test
+sudo make install
+```
+
+4. Try python3 -m pip install [module]
+
+
+
+*Defaulting to user installation because normal site-packages is not writeable*
+```
+python3.10 -m pip install --user [module]
+```
+
 ----------------------------------------------------------------------------------
 
-# Requirements.txt
+# Virtual Environment
 
 Create a virtual environment.
+
+**In Ubuntu or Xubuntu Install python3-venv
 ```
-python3 -m venv /path/to/new/virtual/env
+sudo apt-get update
+sudo apt-get autoremove
+sudo apt-get upgrade
+sudo apt-get install python3-venv
+```
+
+Create virtual venv
+```
+python3 -m venv /path/to/project/venv
+```
+
+Activate virtual env
+```
+source venv/bin/activate
 ```
 
 In virtual env you can generate file with dependencies to easy install
+
+----------------------------------------------------------------------------------
+
+# Requirements.txt
 ```
 pip freeze > requirements.txt
 ```
