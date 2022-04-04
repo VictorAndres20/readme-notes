@@ -615,6 +615,353 @@ Navigator.of(context).pop()
 
 ----------------------------------------------------------------------------------------------------------
 
+# Pass object from One page to Other with Navigator
+
+1. Model object
+```
+class ExerciseType{
+
+  String cod = '';
+  String name = '';
+  String imagePath = '';
+  String description = '';
+
+  ExerciseType({
+    required this.cod,
+    required this.name,
+    required this.imagePath,
+    required this.description
+  });
+
+  ExerciseType.fromJsonMap( Map<String, dynamic> json){
+
+    cod = json['cod'];
+    name = json['name'];
+    imagePath= json['image_path'];
+    description = json['description'];
+  }
+}
+```
+
+2. First StateFul Widget
+Navigator.pushNamed(context, specificExerciseRoute, arguments: classObject), 
+```
+import 'package:flutter/material.dart';
+import 'package:rhinos_natural_app/src/_helpers/storage.helper.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:rhinos_natural_app/src/_models/exercise_type.model.dart';
+import 'package:rhinos_natural_app/src/_services/exercise_type.service.dart';
+
+import 'package:rhinos_natural_app/src/routes/app_routes.dart';
+import 'package:rhinos_natural_app/src/widgets/drawers/main_drawer.widget.dart';
+
+const String loginUserLabel = 'Usuario, correo o teléfono';
+const String passwordLabel = 'Contraseña';
+const String loginBtnLabel = 'Entrar';
+const String forgotPassBtnLabel = '¿Olvidaste tu contraseña?';
+const String registerBtnLabel = '¿No tienes cuenta? Regístrate aquí';
+
+
+class ExercisesModule extends StatefulWidget{
+  const ExercisesModule({Key? key}) : super(key: key);
+
+
+  @override
+  _ExercisesModuleState createState() => _ExercisesModuleState();
+
+}
+
+class _ExercisesModuleState extends State<ExercisesModule>{
+	//private attributes
+  final TextStyle textStyle = const TextStyle(fontSize: 23);
+  final double percentTipsCarousel = 0.2;
+  final double percentPaddingVerticalTipsCarousel = 0.01;
+  final double percentPaddingVerticalExerciseCarousel = 0.03;
+  
+
+  //Dynamic states
+  String userLogin = '';
+  String userPass = ''; 
+  List<ExerciseType> exerciseCategories = [];
+
+  //If you need to initialize a state value. Like componentDidMount() in React
+  @override
+  void initState(){
+    super.initState();
+    loadExerciseCategories();
+  }
+  
+  //When Widget disposed. Exit screen. Go away mobile
+  @override
+  void dispose(){
+    super.dispose();
+  }
+
+  loadExerciseCategories() async {
+    String idUser = await getStorageIdUser();
+    setState(() {
+        exerciseCategories = ExerciseTypeService.findCategoriesByUser(idUser);
+      });
+  }
+
+  @override
+  Widget build(context){
+    final screenSize = MediaQuery.of(context).size;
+    final double percentExerciseCarousel = 1.0 - (percentTipsCarousel + (percentPaddingVerticalTipsCarousel * 2) + (percentPaddingVerticalExerciseCarousel * 2));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Rhinos Natural App"),        
+        backgroundColor: const Color.fromRGBO(0, 0, 0, 0.1),
+      ),
+      drawer: buildMainDrawer(context: context),
+      backgroundColor: Colors.black12,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 30, vertical: screenSize.height * percentPaddingVerticalTipsCarousel),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: screenSize.height * percentPaddingVerticalExerciseCarousel, horizontal: 0),
+                child: CarouselSlider(
+                  options: CarouselOptions(
+                    height: screenSize.height * percentExerciseCarousel,
+                    autoPlay: false,
+                    scrollDirection: Axis.vertical
+                  ),
+                  items: exerciseCategories.map((i) {
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return Container(
+                          margin: const EdgeInsets.all(8.0),
+                          child: Card(
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                            child: InkWell(
+                              splashColor: Colors.orange,
+                              onTap: () => Navigator.pushNamed(
+                                  context, 
+                                  specificExerciseRoute,
+                                  arguments: i
+                                ),                              
+                              child: Container(
+                                alignment: Alignment.topLeft,
+                                color: const Color.fromRGBO(0, 0, 0, 1),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(8.0),
+                                        topRight: Radius.circular(8.0),
+                                      ),
+                                      child: Image.network(
+                                          i.getImagePath(),
+                                        // width: 300,
+                                          height: (screenSize.height * percentExerciseCarousel) - (screenSize.height * percentExerciseCarousel * 0.5),
+                                          fit:BoxFit.fill
+
+                                      ),
+                                    ),
+                                    ListTile(
+                                      tileColor: const Color.fromRGBO(0, 0, 0, 1),
+                                      title: Text(
+                                        i.name, 
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold, 
+                                          fontSize: 22, 
+                                          color: Colors.white 
+                                        )
+                                      ),
+                                      subtitle: Text(
+                                        i.description,
+                                        style: const TextStyle(
+                                          fontSize: 14, 
+                                          color: Colors.white 
+                                        )
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        )
+      )
+    );
+  }
+}
+```
+
+3. Get Object in other StateFul Widget
+final args = ModalRoute.of(context)!.settings.arguments as ExerciseType;
+```
+import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:rhinos_natural_app/src/_models/exercise.model.dart';
+import 'package:rhinos_natural_app/src/_models/exercise_type.model.dart';
+import 'package:rhinos_natural_app/src/_services/exercise.service.dart';
+
+import 'package:rhinos_natural_app/src/routes/app_routes.dart';
+import 'package:rhinos_natural_app/src/widgets/drawers/main_drawer.widget.dart';
+import 'package:rhinos_natural_app/src/widgets/alerts/rounded_alert.widget.dart';
+
+const String loginUserLabel = 'Usuario, correo o teléfono';
+const String passwordLabel = 'Contraseña';
+const String loginBtnLabel = 'Entrar';
+const String forgotPassBtnLabel = '¿Olvidaste tu contraseña?';
+const String registerBtnLabel = '¿No tienes cuenta? Regístrate aquí';
+
+
+class SpecificExerciseModule extends StatefulWidget{
+  const SpecificExerciseModule({Key? key}) : super(key: key);
+
+
+  @override
+  _SpecificExerciseModuleState createState() => _SpecificExerciseModuleState();
+
+}
+
+class _SpecificExerciseModuleState extends State<SpecificExerciseModule>{
+	//private attributes
+  final TextStyle textStyle = const TextStyle(fontSize: 23);
+  final double percentTipsCarousel = 0.2;
+  final double percentPaddingVerticalTipsCarousel = 0.01;
+  final double percentPaddingVerticalExerciseCarousel = 0.03;
+  
+
+  //Dynamic states
+  String userLogin = '';
+  String userPass = ''; 
+  List<Exercise> exercises = [];
+
+  //If you need to initialize a state value. Like componentDidMount() in React
+  @override
+  void initState(){
+    super.initState();
+  }
+  
+  //When Widget disposed. Exit screen. Go away mobile
+  @override
+  void dispose(){
+    super.dispose();
+  }
+
+  loadExerciseCategories(String typeCod) async {
+    print(typeCod);
+    setState(() {
+        exercises = ExerciseService.findByCategory(typeCod);
+      });
+  }
+
+  @override
+  Widget build(context){
+    final screenSize = MediaQuery.of(context).size;
+    final double percentExerciseCarousel = 1.0 - (percentTipsCarousel + (percentPaddingVerticalTipsCarousel * 2) + (percentPaddingVerticalExerciseCarousel * 2));
+
+    final args = ModalRoute.of(context)!.settings.arguments as ExerciseType;
+    loadExerciseCategories(args.cod);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Rhinos Natural App"),        
+        backgroundColor: const Color.fromRGBO(0, 0, 0, 0.1),
+      ),
+      drawer: buildMainDrawer(context: context),
+      backgroundColor: Colors.black12,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 30, vertical: screenSize.height * percentPaddingVerticalTipsCarousel),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: screenSize.height * percentPaddingVerticalExerciseCarousel, horizontal: 0),
+                child: CarouselSlider(
+                  options: CarouselOptions(
+                    height: screenSize.height * percentExerciseCarousel,
+                    autoPlay: false,
+                    scrollDirection: Axis.vertical
+                  ),
+                  items: exercises.map((i) {
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return Container(
+                          margin: const EdgeInsets.all(8.0),
+                          child: Card(
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                            child: InkWell(
+                              splashColor: Colors.orange,
+                              onTap: () => print("ciao"),
+                              child: Container(
+                                alignment: Alignment.topLeft,
+                                color: const Color.fromRGBO(0, 0, 0, 1),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(8.0),
+                                        topRight: Radius.circular(8.0),
+                                      ),
+                                      child: Image.network(
+                                          i.getImagePath(),
+                                        // width: 300,
+                                          height: (screenSize.height * percentExerciseCarousel) - (screenSize.height * percentExerciseCarousel * 0.5),
+                                          fit:BoxFit.fill
+
+                                      ),
+                                    ),
+                                    ListTile(
+                                      tileColor: const Color.fromRGBO(0, 0, 0, 1),
+                                      title: Text(
+                                        i.name, 
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold, 
+                                          fontSize: 22, 
+                                          color: Colors.white 
+                                        )
+                                      ),
+                                      subtitle: Text(
+                                        i.description,
+                                        style: const TextStyle(
+                                          fontSize: 14, 
+                                          color: Colors.white 
+                                        )
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        )
+      )
+    );
+  }
+}
+```
+
+
+
+----------------------------------------------------------------------------------------------------------
+
 # Notch problem
 If your device has notch and you dont use AppBar, use `SafeArea(child: Widget)`
 
