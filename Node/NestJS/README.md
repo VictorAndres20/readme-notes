@@ -189,7 +189,7 @@ import { UserState } from '../../user_state/entity/user_state.entity';
 
 @Entity({name: "users"})
 export class User {
-  @PrimaryColumn() 
+  @PrimaryGeneratedColumn()
   uuid: string
 
   @Column()
@@ -476,7 +476,7 @@ import { User } from '../../user/entity/user.entity';
 
 @Entity({name: "exercise"})
 export class Exercise {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   uuid: string;
 
   @Column()
@@ -515,7 +515,7 @@ import { Exercise } from '../../exercise/entity/exercise.entity';
 
 @Entity({name: "users"})
 export class User {
-  @PrimaryColumn() 
+  @PrimaryGeneratedColumn() 
   uuid: string
 
   @Column()
@@ -620,6 +620,133 @@ You can set referenceColumnName in JoinColumn
 @ManyToOne(type => Category)
 @JoinColumn({ name: "cat_id", referencedColumnName: "cod_unique" })
 category: Category;
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# Pagination
+
+```
+async findAllPagedByCompany(company: string, page: number = 0, limit: number = 8): Promise<[PocketBalance[], number]> {
+    return await this.repo.findAndCount({ where: { company }, skip: page, take: limit});
+}
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# Transactions with query runner
+
+```
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, Connection } from 'typeorm';
+import { Order } from '../entity/order.entity';
+import { build_base_creation, build_details, build_edition, build_state } from '../entity/order.builders';
+import { OrderDTO } from '../entity/order.dto';
+import { OrderDetail } from 'src/api/order_detail/entity/order_detail.entity';
+import { GenerateFileServiceService } from '../../generate_file/service/generate_file.service';
+
+@Injectable()
+export class OrderService {
+  constructor(
+    @InjectRepository(Order)
+    private repo: Repository<Order>,
+    private connection: Connection,
+    private gfService: GenerateFileServiceService
+  ) {}
+
+  async createOrder(dto: OrderDTO): Promise<Order>{
+    let order = build_base_creation(dto);
+    let details = build_details(dto.items);
+    return this.createOrderAndDetails(order, details);
+  }
+
+  async editOrder(dto: OrderDTO): Promise<Order>{
+    let order = await this.findByUUID(dto.uuid);
+    return this.editOne(dto, order);
+  }
+
+  async aproveOrder(dto: OrderDTO): Promise<OrderDTO>{
+    // Generate file bytes 64
+    let base64 = this.gfService.generateFileBase64(dto.toAproveJSON);
+    await this.updateManyStates(dto, 'APPR');
+    let res = new OrderDTO();
+    res.toAproveJSON = base64;
+    return res;
+  }
+
+  async buildPDFOrder(dto: OrderDTO): Promise<OrderDTO>{
+    // Generate file bytes 64
+    let base64 = await this.gfService.generateOrdersPDFBase64(dto);
+    let res = new OrderDTO();
+    res.toAproveJSON = base64;
+    return res;
+  }
+
+  async updateManyStates(dto: OrderDTO, state: string): Promise<void>{
+    this.repo.createQueryBuilder()
+    .update(Order)
+    .set({ state: build_state(state) })
+    .where("uuid IN (:...uuids)", { uuids: dto.toAproveUUID })
+    .execute();
+  }
+
+  findByUUID(uuid: string): Promise<Order> {
+    return this.repo.findOne({ where: { uuid: uuid } });
+  }
+
+  findAllByCompanyAndState(company: string, state: string): Promise<Order[]> {
+    return this.repo.find({ where: { company: company, state: state }, order: { id: 'ASC'} });
+  }
+
+  async findAll(): Promise<Order[]> {
+    return await this.repo.find();
+  }
+
+  async createOrderAndDetails(order: Order, details: OrderDetail[]): Promise<Order> {
+    let newOrder = order;
+    const queryRunner = this.connection.createQueryRunner();
+  
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      let orderCreated = await queryRunner.manager.save(order);
+      newOrder = orderCreated;
+      for(let i = 0; i < details.length; i++){
+        let element = details[i];        
+        element.order = orderCreated;
+        await queryRunner.manager.save(element);
+      }
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      newOrder.uuid = null;
+    } finally {
+      await queryRunner.release();
+      return newOrder;
+    }
+  }
+
+  createOne(dto: OrderDTO): Promise<Order>{
+    try{
+      let order = build_base_creation(dto);
+      let data = this.repo.save(order);
+      return data;
+    } catch(err){
+      throw new Error(err.message);
+    }
+  }
+
+  async editOne(dto: OrderDTO, order: Order): Promise<Order>{
+    try{
+      order = build_edition(dto, order);
+      let data = this.repo.save(order);
+      return data;
+    } catch(err){
+      throw new Error(err.message);
+    }
+  }
+}
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------

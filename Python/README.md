@@ -1031,4 +1031,71 @@ if __name__ == '__main__':
 
 ----------------------------------------------------------------------------------
 
+# SQLAlchemy insert many
+
+```
+from typing import List
+from sqlalchemy import insert
+from src.bussiness.reader.byte_reader import ByteReader
+from src.api.config import ENGINE
+from sqlalchemy import Table, Column, String, MetaData, Date, DECIMAL
+meta = MetaData()
+
+table = Table(
+    'pocket_balance', meta,
+    Column('seller', String),
+    Column('seller_name', String),
+    Column('nit', String),
+    Column('client', String),
+    Column('client_name', String),
+    Column('bill_date', Date),
+    Column('bill_exp_date', Date),
+    Column('bill_number', String),
+    Column('total_value', DECIMAL),
+    schema='ks'
+)
+
+
+def transform_obj(data_list) -> List:
+    data_obj = []
+    for i in data_list:
+        if i[0] != '':
+            data_obj.append({
+                "seller": i[11].strip(),
+                "seller_name": i[0].strip(),
+                "nit": str(i[9]).strip(),
+                "client": i[10].strip(),
+                "client_name": i[3].strip(),
+                "bill_date": str(i[4]) if str(i[4]) != '0' else None,
+                "bill_exp_date": str(i[5]) if str(i[5]) != '0' else None,
+                "bill_number": str(i[8]).strip(),
+                "total_value": i[18],
+            })
+    return data_obj
+
+
+class PocketBalanceService:
+
+    def __init__(self):
+        self.reader = ByteReader()
+        self.engine = ENGINE
+
+    def save(self, bytes_64: str, extension: str):
+        bytes_only = bytes_64.split(',')
+        if len(bytes_only) > 0:
+            data = self.reader.read_bytes(bytes_only[1], extension)
+            data_list = data.values.tolist()
+            data_obj = transform_obj(data_list)
+            with self.engine.connect() as conn:
+                conn.execute("TRUNCATE TABLE ks.pocket_balance")
+                conn.execute(insert(table), data_obj)
+        else:
+            data_obj = []
+            raise Exception('No bytes')
+        return data_obj
+
+```
+
+----------------------------------------------------------------------------------
+
 
