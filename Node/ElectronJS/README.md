@@ -185,7 +185,7 @@ out
 
 # React + Electron
 
-1. Install electron global
+1. Install electron
 ```
 npm i -D electron@latest
 ```
@@ -330,7 +330,7 @@ This ensures Webpack/Babel will only add the polyfills and features we strictly 
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"" <--- THIS>
+    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"" <--- THIS>
   },
 ...
 }
@@ -339,6 +339,21 @@ This ensures Webpack/Babel will only add the polyfills and features we strictly 
 ```
 npm run electron-dev
 ```
+
+**Windows SO issue**
+Executing "npm run electron-dev", maybe an error occured like
+[0] "BROWSER" no se reconoce como un comando interno o externo,
+[0] programa o archivo por lotes ejecutable
+[0] BROWSER=none yarn start exited with code 1
+
+Solution:
+1. Create .env file in root project folder
+2. Add 
+```
+BROWSER=none
+```
+3. Remove BROWSER=none in package.json script
+"electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\""
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -414,6 +429,13 @@ Ouput folder is dist/
 dist
 |-- linux-unpacked/you-app
 |-- you-app.deb
+```
+
+```
+//Example in Windows10
+dist
+|-- win-unpacked/ElectronApp.exe
+|-- ElectronApp Setup x.x.exe
 ```
 
 **Issue timeout Downloading electron from github**
