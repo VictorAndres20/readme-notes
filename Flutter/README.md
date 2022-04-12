@@ -78,6 +78,12 @@ https://flutter.dev/docs/cookbook
 
 # External packages
 https://pub.dartlang.org/
+```
+flutter pub add package
+flutter pub get
+```
+
+**OR**
 
 1. On pubspec.yaml 
 ```
@@ -1824,6 +1830,217 @@ class _MoviesModuleState extends State<MoviesModule>{
 - lib/src/_helpers/
 - lib/src/models/
 - lib/src/services/
+
+----------------------------------------------------------------------------------------------------------
+
+# Camera and Image picker
+
+1. Set minSDK Version in android/app/build.gradle
+```
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId "com.example.camera_app"
+        minSdkVersion 21 <---------------------- THIS>
+        targetSdkVersion 30
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+```
+
+2. IOs permissions in ios/runner/Info.plist
+```
+        <key>NSPhotoLibraryUsageDescription</key>
+   	<string>Allow access to photo library</string>
+
+   	<key>NSCameraUsageDescription</key>
+   	<string>Allow access to camera to capture photos</string>
+
+   	<key>NSMicrophoneUsageDescription</key>
+   	<string>Allow access to microphone</string>
+```
+
+3. install
+```
+flutter pub add image_picker
+```
+
+4. Example Code
+```
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:image_picker/image_picker.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // Try running your application with "flutter run". You'll see the
+        // application has a blue toolbar. Then, without quitting the app, try
+        // changing the primarySwatch below to Colors.green and then invoke
+        // "hot reload" (press "r" in the console where you ran "flutter run",
+        // or simply save your changes to "hot reload" in a Flutter IDE).
+        // Notice that the counter didn't reset back to zero; the application
+        // is not restarted.
+        primarySwatch: Colors.blue,
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
+
+
+//
+// Camera Page
+//
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  File? imageFile;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  ImageProvider<Object> buildImage(File? file) {
+    if (file == null) {
+      return const NetworkImage(
+          'https://docs.flutter.dev/assets/images/dash/dash-fainting.gif');
+    } else {
+      return FileImage(file);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.blue,
+          title: const Text(
+            "HomeScreen",
+            textAlign: TextAlign.center,
+          ),
+        ),
+        body: SafeArea(
+          top: true,
+          bottom: true,
+          child: Align(
+            alignment: Alignment.center,
+            child: Column(
+              children: <Widget>[
+                Container(
+                    width: MediaQuery.of(context).size.width * 0.35,
+                    height: MediaQuery.of(context).size.height * 0.2,
+                    margin: const EdgeInsets.only(top: 20),
+                    decoration: BoxDecoration(
+                        color: Colors.grey,
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                            // ignore: unnecessary_null_comparison
+                            image: buildImage(imageFile),
+                            fit: BoxFit.cover))),
+                const SizedBox(
+                  height: 10.0,
+                ),
+                RaisedButton(
+                    onPressed: () {
+                      _settingModalBottomSheet(context);
+                    },
+                    child: const Text("Take Photo")),
+              ],
+            ),
+          ),
+        ));
+  }
+
+  //********************** IMAGE PICKER
+  Future imageSelector(BuildContext context, String pickerType) async {
+    XFile? xFile;
+    switch (pickerType) {
+      case "gallery":
+
+        /// GALLERY IMAGE PICKER
+        xFile = await ImagePicker()
+            .pickImage(source: ImageSource.gallery, imageQuality: 90);
+
+        break;
+
+      case "camera": // CAMERA CAPTURE CODE
+        xFile = await ImagePicker()
+            .pickImage(source: ImageSource.camera, imageQuality: 90);
+        break;
+    }
+
+    if (xFile != null) {
+      print("You selected  image : " + xFile.path);
+      setState(() {
+        imageFile = File(xFile!.path);
+      });
+      final bytes = File(xFile.path).readAsBytesSync();
+      String bytes64 = base64Encode(bytes);
+      print(bytes64);
+    } else {
+      print("You have not taken image");
+    }
+  }
+
+  // Image picker
+  void _settingModalBottomSheet(context) {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext bc) {
+          return Wrap(
+            children: <Widget>[
+              ListTile(
+                  title: const Text('Gallery'),
+                  onTap: () => {
+                        imageSelector(context, "gallery"),
+                        Navigator.pop(context),
+                      }),
+              ListTile(
+                title: const Text('Camera'),
+                onTap: () =>
+                    {imageSelector(context, "camera"), Navigator.pop(context)},
+              ),
+            ],
+          );
+        });
+  }
+}
+
+```
 
 ----------------------------------------------------------------------------------------------------------
 
