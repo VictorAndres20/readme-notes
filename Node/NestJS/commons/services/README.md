@@ -53,9 +53,9 @@ export class MyExampleService extends BasicCrudService<Example, string, ExampleD
 Then implement methods:
 - findById(T: ID): Promise<T>
 - buildBaseCreation(dto: D): T
-- dataValidationBeforeCreate(dto: D): void
+- dataValidationBeforeCreate(dto: D): Promise<void>
 - buildBaseEdition(entity: T, dto: D): T
-- dataValidationBeforeEdit(dto: D): void
+- dataValidationBeforeEdit(dto: D): Promise<void>
 ```
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -92,8 +92,8 @@ export class MyExampleService extends BasicCrudService<MyExample, string, MyExam
     return entity;
   }
 
-  dataValidationBeforeCreate(dto: CalendarDTO): void {
-    // Validations
+  async dataValidationBeforeCreate(dto: CalendarDTO): Promise<void> {
+    // Input validations for null values that are required
     // For example validate if not exists for specific(s) properties
     // Example same login, same email, same COD, same NIT
   }
@@ -110,8 +110,8 @@ export class MyExampleService extends BasicCrudService<MyExample, string, MyExam
     return entity;
   }
 
-  dataValidationBeforeEdit(dto: CalendarDTO): void {
-    // Validations
+  async dataValidationBeforeEdit(dto: CalendarDTO): Promise<void> {
+    // Input validations for null values that are required
     // For example validate if not exists for specific(s) properties
     // Example same login, same email, same COD, same NIT
   }

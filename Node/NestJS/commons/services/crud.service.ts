@@ -14,11 +14,11 @@ export abstract class BasicCrudService<T, ID, D>{
 
     abstract buildBaseCreation(dto: D): T;
 
-    abstract dataValidationBeforeCreate(dto: D): void;
+    abstract dataValidationBeforeCreate(dto: D): Promise<void>;
 
     abstract buildBaseEdition(entity: T, dto: D): T;
 
-    abstract dataValidationBeforeEdit(dto: D): void;
+    abstract dataValidationBeforeEdit(dto: D): Promise<void>;
 
     findAll(): Promise<T[]> {
         try{
@@ -44,9 +44,9 @@ export abstract class BasicCrudService<T, ID, D>{
         }
     }
     
-    createOne(dto: D): Promise<T>{
+    async createOne(dto: D): Promise<T>{
         try{
-            this.dataValidationBeforeCreate(dto);
+            await this.dataValidationBeforeCreate(dto);
             let data = this.repo.save(this.buildBaseCreation(dto));
             return data;
         } catch(err){
@@ -56,7 +56,7 @@ export abstract class BasicCrudService<T, ID, D>{
 
     async editOne(dto: D, id: ID): Promise<T>{
         try{
-            this.dataValidationBeforeEdit(dto);
+            await this.dataValidationBeforeEdit(dto);
             let entity = await this.findById(id);
             if(entity == null){
                 throw new Error('Entity not found for edition');
