@@ -824,3 +824,187 @@ Now you can import AuthModule in other modules, for example UserModule, and use 
 **Protect routes**
 
 ---------------------------------------------------------------------------------------------------------------------------------------
+
+# Serve static files in public folder like images, files, etc
+
+in main.ts
+Create app for NestExpressApplication
+and add app.useStaticAssets method
+```
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  /** Cors Middleware */
+  app.enableCors({
+    "origin": "*",
+    "methods": "OPTIONS,GET,HEAD,PUT,PATCH,POST,DELETE",
+    "allowedHeaders":"Content-Type,Authorization,accept",
+    "preflightContinue": false,
+    "optionsSuccessStatus": 204
+  });
+
+  /** Serve public dir for static files like images, files, videos, etc */
+  app.useStaticAssets(join(__dirname, '..', 'public/imgs'), { prefix: '/public-imgs/' });
+  app.useStaticAssets(join(__dirname, '..', 'public/files'), { prefix: '/public-files/' });
+
+
+  await app.listen(9001);
+}
+bootstrap();
+
+```
+
+Now you can see your images like
+http://localhost:9001/public-imgs/img.png
+http://localhost:9001/public-imgs/subfolder/img.png
+http://localhost:9001/public-imgs/subfolder/subfolder/img.png
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# Simple Queue system in Nest JS
+https://www.learmoreseekmore.com/2021/04/guide-on-nestjs-queues.html
+
+1. In server install redis docker container
+```
+docker run [--restart always] [--network app_net] [--ip 172.124.10.9] --name redis_nest_queue -p 5003:6379 -d redis
+docker exec -it redis_nest_queue redis-cli
+KESY *
+```
+
+2. In Nest JS App, install Bull Pachage
+```
+npm install --save @nestjs/bull bull
+npm install --save-dev @types/bull
+```
+
+3. In app.module.ts Register BullModule and Setup Redis Connection src/app.module.ts
+´´´
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { BullModule } from '@nestjs/bull';
+//import 'dotenv/config';
+//process.env.KEY_NAME in .env file
+
+// Middlewares
+
+//API Module
+import { ApiModule } from './api/api.module';
+
+//You can use dotenv
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'secret',
+      database: 'db_name',
+      //schema: 'ks',
+      synchronize: false,
+      logging: false,
+      autoLoadEntities: true,
+    }),
+    ApiModule,
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 5003,
+      },
+    }),
+  ],
+  controllers: [],
+  providers: [],
+})
+export class AppModule {
+}
+´´´
+
+4. Create A Producer To Push Jobs Into Queue, for example in src/api/orders module need to create a queue to prevent multi orders at same time
+- src/api/orders/queue/order_message_producer.service.ts
+```
+import { InjectQueue } from '@nestjs/bull';
+import { Injectable } from '@nestjs/common';
+import { Queue } from 'bull';
+ 
+@Injectable()
+export class OrdersMessageProducerService {
+  constructor(@InjectQueue('orders-queue') private queue: Queue) {}
+ 
+  async sendMessage(message: string){
+    await this.queue.add('message-job',{
+        text: message
+    });
+  }
+
+  async sendCreateOrder(order: Order, details: OrderDetail[]): Promise<boolean>{
+    let job = await this.queue.add('create-order-job',{
+        order, details
+    });
+    return job.id ? true : false;
+  }
+}
+```
+
+5. Create a consumer to execute Jobs in queue, for example in src/api/orders module need to execute job stored in queue to create orders one by one 
+- src/api/orders/queue/order_message_consumer.service.ts
+```
+import { Process, Processor } from "@nestjs/bull";
+import { Job } from "bull";
+import { OrderDetail } from "src/api/order_detail/entity/order_detail.entity";
+import { Order } from "../entity/order.entity";
+import { OrderService } from "../service/order.service";
+ 
+@Processor('orders-queue')
+export class OrdersMessageConsumerService {
+
+    constructor(private service: OrderService) {}
+ 
+    @Process('message-job')
+    readMessageJob(job: Job<unknown>){
+        console.log(job.data);
+    }
+
+    @Process('create-order-job')
+    readCreateOrderJob(job: Job<unknown>){
+        let order = new Order;
+        Object.assign(order, job.data['order']);
+        let details = [];
+        job.data['details'].map((d) => {
+            let detail = new OrderDetail();
+            Object.assign(detail, d);
+            details.push(detail);
+        });
+        this.service.createOrderAndDetails(order, details);
+    }
+}
+```
+
+6. Register a queue and Register producers and consumers in orders.module.ts in providers and exports array
+```
+// ...
+import { BullModule } from '@nestjs/bull';
+
+@Module({
+    imports:[TypeOrmModule.forFeature([Order]), GenerateFileModule, 
+      BullModule.registerQueue({
+        name:'orders-queue'
+      })
+    ],
+    controllers:[OrderController],
+    providers:[OrderService, OrdersMessageConsumerService, OrdersMessageProducerService],
+    exports:[OrderService, OrdersMessageConsumerService, OrdersMessageProducerService]
+})
+export class OrderModule{}
+```
+
+7. Use it in Order service to call producer when create called by controller
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
