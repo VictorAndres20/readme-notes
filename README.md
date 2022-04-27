@@ -1,6 +1,6 @@
-# This is not a project, are my expirience notes
+# This is a repo where i put my expiriences notes with some technologies
 
-### With this repo, i want to share all my notes that i write when i code. 
+### With this repo, i want to share all my notes that i take when i code. 
 
 ### You can find some notes for:
 - Linux

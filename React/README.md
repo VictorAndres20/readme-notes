@@ -1307,13 +1307,15 @@ export default WrapAuthComponent;
 ```
 // CODE
 
+const AuthComponent = WrapAuthComponent(UserModule);
+
 export const AppRoute = () => {
     return(
         <Router history={HistoryHelper}>
             <Switch>
                 <Route exact path = "/" component = {LoginModule} />
                 <Route exact path = "/test" component = {TestModule} />
-                <Route path = "/users" component = {WrapAuthComponent(UserModule)} />
+                <Route path = "/users" component = {AuthComponent} />
 
                 <Route component = {NotFoundModule} />
             </Switch>

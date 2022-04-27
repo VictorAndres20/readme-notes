@@ -356,6 +356,31 @@ $ sudo /sbin/iptables-save
 
 ------------------------------------------------------------------------------------------------------------------
 
+# Example of parallel execution putting in background
+
+```
+#!/bin/bash
+# Our custom function
+cust_func(){
+  echo "Do something $1 times...";
+  sleep 1;
+}
+# For loop 1000 times
+for i in {1..1000}
+do
+	cust_func $i &: # Prallel putting the execution in the background
+    # cust_func $i; # Sequential
+done
+ 
+## Put all cust_func in the background and bash 
+## would wait until those are completed 
+## before displaying all done message
+wait;
+echo "All done";
+```
+
+------------------------------------------------------------------------------------------------------------------
+
 # CronTab
 On /etc/crontab file specify 
 time - user - script
