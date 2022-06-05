@@ -608,6 +608,12 @@ class MapListView extends StatelessWidget{
 
 #### Navigate with route name
 ```
+Navigator.push(context, MaterialPageRoute(builder: (_) => HomeDoctorModule(title: 'title')));
+```
+```
+Navigator.pushAndRemoveUntil(context,MaterialPageRoute(builder: (_) => const HomeDoctorModule(title: 'ASDS - MOCK')), (_) => false);
+```
+```
 Navigator.pushNamed(context, item['route_name'])
 ```
 ```
@@ -2044,7 +2050,147 @@ class _MyHomePageState extends State<MyHomePage> {
 
 ----------------------------------------------------------------------------------------------------------
 
+# ListView Builder for auto map arrays and build many tiles
+```
+import 'package:asds/src/widgets/app_bars/avatar_app_bar.dart';
+import 'package:asds/src/widgets/drawers/main_drawer.dart';
+import 'package:flutter/material.dart';
 
+const data = [
+  {
+    "uuid": "1",
+    "name": "Cardiovascular",
+    "description": "Información en temas cardiovasculares"
+  },
+  {
+    "uuid": "2",
+    "name": "Cáncer",
+    "description": "Conoce sobre temas relevantes en cáncer"
+  },
+  {
+    "uuid": "3",
+    "name": "Diabetes",
+    "description": "Ten concimiento sobre los problemas de diabetes"
+  },
+  {
+    "uuid": "4",
+    "name": "Pulmonar",
+    "description": "A la mano temas en problemas de área pulmonar"
+  },
+];
+
+class HomeDoctorModule extends StatefulWidget {
+  const HomeDoctorModule({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+
+  @override
+  State<HomeDoctorModule> createState() => _HomeDoctorModuleState();
+}
+
+class _HomeDoctorModuleState extends State<HomeDoctorModule> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: buildAvatarAppBar(title: 'ASDS - MOCK') as PreferredSizeWidget,
+      drawer: buildMainDrawer(context: context),
+      body: ListView.builder(
+          itemCount: data.length,
+          itemBuilder: (BuildContext context, int index) {
+            Map<String, String> d = data[index];
+
+            return Container(
+              padding: const EdgeInsets.fromLTRB(30, 30, 30, 0),
+              height: 220,
+              width: double.maxFinite,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30.0),
+                child: Card(
+                  elevation: 5,
+                  child: InkWell(
+                    onTap: () {
+                      print('Hola');
+                    },
+                    child: Container(
+                      width: double.maxFinite,
+                      height: 300,
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF3366FF),
+                            Color(0xFF00CCFF),
+                          ],
+                          begin: FractionalOffset(0.0, 0.0),
+                          end: FractionalOffset(1.0, 0.0),
+                          stops: [0.0, 1.0],
+                          tileMode: TileMode.clamp,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: (MediaQuery.of(context).size.width - 70) / 2,
+                            child: const Image(
+                              fit: BoxFit.cover,
+                              image: AssetImage('resources/images/logo.png'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: (MediaQuery.of(context).size.width - 70) / 2,
+                            child: Center(
+                              child: Text(d["name"] ?? ""),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+    );
+  }
+}
+
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# ListView render problem
+```
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: ListView(
+        scrollDirection: Axis.vertical, // ----- THIS
+        shrinkWrap: false, // ----- THIS
+        children: [
+          Text('Hola'),
+          Text('Hola'),
+          Text('Hola'),
+          Text('Hola'),
+        ],
+      ),
+    );
+  }
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# Generate APK
+```
+flutter clean
+flutter build apk
+```
+
+APK generated in project/build/app/outputs/flutter-apk
+
+----------------------------------------------------------------------------------------------------------
 
 
 

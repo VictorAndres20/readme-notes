@@ -108,6 +108,7 @@ One
 ´´´
 npm install --save @nestjs/typeorm typeorm
 npm install --save reflect-metadata
+npm install --save dotenv
 ´´´
 **Install db provider**
 
@@ -139,6 +140,7 @@ https://docs.nestjs.com/middleware
 
 - src/app.module.ts
 - src/main.ts
+- .env
 
 #### Example of files
 **Create Commons**
@@ -394,6 +396,7 @@ export class ApiModule {}
 ´´´
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import 'dotenv/config';
 
 // Middlewares
 
@@ -405,8 +408,8 @@ import { ApiModule } from './api/api.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
+      host: 'localhost', //process.env.DB_HOST
+      port: 5432, // Number(process.env.DB_PORT)
       username: 'postgres',
       password: 'secret',
       database: 'db_name',
@@ -428,6 +431,7 @@ export class AppModule {
 ´´´
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import 'dotenv/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -438,7 +442,7 @@ async function bootstrap() {
     "preflightContinue": false,
     "optionsSuccessStatus": 204
   });
-  await app.listen(9000);
+  await app.listen(Number(process.env.SERVER_PORT));
 }
 bootstrap();
 
@@ -639,7 +643,7 @@ async findAllPagedByCompany(company: string, page: number = 0, limit: number = 8
 ```
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Connection } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Order } from '../entity/order.entity';
 import { build_base_creation, build_details, build_edition, build_state } from '../entity/order.builders';
 import { OrderDTO } from '../entity/order.dto';
@@ -651,7 +655,7 @@ export class OrderService {
   constructor(
     @InjectRepository(Order)
     private repo: Repository<Order>,
-    private connection: Connection,
+    private connection: DataSource,
     private gfService: GenerateFileServiceService
   ) {}
 
@@ -720,7 +724,7 @@ export class OrderService {
     let newOrder = order;
     const queryRunner = this.connection.createQueryRunner();
   
-    await queryRunner.connect();
+    // await queryRunner.connect(); // Not neccesary since Connection change to DataSource
     await queryRunner.startTransaction();
     try {
       let orderCreated = await queryRunner.manager.save(order);

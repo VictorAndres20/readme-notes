@@ -103,8 +103,8 @@ import Orders from './orders';
 import Departures from './departures';
 
 const MODULES = {
-    orders: <Orders />,
-    departures: <Departures />
+    "orders": <Orders />,
+    "departures": <Departures />
 }
 
 const AppModules = () => {

@@ -185,26 +185,38 @@ out
 
 # React + Electron
 
-1. Install electron
-```
-npm i -D electron@latest
-```
-
-2. Create react app
+1. Create react app
 npx create-react-app electron-react
 cd electron-react
 ```
 
-3. Install electron in react app
+2. Install electron in react app
 ```
-cd electron-react
+npm i -D electron@latest
+```
+**or**
+```
+npm i -D electron@18.2.0
+```
+
+3. Install electron builder in react app
+```
 npm install --save-dev electron electron-builder
+```
+**or**
+```
+npm install --save-dev electron@18.2.0 electron-builder@23.0.3
 ```
 
 4. Install some other develop libraries
 ```
 npm install --save-dev wait-on concurrently
 npm install electron-is-dev
+```
+**or**
+```
+npm install --save-dev wait-on@6.0.1 concurrently@7.1.0
+npm install electron-is-dev@2.0.0
 ```
 
 5. Create new files in public/ folder called electron.js and preload.js
@@ -338,6 +350,20 @@ This ensures Webpack/Babel will only add the polyfills and features we strictly 
 10. Run app with 
 ```
 npm run electron-dev
+```
+
+**React 18.1.0 > Issue**
+[0] Failed to compile.
+[0] 
+[0] ./src/App.js
+[0]   Line 6:    'React' must be in scope when using JSX  react/react-in-jsx-scope
+
+Solution:
+In js files need React import:
+For example in this case, need React import in App.js
+```
+import React from 'react';
+// All code
 ```
 
 **Windows SO issue**
