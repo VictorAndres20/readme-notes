@@ -478,7 +478,7 @@ Icon getIconFromStr(String iconKey) => Icon(iconsData[iconKey], color: Colors.bl
 1. Create Modules Widgets in lib/src/modules
 In this examples, created 3 modules. Home, Alerts, Avatars. As StatelessWidgets.
 
-2. Create lib/src/routes/app_routes.dart
+2. Create lib/src/_config/app_routes.dart
 ```
 import 'package:flutter/material.dart';
 
@@ -503,23 +503,23 @@ MaterialPageRoute getNotFoundModule(BuildContext context) {
 
 ```
 
-3. Create lib/src/App.dart
+3. Create lib/src/app.dart
 ```
 import 'package:flutter/material.dart';
 
-import 'package:componentsTemplateFlutter/src/routes/app_routes.dart';
+import 'package:pcat/src/_config/app_routes.dart';
 
 class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Components Template App',
-      debugShowCheckedModeBanner: false,
-      initialRoute: "/",
-      routes: getApplicationRoutes(),
-      onGenerateRoute: ( RouteSettings settings ) => getNotFoundModule(context)
-    );
+        debugShowCheckedModeBanner: true,
+        initialRoute: "/",
+        routes: getApplicationRoutes(),
+        onGenerateRoute: (RouteSettings settings) =>
+            getNotFoundModule(context));
   }
 }
 ```
@@ -528,10 +528,10 @@ class App extends StatelessWidget {
 ```
 import 'package:flutter/material.dart';
 
-import 'package:componentsTemplateFlutter/src/app.dart';
+import 'package:pcat/src/app.dart';
 
 void main() {
-  runApp(App());
+  runApp(const App());
 }
 ```
 
@@ -1012,6 +1012,34 @@ SizedBox(
 
 ----------------------------------------------------------------------------------------------------------
 
+# Using Grids with GridView
+```
+       Container(
+        padding: const EdgeInsets.all(10.0),
+        child: GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisExtent: 60, // Grid Heigth
+            childAspectRatio: 1.0,
+            mainAxisSpacing: 10.0,
+            crossAxisSpacing: 10.0,
+          ),
+          itemCount: 21,
+          itemBuilder: (context, index) {
+            return Container(
+              decoration: BoxDecoration(
+                border: Border.all(width: 3.0),
+              ),
+            );
+          },
+        ),
+      ),
+```
+
+----------------------------------------------------------------------------------------------------------
+
 # Image and FadeInImage Widgets
 **NOTE**
 Dont forget to register your assets in `pubspec.yaml`
@@ -1019,14 +1047,14 @@ Dont forget to register your assets in `pubspec.yaml`
 ### Image. Util with local images
 ```
 Image(
-  image: AssetImage('resources/images/logo.png'),
+  image: AssetImage('assets/images/logo.png'),
 )
 ```
 
 ### FadeInImage. Util with NetWork image
 ```
 FadeInImage(
-  placeholder: AssetImage('resources/images/loading.gif'), 
+  placeholder: AssetImage('assets/images/loading.gif'), 
   image: NetworkImage('https://www.yourtrainingedge.com/wp-content/uploads/2019/05/background-calm-clouds-747964.jpg'),
   fadeInDuration: Duration(milliseconds: 300),
 )
@@ -1118,17 +1146,17 @@ Classic Material Structure Screen
 
 # Use static resources like files.json or Images
 
-1. Create you folder resources in root package project
+1. Create you folder assets in root package project
 
 2. Add your structure
-- resources/images
-- resources/files
+- assets/images
+- assets/files
 
 3. Uncomment assets section in pubspec.yaml and register your files with absolute path
 ```
   assets:
-    - resources/image/img.png
-    - resources/files/menu.json
+    - assets/image/img.png
+    - assets/files/menu.json
 ```
 
 4. Save, detach and execute again `flutter run`
@@ -1151,7 +1179,7 @@ import 'dart:convert';
 
 class _MenuProvider{
 
-  final String pathFile = "resources/files/";
+  final String pathFile = "assets/files/";
   final String fileName = "menu.json";
   List<dynamic> options = [];
 
@@ -1170,6 +1198,60 @@ final menuProvider = new _MenuProvider();
 3. Now, you can use menuProvider.loadOptions() with FutureBuilder inside Widget
 
 
+
+----------------------------------------------------------------------------------------------------------
+
+# Set App Lanscape
+In app.dart or where MaterialApp or App is buildinng
+```
+import 'package:flutter/services.dart';
+```
+```
+class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    // Set landscape orientation
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    return MaterialApp(
+        debugShowCheckedModeBanner: true,
+        initialRoute: "/",
+        routes: getApplicationRoutes(),
+        onGenerateRoute: (RouteSettings settings) =>
+            getNotFoundModule(context));
+  }
+}
+```
+
+# Set App Portrait
+In app.dart or where MaterialApp or App is buildinng
+```
+import 'package:flutter/services.dart';
+```
+```
+class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    // Set portrait orientation
+    SystemChrome.setPreferredOrientations([
+       DeviceOrientation.portraitDown,
+       DeviceOrientation.portraitUp,
+    ]);
+    return MaterialApp(
+        debugShowCheckedModeBanner: true,
+        initialRoute: "/",
+        routes: getApplicationRoutes(),
+        onGenerateRoute: (RouteSettings settings) =>
+            getNotFoundModule(context));
+  }
+}
+```
 
 ----------------------------------------------------------------------------------------------------------
 
@@ -1274,7 +1356,7 @@ List<Widget> buildCards(double height ,List<Subscription> list) {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0),
                 child: FadeInImage(
-                  placeholder: const AssetImage("resources/images/logo1.png"),
+                  placeholder: const AssetImage("assets/images/logo1.png"),
                   image: NetworkImage(sub.getImagePath()),
                   fit: BoxFit.fitHeight,
                 ),
@@ -1511,7 +1593,7 @@ class Movie{
       return "https://cdn2.iconfinder.com/data/icons/photo-and-video/500/Landscape_moon_mountains_multiple_photo_photograph_pictury_sun-512.png";
     } else {
       return "https://image.tmdb.org/t/p/w500$posterPath";
-    }    
+    }
   }
 
 }
@@ -1626,7 +1708,7 @@ Widget buildStackSwiper({@required BuildContext context, @required List<Movie> l
         return ClipRRect(
           borderRadius: BorderRadius.circular(20.0),
           child: FadeInImage(
-            placeholder: AssetImage("resources/images/loading.gif"), 
+            placeholder: AssetImage("assets/images/loading.gif"), 
             image: NetworkImage(list[index].getPosterPath()),
             fit: BoxFit.cover,
           ),
@@ -1820,22 +1902,22 @@ class _MoviesModuleState extends State<MoviesModule>{
 **You can delete de initial test folder, create new one when you need**
 
 0. Structure
-- resources
-- resources/files
-- resources/images
+- assets
+- assets/files
+- assets/images
 - lib
 - lib/main.dart
 - lib/src/app.dart
-- lib/src/routes/app_routes.dart
 - lib/src/modules/home_module.dart
 - lib/src/widgets/AppBars/app_bar.dart
 - lib/src/widgets/Inputs/checkbox.dart
 - lib/src/widgets/Swipers/stack_swiper.dart
-- lib/src/providers/menu_provider.dart
-- lib/src/config/api.dart
+- lib/src/_providers/menu_provider.dart
+- lib/src/_config/api.dart
+- lib/src/_config/app_routes.dart
 - lib/src/_helpers/
-- lib/src/models/
-- lib/src/services/
+- lib/src/_models/
+- lib/src/_services/
 
 ----------------------------------------------------------------------------------------------------------
 
@@ -2133,7 +2215,7 @@ class _HomeDoctorModuleState extends State<HomeDoctorModule> {
                             width: (MediaQuery.of(context).size.width - 70) / 2,
                             child: const Image(
                               fit: BoxFit.cover,
-                              image: AssetImage('resources/images/logo.png'),
+                              image: AssetImage('assets/images/logo.png'),
                             ),
                           ),
                           SizedBox(

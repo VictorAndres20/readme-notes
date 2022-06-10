@@ -9,19 +9,19 @@ $ Open Android Studio and Open SDK Manager
 
 # CREATE APP
 ```
-$ sudo yarn global add react-native-cli
-```
-```
-$ sudo react-native init ProjectName 
+$ npx react-native init ProjectName 
 ```
 **OR** 
 ```
-$ sudo react-native init newproject --version react-native@0.57.8
+$ npx react-native init newproject --version react-native@0.57.8
 ```
 
 CODE WITH SERVER STARTED 
 ```
-$ sudo yarn start
+$ yarn start
+```
+```
+$ npm start
 ```
 
 # adb configure
