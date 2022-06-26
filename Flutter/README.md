@@ -1012,6 +1012,13 @@ SizedBox(
 
 ----------------------------------------------------------------------------------------------------------
 
+# Expanded to use width as percent (flex percent), max 10
+```
+https://stackoverflow.com/questions/43122113/sizing-elements-to-percentage-of-screen-width-height
+```
+
+----------------------------------------------------------------------------------------------------------
+
 # Using Grids with GridView
 ```
        Container(
@@ -2260,6 +2267,45 @@ class _HomeDoctorModuleState extends State<HomeDoctorModule> {
       ),
     );
   }
+```
+
+----------------------------------------------------------------------------------------------------------
+
+# TextField Fixed Heigth
+```
+return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5.0),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${data["id"]} - ${data["question"]}',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        TextFormField(
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            isDense: true, // ---------------------------------------------> THIS
+            contentPadding: EdgeInsets.all(8), // -------------------------> THIS
+          ),
+          initialValue: data["value"] ?? "",
+          onChanged: ((value) {
+            handleAnswerOpen(data['uuid'], data['type'], value);
+          }),
+        ),
+        const Divider(
+          height: 20,
+          thickness: 1,
+          indent: 20,
+          endIndent: 0,
+          color: Colors.black,
+        ),
+      ],
+    ),
+  );
 ```
 
 ----------------------------------------------------------------------------------------------------------
