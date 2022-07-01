@@ -578,6 +578,20 @@ export class User {
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+# When use @Column({ select: false }) and need to retrive that column in some where
+```
+  @Column({ select: false })
+  password: string
+```
+
+Use select option in repo
+```
+  findByLogin(login: string): Promise<User> {
+    return this.repo.findOne({ select: ['uuid', 'login', 'password', 'rol', 'company'] , where: { login: login } });
+  }
+```
+
+
 # Many to Many with extra fields is another entity
 
 ```

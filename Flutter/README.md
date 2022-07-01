@@ -2310,6 +2310,103 @@ return Padding(
 
 ----------------------------------------------------------------------------------------------------------
 
+# TextField changing and setting initialValue
+
+```
+import 'package:flutter/material.dart';
+import 'package:pcat/src/widgets/pcat/inputs.dart';
+
+class Open extends StatefulWidget {
+  const Open(
+      {Key? key,
+      required this.context,
+      required this.data,
+      required this.handleAnswerOpen})
+      : super(key: key);
+
+  final BuildContext context;
+  final Map<dynamic, dynamic> data;
+  final Function handleAnswerOpen;
+
+  @override
+  State<Open> createState() => _OpenState();
+}
+
+class _OpenState extends State<Open> {
+  TextEditingController _controller = TextEditingController(); // ------> THIS
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _controller.text = widget.data["value"] ?? ""; // ------> THIS
+    });
+  }
+
+  @override
+  void dispose() {
+    // Call the dispose() method of the TextEditingController
+    // here, and remember to do it before the super call, as
+    // per official documentation:
+    // https://api.flutter.dev/flutter/widgets/TextEditingController-class.html
+    _controller.dispose(); // ------> THIS
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${widget.data["id"]} - ${widget.data["question"]}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              buildPrefix(context, widget.data),
+              Expanded(
+                flex: 6,
+                child: TextField(
+                  controller: _controller, // ------> THIS
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    contentPadding: EdgeInsets.all(8),
+                  ),
+                  //initialValue: data["value"],
+                  onChanged: ((value) {
+                    widget.handleAnswerOpen(
+                        widget.data['uuid'], widget.data['type'], value);
+                  }),
+                ),
+              ),
+              buildSufix(context, widget.data),
+            ],
+          ),
+          const Divider(
+            height: 20,
+            thickness: 1,
+            indent: 20,
+            endIndent: 0,
+            color: Colors.black,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+```
+
+----------------------------------------------------------------------------------------------------------
+
 # Generate APK
 ```
 flutter clean

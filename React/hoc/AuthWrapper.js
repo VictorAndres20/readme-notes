@@ -3,6 +3,17 @@ import {getToken, getRol} from '../../utils/storage_handler';
 import {validate_route_rol} from '../../routes/protectedRoutes';
 import { Result, Button } from 'antd';
 
+/*
+To use it
+called like
+
+import AuthWrapper from './hoc/auth_wrapper';
+const AuthComponent = AuthWrapper(MainRouter);
+
+Like this create a new Component that is wrapped by AuthWarpper
+
+*/
+
 const AuthWrapper = (AuthComponent) => (
     class extends React.Component{
         render(){
