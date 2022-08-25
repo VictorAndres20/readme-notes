@@ -1031,6 +1031,75 @@ if __name__ == '__main__':
 
 ----------------------------------------------------------------------------------
 
+# SQLAlchemy entities and repos pattern
+
+Install
+```
+pip install pydantic
+pip install SQLAlchemy
+pip install python-dotenv
+```
+Postgres
+```
+pip install psycopg2-binary
+```
+
+**Create .env file in root**
+```
+DB_URI=postgresql+psycopg2://postgres:password@127.0.0.1/db_name
+```
+
+**Create Folders and config file**
+- src/model/entities
+- src/model/repos
+- src/model/config.py
+```
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, scoped_session
+from dotenv import dotenv_values
+config = dotenv_values(".env")
+
+DB_URI = config['DB_URI']
+
+
+def get_db_uri():
+    return DB_URI
+
+
+ENGINE = create_engine(get_db_uri(), echo=True, isolation_level="SERIALIZABLE")
+
+SESSION_FACTORY = scoped_session(
+    sessionmaker(bind=ENGINE, autocommit=False, expire_on_commit=False)
+)
+
+
+def get_db_session():
+    return SESSION_FACTORY
+
+
+Base = declarative_base(metadata=MetaData(schema='ks'))
+Base.query = SESSION_FACTORY.query_property()
+
+```
+
+**Entity Creation**
+src/model/entities/products
+
+```
+
+```
+
+**Repo Creation**
+src/model/repos/products_repo
+
+```
+
+```
+
+
+----------------------------------------------------------------------------------
+
 # SQLAlchemy insert many
 
 ```

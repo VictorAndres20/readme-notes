@@ -434,6 +434,34 @@ $ sudo docker exec -it <container-id> bash
 $ mongorestore --port 27017 --drop --db <DB NAME> /restore-mongo/db_name/
 $ exit
 
+## SQL Server
+```
+sudo docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Passwd123*" -p 1433:1433 --name sqlserver -d mcr.microsoft.com/mssql/server:2019-latest
+```
+
+Logs
+```
+sudo docker exec -t sqlserver cat /var/opt/mssql/log/errorlog | grep connection
+```
+
+Enter DB container
+```
+sudo docker exec -it sqlserver bash
+/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Passwd123*"
+```
+
+Create DB
+```
+CREATE DATABASE PCAT;
+SELECT Name from sys.databases;
+GO
+```
+
+Exit DB
+```
+QUIT
+```
+
 ## httpd container
 ```
 $ sudo docker run -dit --name vitolo_apache --restart always -v /local/path:/usr/local/apache2/htdocs/ -p 9090:80 httpd:2.4
