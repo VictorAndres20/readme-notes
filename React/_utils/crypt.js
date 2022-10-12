@@ -1,3 +1,4 @@
+// npm install crypto-js
 import CryptoJS from 'crypto-js';
 
 const PRHASE = 'AjksYut56uYhkbttj896KJ6GHrfTe4D';
