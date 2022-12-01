@@ -484,6 +484,24 @@ class ByteReader:
 
 ----------------------------------------------------------------------------------
 
+# Create enums
+```
+from enum import Enum
+
+
+class KeyboardEvents(Enum):
+    PRESS = 'press'
+    TYPE = 'type'
+
+```
+
+To use it is like
+```
+KeyboardEvents.PRESS.value
+```
+
+----------------------------------------------------------------------------------
+
 # ORM peewee
 
 1. Install pewee
