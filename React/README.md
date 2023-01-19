@@ -104,7 +104,8 @@ import Departures from './departures';
 
 const MODULES = {
     "orders": <Orders />,
-    "departures": <Departures />
+    "departures": <Departures />,
+    [APP_ROUTES.list_sample.path.replace("/", "")]: <SampleInboxModule />, //to use properties values like routes
 }
 
 const AppModules = () => {
