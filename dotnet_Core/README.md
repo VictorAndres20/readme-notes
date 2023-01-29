@@ -1,4 +1,20 @@
-# Install Sdk 2.2 in Ubuntu 16.06
+# Install Sdk 
+https://dotnet.microsoft.com/en-us/download
+
+# INstall Sdk 6.0 on Ubuntu 18.04
+```
+wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt-get update
+sudo apt-get autoremove
+sudo apt-get install -y dotnet-sdk-6.0
+sudo apt-get update
+sudo apt-get autoremove
+sudo apt-get install -y aspnetcore-runtime-6.0
+```
+
+# Install Sdk 2.2 on Ubuntu 16.06
 https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install
 1. $ sudo wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
 2. $ sudo dpkg -i packages-microsoft-prod.deb
@@ -9,7 +25,7 @@ https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install
 Once you've installed, open a new terminal and run the following command
 6. $ dotnet
 
-# Install Sdk 2.1 in Ubuntu 16.06
+# Install Sdk 2.1 on Ubuntu 16.06
 https://dotnet.microsoft.com/download/linux-package-manager/ubuntu16-04/sdk-2.1.505
 1. $ sudo wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
 2. $ sudo dpkg -i packages-microsoft-prod.deb
@@ -20,7 +36,18 @@ https://dotnet.microsoft.com/download/linux-package-manager/ubuntu16-04/sdk-2.1.
 Once you've installed, open a new terminal and run the following command
 6. $ dotnet
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
+
+# Create web API
+https://learn.microsoft.com/en-us/aspnet/core/tutorials/first-web-api?view=aspnetcore-7.0&tabs=visual-studio-code
+```
+dotnet new webapi -o MyApi
+cd MyApi
+dotnet add package Microsoft.EntityFrameworkCore.InMemory
+code -r ../MyApi
+dotnet dev-certs https --trust
+dotnet run
+```
 
 # Create console app
 https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install
@@ -51,13 +78,13 @@ $ dotnet run
 2. $ dotnet --list-runtimes
 3. https://docs.microsoft.com/en-us/dotnet/core/versions/selection
 
-#############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Tool for asp.net code generator
 $ dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
 $ dotnet tool install --global dotnet-aspnet-codegenerator
 
-#############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Target Runtimes
 https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
@@ -68,7 +95,7 @@ on project-name.csproj, add inside project tag
     +<RuntimeIdentifiers>win10-x64;osx.10.12-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
-#############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Install Packages with nuget .NET CLI
 $ dotnet add package Microsoft.EntityFrameworkCore --version 2.2.3
@@ -76,7 +103,7 @@ $ dotnet add package Microsoft.EntityFrameworkCore --version 2.2.3
 # Uninstall Packages with nuget .NET CLI
 $ dotnet remove package Microsoft.EntityFrameworkCore
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Entity Framework
 http://www.entityframeworktutorial.net/efcore/entity-framework-core.aspx
@@ -87,7 +114,56 @@ $ dotnet add package Microsoft.EntityFrameworkCore --version 2.2.3
 # Install for SQL SERVER with nuget .NET CLI
 $ dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 2.2.3
 
-############################################################################################################
+----------
+
+# API Cors problem
+in Program.cs add
+```
+var  AllowAllOrigins = "_allowAllOrigins"; //<======== THIS <========
+var builder = WebApplication.CreateBuilder(args);
+
+//<======== THIS <========
+builder.Services.AddCors(options => 
+{
+    options.AddPolicy(name: AllowAllOrigins,
+                      policy  =>
+                      {
+                          policy.WithOrigins("*")
+                                                .AllowAnyHeader()
+                                                .AllowAnyMethod();
+                      });
+});
+//<======== THIS <========
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseCors(AllowAllOrigins);//<======== THIS <========
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+
+```
+
+------------------------------------------------------------------------------------------------------------
 
 # Generate Models and Controllers
 https://docs.microsoft.com/en-us/aspnet/core/tutorials/first-mvc-app/adding-model?view=aspnetcore-2.2&tabs=visual-studio-mac
@@ -276,13 +352,13 @@ https://www.connectionstrings.com/sql-server/
 5. Create Controller 
 $ dotnet aspnet-codegenerator controller -name FacturasController -m Facturas -dc FacturacionContext --relativeFolderPath Controllers --useDefaultLayout --referenceScriptLibraries
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Redirect from Controller to other controller view
 
 return RedirectToAction("Index","Usuario");
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # For each on view using DataView
 @using NameApp.Models
@@ -308,7 +384,7 @@ return RedirectToAction("Index","Usuario");
 	}
 </tbody>
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Getting form data with IFormCollection
 
@@ -324,7 +400,7 @@ public IActionResult CrearEstudiante(IFormCollection form)
    return View("Estudiantes");
 }
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Some queries using Entity Framework Core
 
@@ -334,7 +410,7 @@ ViewData["estudiantes"]=_context.Usuario.Where(u => u.cod_t_usuario==2).Include(
 # Order by
 
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Http.Session
 https://docs.microsoft.com/en-us/aspnet/core/fundamentals/app-state?view=aspnetcore-2.2
@@ -460,7 +536,7 @@ SessionHandler.createSession(HttpContext,usuario.nom_usuario,usuario.id_usuario)
 SessionHandler.removeSession(HttpContext);
 
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
 
 # Get Client IP
 1. Startup.cs
@@ -486,4 +562,9 @@ using Microsoft.AspNetCore.Http;
 ...
 		  _accessor.HttpContext.Connection.RemoteIpAddress.ToString();
 
-############################################################################################################
+------------------------------------------------------------------------------------------------------------
+
+# Deploy app in IIS
+https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-7.0
+https://www.youtube.com/watch?v=Q_A_t7KS5Ss&ab_channel=ASP.NETMVC
+

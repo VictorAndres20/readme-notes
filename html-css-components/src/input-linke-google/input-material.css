@@ -1,0 +1,59 @@
+.vinput-contain{
+    position: relative;
+}
+
+.vinput{          
+    width: 100%;
+    height: 24px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: transparent;
+}
+.vinput:focus{
+    outline: none;
+    border-color: #4096ff;
+}
+.vinput:hover{
+    outline: none;
+    border-color: #4096ff;
+}
+.vinput:focus + .placeholder-text .text, :not(input[value=""]) + .placeholder-text .text{
+    background-color: white;
+    font-size: 10px;
+    color: rgba(0, 0, 0, 0.88);
+    transform: translate(0, -90%);
+}
+.vinput:focus + .placeholder-text .text{
+    border-color: #4096ff;
+    color: #4096ff;
+}
+.placeholder-text{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border: 1px solid transparent;
+    background-color: transparent;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+.text{
+    font-size: 14px;
+    padding: 0 .5rem;
+    background-color: transparent;
+    transform: translate(0);
+    color: rgba(0, 0, 0, 0.88);
+    transition: transform 0.15s ease-out, font-size 0.15s ease-out, background-color 0.2s ease-out, color 0.15s ease-out;
+}
+.vinput, .placeholder-text{
+    font-size: 14px;
+    padding: 0 8px;
+}
+
+@media (max-width: 40rem) {
+    .vinput{
+        width: 70vw;
+    }
+}
