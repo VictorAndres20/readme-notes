@@ -705,7 +705,39 @@ $ sudo npm install mdbreact --save
 
 # If you want to deploy on main URL rename or use project_folder to ROOT
 
+## Deploy on IIS
 
+0. In React App, create 'web.config' file in 'public folder'
+```
+<?xml version="1.0"?>
+<configuration>
+ <system.webServer>
+ <rewrite>
+ <rules>
+ <rule name="React Routes" stopProcessing="true">
+ <match url=".*" />
+ <conditions logicalGrouping="MatchAll">
+ <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+ <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+ <add input="{REQUEST_URI}" pattern="^/(api)" negate="true" />
+ </conditions>
+ <action type="Rewrite" url="/" />
+ </rule>
+ </rules>
+ </rewrite>
+ </system.webServer>
+</configuration>
+```
+
+1. Install URL Rewrite module
+https://www.iis.net/downloads/microsoft/url-rewrite
+
+2. Create App in IIS
+Enter IIS on Windows with 
+```
+Windows + R
+inetmgr
+```
 
 -------------------------------------------------------------------------------------------------------------------------------
 
