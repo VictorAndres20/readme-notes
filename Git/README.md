@@ -48,6 +48,28 @@ $ sudo git pull origin master
 
 -------------------------------------------------------------------------------------------------
 
+# Merge specific commit
+merge [COMMIT ID]
+```
+$ sudo git fetch
+$ sudo git checkout [branch]
+$ sudo git merge 440f087
+```
+
+
+-------------------------------------------------------------------------------------------------
+
+# Restore specific commit
+reset --hard [COMMIT ID]
+```
+[OPTIONAL RECOMMENDED] $ sudo git checkout -b [NEW-BRANCH-TO-STORE-RESET]
+$ sudo git reset --hard 360421f
+[OPTIONAL delete untracked new files] $ sudo git clean -fd
+```
+
+
+-------------------------------------------------------------------------------------------------
+
 
 # Change message commit
 ```
