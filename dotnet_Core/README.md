@@ -564,6 +564,13 @@ using Microsoft.AspNetCore.Http;
 
 ------------------------------------------------------------------------------------------------------------
 
+# Build for deploy or publish
+```
+dotnet publish
+```
+
+------------------------------------------------------------------------------------------------------------
+
 # Deploy app in IIS
 https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/iis/?view=aspnetcore-7.0
 https://www.youtube.com/watch?v=Q_A_t7KS5Ss&ab_channel=ASP.NETMVC

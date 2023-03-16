@@ -448,6 +448,24 @@ class IMAPReader(Mail):
 
 ```
 
+# Read Excel from path as DataFrame and convert to list of dict of indexes
+
+```
+def read_excel_to_list_dict(path_file: str) -> List:
+    list_dict = []
+
+    if path_file.endswith('.xlsx'):
+        xls = pd.ExcelFile(path_file, engine='openpyxl')
+    else:
+        xls = pd.ExcelFile(path_file)
+    for sheet_name in xls.sheet_names:
+        df = pd.read_excel(xls, sheet_name=sheet_name, dtype=str)
+        df = df.fillna("")
+        # df = xls.parse(sheet_name)
+        list_dict.append(df.to_dict('index'))
+
+    return list_dict
+```
 
 ----------------------------------------------------------------------------------
 
@@ -476,7 +494,7 @@ class ByteReader:
         if extension == 'xlsx':
             df = pd.read_excel(toread, engine='openpyxl')
         else:
-            df = pd.read_excel(toread)
+            df = pd.read_excel(toread, dtype=str)
         df = df.fillna('')
         print(df.head())
         return df

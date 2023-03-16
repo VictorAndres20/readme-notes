@@ -65,13 +65,11 @@ import AppModules from './modules/app_modules';
 function App() {
   return (
     <Router>
-      <Fragment>
         <Switch>
           <Route exact path={MAIN_ROUTES.login} element={<Login />} />
           <Route exact path={`${MAIN_ROUTES.app_modules}/:module`} element={<AppModules />} />
           <Route path='*' element={<NotFound />} />
         </Switch>
-      </Fragment>
     </Router>
   );
 }
@@ -111,7 +109,7 @@ const MODULES = {
 const AppModules = () => {
     let { module } = useParams();
     return (
-        <Fragment>
+        <>
             <nav>
                 <ul>
                     <li>
@@ -123,7 +121,7 @@ const AppModules = () => {
                 </ul>
             </nav>
             {renderModule(module)}
-        </Fragment>
+        </>
     );
 }
 

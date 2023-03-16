@@ -714,6 +714,37 @@ RUN service apache2 restart
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+
+**This adding SoapClient extension**
+```
+FROM php:7.3-apache
+ADD ./php-apps /www/html
+ADD vhost.conf /etc/apache2/sites-available/000-default.conf
+# Try without sendmail
+RUN apt-get update && apt-get install -y libxml2-dev
+RUN /usr/local/bin/docker-php-ext-install soap
+RUN php -m
+RUN chown -R www-data:www-data /www/html \
+    && a2enmod rewrite
+RUN service apache2 restart
+```
+
+2. Create vhost.conf
+```
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    ServerName localhost
+    DocumentRoot /www/html
+
+    <Directory "/www/html">
+	Options Indexes FollowSymLinks MultiViews
+        AllowOverride all
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
 ```
 
 3. Build image from docker-file
