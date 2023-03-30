@@ -345,12 +345,16 @@ This ensures Webpack/Babel will only add the polyfills and features we strictly 
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"" <--- THIS>
+    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"" <--- THIS>
   },
 ...
 }
 ```
-10. Run app with 
+10. Create .env file in root project folder
+```
+BROWSER=none
+```
+11. Run app with 
 ```
 npm run electron-dev
 ```
