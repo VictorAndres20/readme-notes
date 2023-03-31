@@ -36,8 +36,116 @@ npm exec webpack serve
 
 ----------------------------------------------------------------------------------------
 
-## Federation (Integration)
+## intall webpack modules required
+**REMOTES**
+```
+npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 html-webpack-plugin@5.5.0
+```
 
+**CONTAINER**
+```
+npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 html-webpack-plugin@5.5.0 nodemon
+```
+
+----------------------------------------------------------------------------------------
+
+## Federation (Integration)
+- Designate an app as HOST (container) and other as REMOTE (Features)
+- In the REMOTE, decide which modules (files) you want to make available to other projects
+- Set up Module Federation plugin to expose those files (in webpack.config.js)
+- In the HOST, decide which files you want to get from the remote
+- Set up Module Federation plugin to fetch those files (in webpack.config.js)
+- In the HOST, create (or refactor) entry point (src/index.js) to load asynchronously
+- In the HOST, import whatever files you need from the remote
+
+Lets go
+
+- **Set up Module Federation plugin to expose those files (in webpack.config.js)**
+app/featureX/webpack.config.js
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+/** FOR FEDERATION */
+const ModuleFerationPlugin = require('webpack/lib/container/ModuleFederationPlugin'); ----> THIS
+
+module.exports = {
+    mode: 'development',
+    devServer: {
+        port: 8081,
+    },
+    plugins: [
+        /** This for FEDERATION */  ----> THIS FEDERATION START
+        new ModuleFerationPlugin({
+            name: 'featureX', // Name of module that is going to be fetch by HOST
+            filename: 'remoteEntry.js', // name of file that is going to be fetch by HOST
+            exposes: {
+                './FeatureXIndex': './src/index' // Name of file called in bootstrap container files :and: ource code location to be exposed
+            },
+        }),  ----> THIS FEDERATION END
+        // For automatically imports in public/index.html
+        new HtmlWebpackPlugin({
+            template: './public/index.html',
+        }),
+    ],
+};
+```
+
+- **Set up Module Federation plugin to fetch those files (in webpack.config.js)**
+app/container/webpack.config.js
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+/** FOR FEDERATION */
+const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
+
+module.exports = {
+    mode: 'development',
+    devServer: {
+        port: 8080,
+    },
+    plugins: [
+        /** FOR FEDERATION */
+        new ModuleFederationPlugin({
+            name: 'container',
+            remotes: {
+                featureX: 'featureX@http://localhost:8081/remoteEntry.js', // REMOTE microfrontend fetched using configurations in his webpack.config.js [name]@[urlexposed]:[port]/[fileName]
+            },
+        }),
+        new HtmlWebpackPlugin({
+            template: './public/index.html'
+        })
+    ],
+};
+```
+
+- **In the HOST, create (or refactor) entry point (src/index.js) to load asynchronously**
+app/container/src/index.js
+```
+import('./bootstrap');
+```
+
+app/container/src/bootstrap.js
+```
+/** Import all microfrontends REMOTES configured in webpack.config.js */
+import 'products/FeatureXIndex'; // Microfrontend import. structure with configurations from REMOTES weback.config.js [containerRemoteName]/[remoteExposeKey]
+```
+
+- **In the HOST, import whatever files you need from the remote**
+So, we have soruce code of mmicrofrontends, so we need to import them somewhere in the HTML.
+So we need to create all divs that microfrontends SPA try to render.
+
+app/container/public/index.html
+```
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <div>Soy container!!</div>
+	<!-- NEW FOR microfrontend feature1 and thats the same div renders in his own SPA -->
+        <!-- Be CAREFULL not to call this equals to remote name -->
+        <div id="feature_x_root"></div>
+    </body>
+</html>
+```
 
 ----------------------------------------------------------------------------------------
 
@@ -50,6 +158,7 @@ npm exec webpack serve
 - app/container/public
 - app/container/public/index.html
 - app/container/src
+- app/container/src/bootstrap.js
 - app/container/src/index.js
 - app/container/webpack.config.js
 
@@ -129,7 +238,7 @@ app/featureX/public/index.html
     <head>
     </head>
     <body>
-        <div id="products"></div>
+        <div id="feature_x_root"></div>
     </body>
 </html>
 ```
@@ -245,6 +354,93 @@ Package.json can be
 - In the HOST, create (or refactor) entry point (src/index.js) to load asynchronously
 - In the HOST, import whatever files you need from the remote
 
+Lets go
+
+- **Set up Module Federation plugin to expose those files (in webpack.config.js)**
+app/featureX/webpack.config.js
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+/** FOR FEDERATION */
+const ModuleFerationPlugin = require('webpack/lib/container/ModuleFederationPlugin'); ----> THIS
+
+module.exports = {
+    mode: 'development',
+    devServer: {
+        port: 8081,
+    },
+    plugins: [
+        /** This for FEDERATION */  ----> THIS FEDERATION START
+        new ModuleFerationPlugin({
+            name: 'featureX', // Name of module that is going to be fetch by HOST
+            filename: 'remoteEntry.js', // name of file that is going to be fetch by HOST
+            exposes: {
+                './FeatureXIndex': './src/index' // Name of file called in bootstrap container files :and: ource code location to be exposed
+            },
+        }),  ----> THIS FEDERATION END
+        // For automatically imports in public/index.html
+        new HtmlWebpackPlugin({
+            template: './public/index.html',
+        }),
+    ],
+};
+```
+
+- **Set up Module Federation plugin to fetch those files (in webpack.config.js)**
+app/container/webpack.config.js
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+/** FOR FEDERATION */
+const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
+
+module.exports = {
+    mode: 'development',
+    devServer: {
+        port: 8080,
+    },
+    plugins: [
+        /** FOR FEDERATION */
+        new ModuleFederationPlugin({
+            name: 'container',
+            remotes: {
+                featureX: 'featureX@http://localhost:8081/remoteEntry.js', // REMOTE microfrontend fetched using configurations in his webpack.config.js [name]@[urlexposed]:[port]/[fileName]
+            },
+        }),
+        new HtmlWebpackPlugin({
+            template: './public/index.html'
+        })
+    ],
+};
+```
+
+- **In the HOST, create (or refactor) entry point (src/index.js) to load asynchronously**
+app/container/src/index.js
+```
+import('./bootstrap');
+```
+
+app/container/src/bootstrap.js
+```
+/** Import all microfrontends REMOTES configured in webpack.config.js */
+import 'products/FeatureXIndex'; // Microfrontend import. structure with configurations from REMOTES weback.config.js [containerRemoteName]/[remoteExposeKey]
+```
+
+- **In the HOST, import whatever files you need from the remote**
+So, we have soruce code of mmicrofrontends, so we need to import them somewhere in the HTML.
+So we need to create all divs that microfrontends SPA try to render.
+
+app/container/public/index.html
+```
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <div>Soy container!!</div>
+	<!-- NEW FOR microfrontend feature1 and thats the same div renders in his own SPA -->
+        <div id="feature_x_root"></div>
+    </body>
+</html>
+```
 
 
 ----------------------------------------------------------------------------------------
