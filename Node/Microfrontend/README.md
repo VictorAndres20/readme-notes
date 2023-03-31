@@ -78,8 +78,11 @@ module.exports = {
             name: 'featureX', // Name of module that is going to be fetch by HOST
             filename: 'remoteEntry.js', // name of file that is going to be fetch by HOST
             exposes: {
-                './FeatureXIndex': './src/index' // Name of file called in bootstrap container files :and: ource code location to be exposed
+                './FeatureXIndex': './src/bootstrap' // Name of file called in bootstrap container files :and: ource code location to be exposed
             },
+            shared: [ // Share node imports that this microfrentend has and maybe other microfrontends have!
+                'faker'
+            ],
         }),  ----> THIS FEDERATION END
         // For automatically imports in public/index.html
         new HtmlWebpackPlugin({
@@ -125,7 +128,10 @@ import('./bootstrap');
 app/container/src/bootstrap.js
 ```
 /** Import all microfrontends REMOTES configured in webpack.config.js */
-import 'products/FeatureXIndex'; // Microfrontend import. structure with configurations from REMOTES weback.config.js [containerRemoteName]/[remoteExposeKey]
+import { mainMount as featureXMount } from 'products/FeatureXIndex'; // Microfrontend import. structure with configurations from REMOTES weback.config.js [containerRemoteName]/[remoteExposeKey]
+
+// Mount featureX calling the funtion mainMount 
+featureXMount('feature_x_root_mount');
 ```
 
 - **In the HOST, import whatever files you need from the remote**
@@ -141,8 +147,7 @@ app/container/public/index.html
     <body>
         <div>Soy container!!</div>
 	<!-- NEW FOR microfrontend feature1 and thats the same div renders in his own SPA -->
-        <!-- Be CAREFULL not to call this equals to remote name -->
-        <div id="feature_x_root"></div>
+        <div id="feature_x_root_mount"></div>
     </body>
 </html>
 ```
@@ -166,14 +171,18 @@ app/container/public/index.html
 - app/feature1/public
 - app/feature1/public/index.html
 - app/feature1/src
+- app/feature1/src/bootstrap.js
 - app/feature1/src/index.js
+- app/feature1/src/...
 - app/feature1/webpack.config.js
 
 - app/feature2/
 - app/feature2/public
 - app/feature2/public/index.html
 - app/feature2/src
+- app/feature2/src/bootstrap.js
 - app/feature2/src/index.js
+- app/feature2/src/...
 - app/feature2/webpack.config.js
 
 - app/feature.../
@@ -222,7 +231,29 @@ module.exports = {
 
 **feature scr folder**
 app/featureX/src/
-Represents the JS SPA application 
+Represents the JS SPA application
+
+app/featureX/src/bootstrap.js
+```
+import faker from 'faker';
+
+const mainMount = (root_element_id) => {
+    ... SPA APPLICATION CODE ...
+    ... SPA APPLICATION CODE ...
+    ... SPA APPLICATION CODE ...
+
+    const root_element = document.getElementById(root_element_id);
+    if(root_element) root_element.innerHTML = products;
+}
+
+/** For isolation microfrontend */
+if(process.env.NODE_ENV === 'development'){
+    mainMount('products_root');
+}
+
+/** Export function for render microfrontend in container whenever and wherever you want*/
+export { mainMount }
+``` 
 
 **feature public folder**
 app/featureX/public/
@@ -374,8 +405,11 @@ module.exports = {
             name: 'featureX', // Name of module that is going to be fetch by HOST
             filename: 'remoteEntry.js', // name of file that is going to be fetch by HOST
             exposes: {
-                './FeatureXIndex': './src/index' // Name of file called in bootstrap container files :and: ource code location to be exposed
+                './FeatureXIndex': './src/bootstrap' // Name of file called in bootstrap container files :and: ource code location to be exposed
             },
+            shared: [ // Share node imports that this microfrentend has and maybe other microfrontends have!
+                'faker'
+            ],
         }),  ----> THIS FEDERATION END
         // For automatically imports in public/index.html
         new HtmlWebpackPlugin({
@@ -421,7 +455,10 @@ import('./bootstrap');
 app/container/src/bootstrap.js
 ```
 /** Import all microfrontends REMOTES configured in webpack.config.js */
-import 'products/FeatureXIndex'; // Microfrontend import. structure with configurations from REMOTES weback.config.js [containerRemoteName]/[remoteExposeKey]
+import { mainMount as featureXMount } from 'products/FeatureXIndex'; // Microfrontend import. structure with configurations from REMOTES weback.config.js [containerRemoteName]/[remoteExposeKey]
+
+// Mount featureX calling the funtion mainMount 
+featureXMount('feature_x_root_mount');
 ```
 
 - **In the HOST, import whatever files you need from the remote**
@@ -437,7 +474,7 @@ app/container/public/index.html
     <body>
         <div>Soy container!!</div>
 	<!-- NEW FOR microfrontend feature1 and thats the same div renders in his own SPA -->
-        <div id="feature_x_root"></div>
+        <div id="feature_x_root_mount"></div>
     </body>
 </html>
 ```
