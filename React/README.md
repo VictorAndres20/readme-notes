@@ -68,6 +68,11 @@ function App() {
         <Switch>
           <Route exact path={MAIN_ROUTES.login} element={<Login />} />
           <Route exact path={`${MAIN_ROUTES.app_modules}/:module`} element={<AppModules />} />
+          {
+            ['/', '/info'].map((path, key) =>(
+              <Route exact path={`${path}`} element={<RemoteLandpage />} key={`route_${key}`} />
+            ))
+          }
           <Route path='*' element={<NotFound />} />
         </Switch>
     </Router>

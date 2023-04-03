@@ -39,12 +39,45 @@ npm exec webpack serve
 ## intall webpack modules required
 **REMOTES**
 ```
-npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 html-webpack-plugin@5.5.0
+npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
 ```
 
 **CONTAINER**
 ```
-npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 html-webpack-plugin@5.5.0 nodemon
+npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
+```
+
+----------------------------------------------------------------------------------------
+
+## Shared dependencies from package json
+```
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+/** FOR FEDERATION */
+const ModuleFerationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
+/** Import package.json */
+const packageJson = require('./package.json');
+
+module.exports = {
+    mode: 'development',
+    devServer: {
+        port: 8081,
+    },
+    plugins: [
+        /** This for FEDERATION */
+        new ModuleFerationPlugin({
+            name: 'featureX', // Name of module that is going to be fetch by HOST
+            filename: 'remoteEntry.js', // name of file that is going to be fetch by HOST
+            exposes: {
+                './FeatureXIndex': './src/bootstrap' // Name of file called in bootstrap container files :and: ource code location to be exposed
+            },
+            shared: packageJson.dependencies, // SHARE DEPENDENCIES FROM package.json
+        }),
+        // For automatically imports in public/index.html
+        new HtmlWebpackPlugin({
+            template: './public/index.html',
+        }),
+    ],
+}; 
 ```
 
 ----------------------------------------------------------------------------------------
