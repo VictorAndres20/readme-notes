@@ -146,6 +146,48 @@ function NotFound() {
   
 export default AppModules;
 ```
+-------------------------------------------------------------------------------------------------------------------------------
+
+# React Router Dom V6 with History
+
+https://stackoverflow.com/questions/70646421/how-to-listen-for-route-change-in-react-router-dom-v6
+
+```
+const CustomRouter = ({ history, ...props }) => {
+  const [state, setState] = useState({
+    action: history.action,
+    location: history.location
+  });
+
+  useLayoutEffect(() => history.listen(setState), [history]);
+
+  return (
+    <Router
+      {...props}
+      location={state.location}
+      navigationType={state.action}
+      navigator={history}
+    />
+  );
+};
+```
+
+```
+const history = createBrowserHistory();
+export default history;
+```
+
+```
+import CustomRouter from '../CustomRouter';
+import history from '../myHistory';
+```
+
+```
+<CustomRouter history={history}>
+  ....
+</CustomRouter>
+```
+
 
 -------------------------------------------------------------------------------------------------------------------------------
 
