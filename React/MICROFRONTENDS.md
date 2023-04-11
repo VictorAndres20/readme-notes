@@ -4,7 +4,7 @@
 ## Remotes Setup
 **Execute npx create-react-app**
 
-**Intall webpack and bable deps**
+**Intall webpack and babel deps**
 After execute npx create-react-app, install devDependencies
 ```
 npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
@@ -49,8 +49,6 @@ webpack.dev.js
 ```
 const { merge } = require('webpack-merge');
 const commonConfig = require('./webpack.common');
-const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
-const packageJson = require('./package.json');
 
 const devConfig = {
     mode: 'development',
@@ -124,7 +122,6 @@ import('./bootstrap');
 ```
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
@@ -175,7 +172,7 @@ npm run start
 
 **Execute npx create-react-app**
 
-**Intall webpack and bable deps**
+**Intall webpack and babel deps**
 After execute npx create-react-app, install devDependencies
 ```
 npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
@@ -219,8 +216,6 @@ webpack.dev.js
 ```
 const { merge } = require('webpack-merge');
 const commonConfig = require('./webpack.common');
-const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
-const packageJson = require('./package.json');
 
 const devConfig = {
     mode: 'development',
@@ -268,7 +263,6 @@ src/bootstrap.js
 ```
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
