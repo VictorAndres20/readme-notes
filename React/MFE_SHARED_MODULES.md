@@ -1,4 +1,6 @@
-# Microfrontends with React
+# Microfrontends with React sharing only module components from remotes to use it in Container
+**Run-time federation only sharing modules**
+**This make your routing to be only in Container**
 ----------------------------------------------------------------------------------------
 
 ## Remotes Setup
@@ -10,6 +12,7 @@ After execute npx create-react-app, install devDependencies
 npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
 npm install @babel/core@^7.12.3 @babel/plugin-transform-runtime@^7.12.3 @babel/preset-env@^7.12.3 @babel/preset-react@^7.12.3 --save-dev
 npm install babel-loader@^8.1.0 clean-webpack-plugin@^3.0.0 css-loader@^5.0.0 style-loader@^2.0.0 --save-dev
+npm install url-loader file-loader --save-dev
 ```
 
 **Create webpack config files**
@@ -32,13 +35,29 @@ module.exports = {
                         plugins: ['@babel/plugin-transform-runtime'],
                     }
                 }
-            }
+            },
+            {
+                test: /\.css$/,
+                use: ["style-loader", "css-loader"],
+            },
+            {
+                test: /\.(jpe?g|gif|png|svg)$/i,
+                use: [
+                {
+                  loader: 'url-loader',
+                  options: {
+                    limit: 10000
+                  }
+                }
+              ]
+            },
         ]
     },
     plugins: [
         new HtmlWebPackPlugin({
             template: './public/index.html',
             favicon: "./public/favicon.ico",
+            publicPath: '/',
         }),
     ]
 };
@@ -117,35 +136,6 @@ src/index.js
 import('./bootstrap');
 ```
 
-**Create and export mount function in bootstrap file**
-```
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-
-const mainMount = (root_element_id) => {
-    const root_element = document.getElementById(root_element_id);
-    if(root_element){
-        const root = ReactDOM.createRoot(root_element);
-        root.render(
-            <React.StrictMode>
-                <App />
-            </React.StrictMode>
-        );
-        
-        // If you want to start measuring performance in your app, pass a function
-        // to log results (for example: reportWebVitals(console.log))
-        // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-        reportWebVitals();
-    }
-}
-
-if(process.env.NODE_ENV === 'development') mainMount('featurex-root');
-
-export { mainMount };
-```
-
 **Change start and build script in package.json file**
 package.json
 ```
@@ -177,6 +167,7 @@ After execute npx create-react-app, install devDependencies
 npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
 npm install @babel/core@^7.12.3 @babel/plugin-transform-runtime@^7.12.3 @babel/preset-env@^7.12.3 @babel/preset-react@^7.12.3 --save-dev
 npm install babel-loader@^8.1.0 clean-webpack-plugin@^3.0.0 css-loader@^5.0.0 style-loader@^2.0.0 --save-dev
+npm install url-loader file-loader --save-dev
 ```
 
 **Create webpack config files**
@@ -199,13 +190,29 @@ module.exports = {
                         plugins: ['@babel/plugin-transform-runtime'],
                     }
                 }
-            }
+            },
+            {
+                test: /\.css$/,
+                use: ["style-loader", "css-loader"],
+            },
+            {
+                test: /\.(jpe?g|gif|png|svg)$/i,
+                use: [
+                {
+                  loader: 'url-loader',
+                  options: {
+                    limit: 10000
+                  }
+                }
+              ]
+            },
         ]
     },
     plugins: [
         new HtmlWebPackPlugin({
             template: './public/index.html',
             favicon: "./public/favicon.ico",
+            publicPath: '/',
         }),
     ]
 };
@@ -306,6 +313,65 @@ npm run start
 ----------------------------------------------------------------------------------------
 
 ## Integration Remotes Setup
+**Develop your app. routing with react-router-dom V6**
+
+**Create modules with components and paths to export them, like this**
+src/modules/app_modules.js
+```
+import InfoModule from "./info";
+import MainModule from "./main";
+
+const modules = [
+    {
+        label: 'Main Module',
+        path: `/`,
+        component: MainModule,
+    },
+    {
+        label: 'Info Module',
+        path: `/info`,
+        component: InfoModule,
+    },
+];
+
+export { modules };
+```
+
+**Continue developing your app. routing with react-router-dom V6**
+Example of App.js
+```
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes as Switch,
+  Route
+} from "react-router-dom";
+import { modules } from './modules/app_modules';
+
+function App() {
+  return (
+    <Router>
+        <Switch>
+          {
+            modules.map((module, key) =>(
+              <Route exact path={`${module.path}`} element={<module.component />} key={`route_${key}`} />
+            ))
+          }
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+    </Router>
+  );
+}
+
+function NotFound() {
+  return(
+    <>Not found</>
+  );
+}
+
+export default App;
+```
+
 **Add ModuleFederationPlugin webpack.dev.js configuration for integration**
 webpack.dev.js
 ```
@@ -327,7 +393,7 @@ const devConfig = {
             name: 'featureX',
             filename: 'remoteEntry.js',
             exposes: {
-                './FeatureXIndex': './src/bootstrap',
+                './FeatureXModules': './src/modules/app_modules',
             },
             shared: packageJson.dependencies
         }),
@@ -353,7 +419,7 @@ const prodConfig = {
             name: 'featureX',
             filename: 'remoteEntry.js',
             exposes: {
-                './FeatureXIndex': './src/bootstrap',
+                './FeatureXModules': './src/modules/app_modules',
             },
             shared: packageJson.dependencies
         }),
@@ -361,13 +427,11 @@ const prodConfig = {
 };
 
 module.exports = merge(commonConfig, prodConfig);
-```
-
+``` 
 
 ----------------------------------------------------------------------------------------
 
 ## Integration Container Setup
-
 **Add ModuleFederationPlugin webpack.dev.js configuration for integration**
 webpack.dev.js
 ```
@@ -418,7 +482,7 @@ const prodConfig = {
         new ModuleFederationPlugin({
             name: 'container',
             remotes: {
-                landpage: `landpage@${remote_uri}/remoteEntry.js`,
+                featureX: `featureX@${remote_uri}/remoteEntry.js`,
             },
             shared: packageJson.dependencies,
         }),
@@ -428,25 +492,21 @@ const prodConfig = {
 module.exports = merge(commonConfig, prodConfig);
 ```
 
-
 ----------------------------------------------------------------------------------------
 
-## Use Remotes as Components in Container
-
+## Use a Remote component in Container
 ```
-import { mainMount } from 'featureX/FeatureXIndex';
 import React from 'react';
 
+/** Import modules Array with all components in Remote MFE */
+import { modules } from 'featureX/FeatureXModules';
+
 const RemoteComponent = () => {
-    const root_element = "remote-feature-x";
 
-    React.useEffect(() => {
-        mainMount(root_element);
-    },[]);
+    /** Create a Remote Component from modules Array */
+    const RemoteModuleComponent = modules[0].component;
 
-    return(
-        <div id={root_element}></div>
-    );
+    return(<RemoteModuleComponent />);
 }
 
 export default RemoteComponent;
@@ -454,243 +514,88 @@ export default RemoteComponent;
 
 ----------------------------------------------------------------------------------------
 
-## Routing in container and remotes (react router dom V6) and hisotry (History V5)
-
-#### Remotes
-**Install react router dom and history**
-```
-npm install react-router-dom history
-```
-
-**Change bootstrap.js**
+## Create a Remote router component in Container with remote modules Array
+**src/remotes/featureX/router.js**
 ```
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-// This for routing
-import { createMemoryHistory, createBrowserHistory } from 'history';
+import { Link, useParams } from 'react-router-dom';
 
-// This for routing .Add object property as parameter for routing
-const mainMount = (root_element_id, { onNavigate, initialPath, defaultHistory }) => {
-    const root_element = document.getElementById(root_element_id);
-    if(root_element){
-        // This for routing
-        const history = defaultHistory || createMemoryHistory({ initialEntries: [initialPath || '/'] });
-        if(onNavigate) history.listen(onNavigate);
+/** Import modules Array with all components in Remote MFE */
+import { modules } from 'featureX/FeatureXModules';
 
-        const root = ReactDOM.createRoot(root_element);
-        root.render(
-            <React.StrictMode>
-                {/** Add history for routing */}
-                <App history={history} />
-            </React.StrictMode>
-        );
-        reportWebVitals();
+const FeatureXRouter = () => {
+    let { module } = useParams();
 
-        //This for routing
-        return {
-            onParentNavigate({ location }) {
-                const nextPathName = location.pathname;
-                if(history.location.pathname !== nextPathName) history.push(nextPathName);
-            }
-        };
-    }
+    const MODULES = {};
+    modules.forEach(element => {
+        MODULES[element.path === '/' ? "main" :  element.path.replace("/", "")] = <element.component />;
+    });
+
+    const renderModule = () => {
+        if(module in MODULES){
+            return MODULES[module];
+        } else {
+            return <NotFound />
+        }
+    };
+
+    return (
+        <>
+            <nav>
+                <ul>
+                    {
+                        modules.map((m, key) => {
+                            return(
+                                <li key={key}>
+                                    <Link to={`/facturabot${m.path === '/' ? "/main" : m.path}`}>{m.label}</Link>
+                                </li>
+                            );
+                        })
+                    }
+                </ul>
+            </nav>
+            {renderModule()}
+        </>
+    );
+    
 }
 
-if(process.env.NODE_ENV === 'development') mainMount('featurex-root', { defaultHistory: createBrowserHistory()}); // Add object property for routing
-
-export { mainMount };
+export default FeatureXRouter;
 ```
 
-**Change App.js**
+**App.js**
 ```
-import React from "react";
-// Change BrowserRouter to unstable_HistoryRouter
+import React from 'react';
 import {
-  unstable_HistoryRouter as Router,
+  BrowserRouter as Router,
   Routes as Switch,
   Route
 } from "react-router-dom";
-import PresentationModule from './modules/presentation';
-import InfoModule from './modules/info';
+import { MAIN_ROUTES } from './_config/routes';
 
-// Destructure props history and pass it to Router
-function App({ history }) {
+import Login from './modules/login';
+import FeatureXRouter from './remotes/featurex/router';
+
+function App() {
   return (
-    <Router history={history} >
+    <Router>
         <Switch>
-          <Route exact path={'/'} element={<PresentationModule />} />
-          <Route exact path={`/info`} element={<InfoModule />} />
-          <Route path='*' element={<>NOT FOUND</>} />
+          <Route exact path={`${MAIN_ROUTES.login}`} element={<Login />} />
+          <Route exact path={`${MAIN_ROUTES.featurex}/:module`} element={<FeatureXRouter />} />
+          <Route path='*' element={<NotFound />} />
         </Switch>
     </Router>
   );
 }
 
-export default App;
-```
-
-**At this point you can develop in isolate**
-
-
-#### Container
-**Install react router dom and history**
-```
-npm install react-router-dom history
-```
-
-**Change bootstrap.js**
-```
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-//This for routing
-import { createBrowserHistory } from 'history';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-
-//This for routing
-const history = createBrowserHistory();
-
-root.render(
-  <React.StrictMode>
-    {/** Add history */}
-    <App history={history} />
-  </React.StrictMode>
-);
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
-```
-
-**Change App.js**
-```
-import React from "react";
-// This for routing Change BrowserHistory to unstable_HistoryRouter
-import {
-  unstable_HistoryRouter as Router,
-  Routes as Switch,
-  Route,
-  Link,
-} from "react-router-dom";
-
-// This for routing Remote Component
-import RemoteFeatureX from './remotes/feature_x';
-
-// This for routing Destructure Props to have history
-function App({ history }) {
-
-  //This for routing Pass history to Router
-  return (
-    <div>
-        <Router history={history}>     
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-          <Link style={{ marginRight: '10px' }} to={`/`} >Inicio</Link>
-          <Link style={{ marginRight: '10px' }} to={`/info`} >Info</Link>
-          <Link style={{ marginRight: '10px' }} to={`/billing`} >Billing</Link>
-          </div>  
-          <Switch>
-            {
-              /** This for routing. Remote with history props */
-              ['/', '/info'].map((path, key) =>(
-                <Route exact path={`${path}`} element={<RemoteFeatureX history={history} />} key={`route_${key}`} />
-              ))
-            }
-            <Route exact path={`/billing`} element={<>BILLING</>} />
-            <Route path='*' element={<>NOT FOUND</>} />
-          </Switch>
-      </Router>
-    </div>
-    
-  );
-}
-
-export default App;
-```
-
-**Change Remote as Components index.js adding new history prop and object porperty in mainMount function**
-```
-import { mainMount } from 'featureX/FeatureXIndex';
-import React from 'react';
-
-// This for routing. Destructure props to have history prop
-const RemoteFeatureX = ({ history }) => {
-    const root_element = "remote-feature-x";
-
-    // This for routing. Create mount properties
-    const mountProps = {
-        initialPath: history.location.pathname,
-        onNavigate: ({ location }) => {
-            if(history.location.pathname !== location.pathname) history.push(location.pathname);
-        },
-    }
-
-    React.useEffect(() => {
-        const { onParentNavigate } = mainMount(root_element, mountProps); // This for routing. With mount props for routing and function onParentNavigate
-        //This for routing
-        history.listen(onParentNavigate);
-    },[]);
-
-    return(
-        <div id={root_element}></div>
-    );
-}
-
-export default RemoteFeatureX;
-```
-
-----------------------------------------------------------------------------------------
-
-## Container Import Remotes in Lazy mode, only when Router call them
-**App.js**
-```
-import React from "react";
-import {
-  unstable_HistoryRouter as Router,
-  Routes as Switch,
-  Route,
-  Link,
-} from "react-router-dom";
-
-// This for routing Remote Component in Lazy mode
-const RemoteFeatureXLazy = React.lazy(() => import('./remotes/feature_x'));
-
-function App({ history }) {
-
-  return (
-    <div>
-        <Router history={history}>     
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-          <Link style={{ marginRight: '10px' }} to={`/`} >Inicio</Link>
-          <Link style={{ marginRight: '10px' }} to={`/info`} >Info</Link>
-          <Link style={{ marginRight: '10px' }} to={`/billing`} >Billing</Link>
-          </div> 
-          {/** Put Switch inside React.Suspense component */} 
-          <React.Suspense fallback={ <>Loading...</> }>
-            <Switch>
-              {
-                /** Change component to LazyComponent */
-                ['/', '/info'].map((path, key) =>(
-                  <Route exact path={`${path}`} element={<RemoteFeatureXLazy history={history} />} key={`route_${key}`} />
-                ))
-              }
-              <Route exact path={`/billing`} element={<>BILLING</>} />
-              <Route path='*' element={<>NOT FOUND</>} />
-            </Switch>
-          </React.Suspense>
-      </Router>
-    </div>
-    
+function NotFound() {
+  return(
+    <>Not found MAIN</>
   );
 }
 
 export default App;
 
 ```
-
 
 ----------------------------------------------------------------------------------------

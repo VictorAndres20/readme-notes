@@ -51,7 +51,7 @@ $ npm install --save react-router-dom
 
 **App.js**
 ```
-import React, {Fragment} from 'react';
+import React from 'react';
 import {
   BrowserRouter as Router,
   Routes as Switch,
