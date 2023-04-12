@@ -12,6 +12,7 @@ After execute npx create-react-app, install devDependencies
 npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
 npm install @babel/core@^7.12.3 @babel/plugin-transform-runtime@^7.12.3 @babel/preset-env@^7.12.3 @babel/preset-react@^7.12.3 --save-dev
 npm install babel-loader@^8.1.0 clean-webpack-plugin@^3.0.0 css-loader@^5.0.0 style-loader@^2.0.0 --save-dev
+npm install copy-webpack-plugin@^11.0.0 --save-dev
 npm install url-loader file-loader --save-dev
 ```
 
@@ -142,7 +143,7 @@ package.json
 {
   ...
     "scripts": {
-      "start": "webpack serve --config webpack.dev.js", --> THIS
+      "start": "webpack serve --config webpack.dev.js --open", --> THIS
       "build": "webpack --config webpack.prod.js", --> THIS
       "test": "react-scripts test",
       "eject": "react-scripts eject"
@@ -167,6 +168,7 @@ After execute npx create-react-app, install devDependencies
 npm install webpack@5.68.0 webpack-cli@4.10.0 webpack-dev-server@4.7.4 webpack-merge@5.2.0 html-webpack-plugin@5.5.0 --save-dev
 npm install @babel/core@^7.12.3 @babel/plugin-transform-runtime@^7.12.3 @babel/preset-env@^7.12.3 @babel/preset-react@^7.12.3 --save-dev
 npm install babel-loader@^8.1.0 clean-webpack-plugin@^3.0.0 css-loader@^5.0.0 style-loader@^2.0.0 --save-dev
+npm install copy-webpack-plugin@^11.0.0 --save-dev
 npm install url-loader file-loader --save-dev
 ```
 
@@ -296,7 +298,7 @@ package.json
 {
   ...
     "scripts": {
-      "start": "webpack serve --config webpack.dev.js", --> THIS
+      "start": "webpack serve --config webpack.dev.js --open", --> THIS
       "build": "webpack --config webpack.prod.js", --> THIS
       "test": "react-scripts test",
       "eject": "react-scripts eject"
@@ -408,6 +410,7 @@ const { merge } = require('webpack-merge');
 const commonConfig = require('./webpack.common');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const packageJson = require('./package.json');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const prodConfig = {
     mode: 'production',
@@ -422,6 +425,14 @@ const prodConfig = {
                 './FeatureXModules': './src/modules/app_modules',
             },
             shared: packageJson.dependencies
+        }),
+        new CopyWebpackPlugin({
+            patterns: [{ 
+                    from: 'public', 
+                    globOptions: { 
+                        ignore: ["**/index.html"]
+                    }, 
+                }]
         }),
     ],
 };
@@ -467,6 +478,7 @@ const { merge } = require('webpack-merge');
 const commonConfig = require('./webpack.common');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const packageJson = require('./package.json');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const remote_host = process.env.REMOTE_HOST;
 const remote_port = process.env.REMOTE_PORT;
@@ -485,6 +497,14 @@ const prodConfig = {
                 featureX: `featureX@${remote_uri}/remoteEntry.js`,
             },
             shared: packageJson.dependencies,
+        }),
+        new CopyWebpackPlugin({
+            patterns: [{ 
+                    from: 'public', 
+                    globOptions: { 
+                        ignore: ["**/index.html"]
+                    }, 
+                }]
         }),
     ],
 };
