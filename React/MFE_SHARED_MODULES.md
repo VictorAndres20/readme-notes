@@ -317,7 +317,7 @@ npm run start
 ## Integration Remotes Setup
 **Develop your app. routing with react-router-dom V6**
 
-**Create modules with components and paths to export them, like this**
+**Create modules and menu_modules with components and paths to export them, like this**
 src/modules/app_modules.js
 ```
 import InfoModule from "./info";

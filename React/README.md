@@ -39,6 +39,252 @@ this.setState(
 
 -------------------------------------------------------------------------------------------------------------------------------
 
+# Nested Routes with template in React Router Dom v6.10
+**Overview**
+App.js
+```
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes as Switch,
+  Route,
+  Outlet,
+  Link
+} from "react-router-dom";
+import { main_modules } from './_config/main_modules';
+
+function TemplateApp(){
+  console.log("RENDER Template js");
+
+  return(
+    <>
+    <nav>
+    <ul>
+      <li>
+        <Link to={`/route/route1`}>ruta 1</Link>
+      </li>
+      <li>
+        <Link to={`/route/route2`}>ruta 2</Link>
+      </li>
+    </ul>
+    </nav>
+
+    { /** Render child components */ }
+    <Outlet />
+    </>
+  );
+}
+
+function App() {
+  console.log("RENDER App js");
+  return (
+    <Router>
+        <Switch>
+          <Route exact path={`login`} element={<>Login</>} />
+          { /** Nested route with template */}
+          <Route exact path={`route`} element={<TemplateApp />}>
+            <Route exact path={`route1`} element={<>Ruta 1</>} />
+            <Route exact path={`route2`} element={<>Ruta 2</>} />
+          </Route>
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+    </Router>
+  );
+}
+
+function NotFound() {
+  return(
+    <>Not found MAIN</>
+  );
+}
+
+export default App;
+```
+
+------------------------------------------
+
+# IMPLEMETATION Nested Routes with template in React Router Dom v6.10
+**App modules to centralize paths**
+
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+# modules and menu_modules implementation for register routing with React Router Dom v6 and Nested routes
+**src/modules/content/content_modules.js**
+```
+import PrincipalModule from "./principal";
+import RokoModule from "./roko";
+import RpaSolutionsModule from "./rpa_solutions";
+import ProfileModule from "./profile";
+
+const parent_path = '/content';
+
+/** register modules to encapsule paths cross application and register in router */
+/** if router is component that use useParams hook, be carefull with key and path 
+    
+    1) key equals to path
+        For example
+        {
+            login: { ... , path: '/login', ... }
+        }
+    2) if key has '_' then in the path use '-'
+        For example 
+        {
+           order_box: { ... , path: '/order-box', ... }
+        }
+
+ * */
+const modules = {
+    main: { label: 'Principal', path: `${parent_path}/main`, component: PrincipalModule, },
+    roko: { label: 'Roko RPA', path: `${parent_path}/roko`, component: RokoModule, },
+    solutions: { label: 'Soluciones a la medida', path: `${parent_path}/solutions`, component: RpaSolutionsModule, },
+    profile: { label: 'Perfil', path: `${parent_path}/profile`, component: ProfileModule, },
+};
+
+const menu_modules = [
+    {
+        ...modules.main
+    },
+    {
+        label: `Automatización`,
+        children: [
+            {
+                ...modules.roko
+            },
+            {
+                ...modules.solutions
+            },
+        ]
+    },
+    {
+        ...modules.profile
+    },
+];
+
+export { modules, menu_modules };
+```
+
+**src/modules/content/content_router.js**
+Nested Router
+```
+import React from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { modules, menu_modules } from './content_modules';
+
+const ContentRouter = () => {
+
+    let { module } = useParams();
+
+    const renderModule = () => {
+        if(module in modules){
+            const ModuleComponent = modules[module].component;
+            return <ModuleComponent />;
+        } else {
+            return <NotFound />
+        }
+    };
+
+    return (
+        <>
+            <nav>
+                <ul>
+                    {
+                        menu_modules.map((m, key) => {
+                            if(m.children){
+                                return(
+                                    <div>
+                                        {m.label}
+                                        <nav>
+                                            <ul>
+                                                {
+                                                    m.children.map((m, key) => {
+                                                        return(
+                                                            <li key={`main_submenu_${key}`}>
+                                                                <Link to={`${m.path === '/' ? "/main" : m.path}`}>{m.label}</Link>
+                                                            </li>
+                                                        );
+                                                    }) 
+                                                }
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                );
+                            } else {
+                                return(
+                                    <li key={`main_menu_${key}`}>
+                                        <Link to={`${m.path === '/' ? "/main" : m.path}`}>{m.label}</Link>
+                                    </li>
+                                );
+                            }
+                            
+                        })
+                    }
+                </ul>
+            </nav>
+            {renderModule()}
+        </>
+    );
+}
+
+export default ContentRouter;
+```
+
+**src/modules/main_modules.js**
+```
+import Login from "./login";
+import ContentRouter from "./content/content_router";
+
+const modules = {
+    login: { label: 'Login', path: `/`, component: Login, },
+    content: { label: 'Content', path: `/content`, component: ContentRouter, },
+};
+
+const menu_modules = [
+    {
+        ...modules.login
+    },
+    {
+        ...modules.content
+    },
+];
+
+export { modules, menu_modules };
+```
+
+App.js
+```
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes as Switch,
+  Route
+} from "react-router-dom";
+import { modules } from './modules/main_modules';
+
+function App() {
+  return (
+    <Router>
+        <Switch>
+          <Route exact path={`${modules.login.path}`} element={<modules.login.component />} />
+          <Route exact path={`${modules.content.path}/:module`} element={<modules.content.component />} />
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+    </Router>
+  );
+}
+
+function NotFound() {
+  return(
+    <>Not found MAIN</>
+  );
+}
+
+export default App;
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
 # React Router Dom V6
 Yarn
 ```
@@ -188,6 +434,29 @@ import history from '../myHistory';
 </CustomRouter>
 ```
 
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+# Import comparations with Node
+```
+export default Button              -> import Button from './button'
+                                      const Button = require('./button').default
+         
+export const Button                -> import { Button } from './button'
+                                      const { Button } = require('./button')
+         
+export { Button }                  -> import { Button } from './button'
+                                      const { Button } = require('./button')
+         
+module.exports.Button              -> import { Button } from './button'
+                                      const { Button } = require('./button')
+
+module.exports.Button = Button     -> import { Button } from './button'
+                                      const { Button } = require('./button')
+
+module.exports = Button            -> import * as Button from './button'
+                                      const Button = require('./button')
+```
 
 -------------------------------------------------------------------------------------------------------------------------------
 
