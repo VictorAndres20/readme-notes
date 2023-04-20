@@ -317,61 +317,47 @@ npm run start
 ## Integration Remotes Setup
 **Develop your app. routing with react-router-dom V6**
 
-**Create modules and menu_modules with components and paths to export them, like this**
+**Create path modules and router modules with components and paths to export them, like this**
 src/modules/app_modules.js
 ```
+import AppTemplate from './app_template';
 import InfoModule from "./info";
 import MainModule from "./main";
 
-const modules = [
-    {
-        label: 'Main Module',
-        path: `/`,
-        component: MainModule,
+const path_modules = {
+    facturabot: {
+        path: 'facturabot',
+        children: {
+            main: { path: ''},
+            info: { path: 'info'}
+        }
     },
+};
+
+const router_modules = [
     {
-        label: 'Info Module',
-        path: `/info`,
-        component: InfoModule,
+        label: 'Facturabot',
+        path: `${path_modules.facturabot.path}`,
+        fullPath: `/${path_modules.facturabot.path}`,
+        component: AppTemplate,
+        children: [
+            {
+                label: 'Home',
+                path: `${path_modules.facturabot.children.main.path}`,
+                fullPath: `/${path_modules.facturabot.path}/${path_modules.facturabot.children.main.path}`,
+                component: MainModule,
+            },
+            {
+                label: 'Information',
+                path: `${path_modules.facturabot.children.info.path}`,
+                fullPath: `/${path_modules.facturabot.path}/${path_modules.facturabot.children.info.path}`,
+                component: InfoModule,
+            },
+        ],
     },
 ];
 
-export { modules };
-```
-
-**Continue developing your app. routing with react-router-dom V6**
-Example of App.js
-```
-import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes as Switch,
-  Route
-} from "react-router-dom";
-import { modules } from './modules/app_modules';
-
-function App() {
-  return (
-    <Router>
-        <Switch>
-          {
-            modules.map((module, key) =>(
-              <Route exact path={`${module.path}`} element={<module.component />} key={`route_${key}`} />
-            ))
-          }
-          <Route path='*' element={<NotFound />} />
-        </Switch>
-    </Router>
-  );
-}
-
-function NotFound() {
-  return(
-    <>Not found</>
-  );
-}
-
-export default App;
+export { router_modules, path_modules };
 ```
 
 **Add ModuleFederationPlugin webpack.dev.js configuration for integration**
@@ -514,108 +500,128 @@ module.exports = merge(commonConfig, prodConfig);
 
 ----------------------------------------------------------------------------------------
 
+## Add remote router modules to container app_modules, this automatically add to main BrowserRouter (Use examples in README notes file)
+
+**src/modules/app_modules.js**
+```
+import { 
+    router_modules as featureX_modules, 
+    path_modules as featureX_paths 
+} from 'featureX/FeatureXModules';
+
+import LoginModule from './login';
+
+import ContentTemplate from './content/content_template';
+import PrincipalModule from "./content/principal";
+import RokoModule from './content/roko';
+
+const loginPath = '';
+const contentPath = 'content';
+
+const path_modules = {
+    login: {
+        label: 'Login',
+        path: `${loginPath}`,
+        fullPath: `/${loginPath}`,
+    },
+    content: {
+        label: `Content`,
+        path: `${contentPath}`,
+        children: {
+            principal: { 
+                label: 'Principal',
+                path: '',
+                fullPath: `/${contentPath}/`,
+            },
+            roko: { 
+                label: 'ROKO RPA',
+                path: 'roko',
+                fullPath: `/${contentPath}/roko`,
+            },
+            /** If you need inside specific container sub mudule */
+            /*featureX: { 
+                label: 'Feature X',
+                path: `${featureX_paths.facturabot.path}`,
+                fullPath: `/${contentPath}/${featureX_paths.facturabot.path}`,
+            },*/
+        }
+    },
+    featureX: { 
+        label: 'Feature X',
+        path: `${featureX_paths.facturabot.path}`,
+        fullPath: `/${contentPath}/${featureX_paths.facturabot.path}`,
+    }
+};
+
+var router_modules = [
+    {
+        path: `${path_modules.login.path}`,        
+        component: LoginModule,
+    },
+    {
+        path: `${contentPath}`,
+        component: ContentTemplate,
+        children: [
+            {
+                path: `${path_modules.content.children.principal.path}`,
+                component: PrincipalModule,
+            },
+            {
+                path: `${path_modules.content.children.roko.path}`,
+                component: RokoModule,
+            },
+        ],
+    },
+];
+
+router_modules = router_modules.concat(featureX_modules);
+
+/** If you need to PUT REMOTE INSIDE CONTAINER TEMPLATE */
+//router_modules[1].children = router_modules[1].children.concat(featureX_modules);
+
+export { router_modules, path_modules };
+```
+
+**OPTIONAL**
+**MAYBE ONLY IF YOU PUT REMOTE INSIDE CONTAINER TEMPLATE**
+if you insert remote inside a template in container, in remote App.js you will need to encapsule all app in that route name:
+```
+...
+  return (
+    <Router>
+        <Switch>
+          <Route exact path={`/content`} element={<Outlet />}>
+            {
+              renderRoutes(router_modules)
+            }
+          </Route>          
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+    </Router>
+  );
+...
+```
+
+and add pre path in path_modules object
+
+----------------------------------------------------------------------------------------
+
 ## Use a Remote component in Container
 ```
 import React from 'react';
 
 /** Import modules Array with all components in Remote MFE */
-import { modules } from 'featureX/FeatureXModules';
+import { router_modules } from 'featureX/FeatureXModules';
 
 const RemoteComponent = () => {
 
     /** Create a Remote Component from modules Array */
-    const RemoteModuleComponent = modules[0].component;
+    const RemoteModuleComponent = router_modules[0].component;
 
     return(<RemoteModuleComponent />);
 }
 
 export default RemoteComponent;
-```
-
-----------------------------------------------------------------------------------------
-
-## Create a Remote router component in Container with remote modules Array
-**src/remotes/featureX/router.js**
-```
-import React from 'react';
-import { Link, useParams } from 'react-router-dom';
-
-/** Import modules Array with all components in Remote MFE */
-import { modules } from 'featureX/FeatureXModules';
-
-const FeatureXRouter = () => {
-    let { module } = useParams();
-
-    const MODULES = {};
-    modules.forEach(element => {
-        MODULES[element.path === '/' ? "main" :  element.path.replace("/", "")] = <element.component />;
-    });
-
-    const renderModule = () => {
-        if(module in MODULES){
-            return MODULES[module];
-        } else {
-            return <NotFound />
-        }
-    };
-
-    return (
-        <>
-            <nav>
-                <ul>
-                    {
-                        modules.map((m, key) => {
-                            return(
-                                <li key={key}>
-                                    <Link to={`/facturabot${m.path === '/' ? "/main" : m.path}`}>{m.label}</Link>
-                                </li>
-                            );
-                        })
-                    }
-                </ul>
-            </nav>
-            {renderModule()}
-        </>
-    );
-    
-}
-
-export default FeatureXRouter;
-```
-
-**App.js**
-```
-import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes as Switch,
-  Route
-} from "react-router-dom";
-import { MAIN_ROUTES } from './_config/routes';
-
-import Login from './modules/login';
-import FeatureXRouter from './remotes/featurex/router';
-
-function App() {
-  return (
-    <Router>
-        <Switch>
-          <Route exact path={`${MAIN_ROUTES.login}`} element={<Login />} />
-          <Route exact path={`${MAIN_ROUTES.featurex}/:module`} element={<FeatureXRouter />} />
-          <Route path='*' element={<NotFound />} />
-        </Switch>
-    </Router>
-  );
-}
-
-function NotFound() {
-  return(
-    <>Not found MAIN</>
-  );
-}
-
-export default App;
-
 ```
 
 ----------------------------------------------------------------------------------------

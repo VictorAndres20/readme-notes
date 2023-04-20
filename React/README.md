@@ -101,11 +101,152 @@ function NotFound() {
 export default App;
 ```
 
-------------------------------------------
+-------------------------
 
 # IMPLEMETATION Nested Routes with template in React Router Dom v6.10
 **App modules to centralize paths**
+src/modules/app_modules.js
+```
+import LoginModule from './login';
 
+/** Template */
+import FactorabotTemplate from './factutabot/factutabot_template.js';
+
+/** Template sub modules */
+import InfoModule from "./factutabot/info";
+import MainModule from "./factutabot/main";
+
+const loginPath = '';
+const facturabotPath = 'facturabot';
+
+const path_modules = {
+    login: {
+        label: 'Login',
+        path: `${loginPath}`,
+        fullPath: `/${loginPath}`,
+    },
+    facturabot: {
+        label: 'Facturabot',
+        path: `${facturabotPath}`,
+        fullPath: `/${facturabotPath}`,
+        children: {
+            main: { 
+                label: 'Home',
+                path: '',
+                fullPath: `/${facturabotPath}/`,
+            },
+            info: { 
+                label: 'Information',
+                path: 'info',
+                fullPath: `/${facturabotPath}/info`,
+            }
+        }
+    },
+};
+
+const router_modules = [
+    {
+        path: `${path_modules.login.path}`,
+        component: LoginModule,
+    },
+    {
+        path: `${path_modules.facturabot.path}`,
+        component: AppTemplate,
+        children: [
+            {                
+                path: `${path_modules.facturabot.children.main.path}`,
+                component: MainModule,
+            },
+            {                
+                path: `${path_modules.facturabot.children.info.path}`,
+                component: InfoModule,
+            },
+        ],
+    },
+];
+
+export { router_modules, path_modules };
+```
+
+**Template for nest route inside Facturabot**
+src/facturabot/factutabot_template.js
+```
+import React from "react";
+import { Link, Outlet } from "react-router-dom";
+import { path_modules } from "./app_modules";
+
+const AppTemplate = () => {
+
+    return(
+        <>
+            <ul>
+                {
+                    Object.entries(path_modules.facturabot.children).map((module, key) => (
+                        <li key={`facturabot_nav_key_${key}`} >
+                            <Link to={`${module[1].fullPath}`}>
+                            {module[1].label}
+                            </Link>
+                        </li>
+                    ))
+                }
+            </ul>
+            <Outlet />
+        </>
+    );
+};
+
+export default AppTemplate;
+```
+
+**App js for main BrowserRouter regiter all modules in app_modules file**
+src/App.js
+```
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes as Switch,
+  Route
+} from "react-router-dom";
+import { router_modules } from './modules/app_modules';
+
+function App() {
+
+  const renderRoutes = (modules) => {
+    return modules.map((module, key) =>{
+      if(module.children){
+        return(
+          <Route exact path={`${module.path}`} element={<module.component />} key={`route_${module.path}_${key}`}>
+            {
+              renderRoutes(module.children)
+            }
+          </Route>
+        );
+      }
+      return(
+        <Route exact path={`${module.path}`} element={<module.component />} key={`route_${module.path}_${key}`} />
+      );
+    });
+  }
+
+  return (
+    <Router>
+        <Switch>
+          {
+            renderRoutes(router_modules)
+          }
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+    </Router>
+  );
+}
+
+function NotFound() {
+  return(
+    <>Not found</>
+  );
+}
+
+export default App;
 ```
 
 -------------------------------------------------------------------------------------------------------------------------------
