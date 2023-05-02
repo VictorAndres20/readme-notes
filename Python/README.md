@@ -448,6 +448,16 @@ class IMAPReader(Mail):
 
 ```
 
+----------------------------------------------------------------------------------
+
+# Iterate pandas dataframe
+```
+for index, row in df.iterrows():
+    print(row['c1'], row['c2'])
+```
+
+----------------------------------------------------------------------------------
+
 # Read Excel from path as DataFrame and convert to list of dict of indexes
 
 ```

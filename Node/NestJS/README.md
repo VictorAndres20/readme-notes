@@ -186,7 +186,7 @@ export class HttpResponse<T>{
 **Example of API Module**
 - src/api/user/entity/user.entity.ts
 ´´´
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { UserState } from '../../user_state/entity/user_state.entity';
 
 @Entity({name: "users"})
@@ -200,7 +200,7 @@ export class User {
   @Column()
   username: string
   
-  @Exclude()
+  @Column({ select: false })
   password: string
   
   @ManyToOne(() => UserState, userState => userState.users, {
@@ -789,6 +789,7 @@ Need install
 ```
 npm install --save @nestjs/passport passport @nestjs/jwt passport-jwt
 npm install --save-dev @types/passport-jwt
+npm install bcrypt
 ```
 
 
@@ -911,6 +912,51 @@ import { JwtStrategy } from './service/jwt.strategy';
   exports: [AuthService],
 })
 export class AuthModule {}
+```
+
+3. 1 Use in UserService to login 
+```
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, IsNull, Not } from 'typeorm';
+import { User } from '../entity/user.entity';
+import { UserDTO } from '../entity/user.dto';
+import { AuthService } from '../../auth/service/auth.service'; //==============> THIS
+import { AuthDTO } from '../../auth/entity/auth.dto'; //==============> THIS
+import { isSameCrypted } from '../../../_utils/bcrypt.util'; //==============> THIS
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private repo: Repository<User>,
+    private authService: AuthService //==============> THIS
+  ) {}
+
+  async login(userDTO: UserDTO): Promise<AuthDTO>{ //==============> THIS
+    let user = await this.findByLogin(userDTO.login);
+    if(! user){
+      throw new Error("Error credentials");
+    }
+
+    if(! isSameCrypted(userDTO.password, user.password)){
+      throw new Error("Error credentials");
+    }
+    let auth = new AuthDTO();
+    auth.uuid = user.uuid;
+    auth.login = user.login;
+    auth.rol = user.rol.cod;
+    auth.company = user.company.uuid;
+    auth.full_name = user.full_name;
+    auth.token = this.authService.generateAccessToken(user.uuid);
+    return auth;
+  }
+```
+
+3. 2 Import AuthModule in UserModule
+```
+@Module({
+    imports:[TypeOrmModule.forFeature([User]), AuthModule],
 ```
 
 3. Protect end points in Controllers with @UseGuards(AuthGuard('jwt')) decorator on each methods, 
