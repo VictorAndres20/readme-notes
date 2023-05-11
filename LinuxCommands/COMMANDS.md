@@ -217,6 +217,11 @@ $ sudo tar -tvf backup.tar
 # Extract files .tar
 $ sudo tar -xvf /home/backup.tar
 
+# Compress excluding files
+```
+tar -cvf api-ks-orders.tar --exclude='api-ks-orders/db' --exclude='api-ks-orders/node_modules' --exclude='api-ks-orders/.git' --exclude='api-ks-orders/scripts' api-ks-orders/
+```
+
 ------------------------------------------------------------------------------------------------------------------
 
 # Use '>' in terminal

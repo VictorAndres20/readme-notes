@@ -101,6 +101,38 @@ One
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+# Repository class in NestJS
+Repo Class
+```
+import { EntityRepository, Repository } from 'typeorm';
+import { User } from './user.entity';
+
+@EntityRepository(User)
+export class UserRepository extends Repository<User> {
+  async findOneWithPosts(id: number): Promise<User> {
+    return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.posts', 'post')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+}
+```
+
+Inject in Service
+```
+import { Injectable } from '@nestjs/common';
+import { UserRepository } from './user.repository';
+
+@Injectable()
+export class UserService {
+  constructor(private readonly userRepository: UserRepository) {}
+
+  async findOneWithPosts(id: number) {
+    return this.userRepository.findOneWithPosts(id);
+  }
+}
+```
+
 
 ## Full structure API app
 
@@ -648,6 +680,37 @@ category: Category;
 async findAllPagedByCompany(company: string, page: number = 0, limit: number = 8): Promise<[PocketBalance[], number]> {
     return await this.repo.findAndCount({ where: { company }, skip: page, take: limit});
 }
+```
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+# Timezones
+May be when you find data from database, NestJS add one day.
+This is because the time zone of your NestJS application is different from the time zone of your database
+so.
+
+####### Option 1
+**Set it when start nest**
+package.json
+```
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "TZ=UTC nest build", // ===================================> THIS
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "TZ=UTC nest start", // ===================================> THIS
+```
+
+####### Option 2
+**install third party library**
+```
+npm i set-tz @types/set-tz
+
+```
+main.ts
+```
+import setTZ from 'set-tz';
+setTZ('America/New_York');
+
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------
@@ -1232,13 +1295,18 @@ COPY --from=development /usr/src/app/dist ./dist
 CMD ["node", "dist/main"]
 ```
 
-2. Upload in server and create image
+2. Tar project with some excludes
+```
+tar -cvf api-project.tar --exclude='api-project/db' --exclude='api-project/node_modules' --exclude='api-project/.git' --exclude='api-project/scripts' api-project/
+```
+
+3. Upload in server and create image
 
 ```
-docker build nest-project/ -t image_name:x.x
+docker build api-project/ -t image_name:x.x
 ```
 
-3. Create container
+4. Create container
 ```
 docker run --restart always [--network network-name] [--ip 172.124.0.5] --name nest_project -p 9001:9001 -d image_name:x.x
 ```
