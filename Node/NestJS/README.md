@@ -78,6 +78,23 @@ https://github.com/typeorm/typeorm/blob/master/docs/find-options.md
 
 # Use createQueryBuilder TypeORM to complex queries
 
+Group By
+```
+    findContGroupedByDateExecuted(): Promise<RokoExecution[]>{
+        try{
+            return this.repo.createQueryBuilder('roko')
+            .select("SPLIT_PART(CAST(DATE_TRUNC('month', roko.date_executed) AS TEXT), '-', 2) as month")
+            .addSelect('COUNT(roko.uuid)', 'count')
+            .where(`roko.date_executed > '${year}-01-01 00:00:01'`)
+            .groupBy('month')
+            //.groupBy('DATE_TRUNC('month', roko.date_executed)')
+            .getRawMany();
+        } catch(err){
+            throw new Error(err.message);
+        }
+    }
+```
+
 Many
 ```
   async updateManyStates(dto: OrderDTO, state: string): Promise<void>{

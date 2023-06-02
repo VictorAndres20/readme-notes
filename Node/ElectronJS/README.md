@@ -234,25 +234,32 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const isDev = require('electron-is-dev');
 
-let mainWindow;
+var mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    icon: path.join(__dirname, 'icon.png'),
     // Set the path of an additional "preload" script that can be used to
     // communicate between node-land and browser-land.
     webPreferences: {
+      nodeIntegration: true,
       preload: path.join(__dirname, "preload.js"),
     },
   });
+  // Register some variables and functions to invoke in preloads.js
+  //electron.ipcMain.handle('electronScreen', () => (electron.screen.getCursorScreenPoint()));
   // Maximize window
-  // mainWindow.maximize();
+  mainWindow.maximize();
   mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
   if (isDev) {
     // Open the DevTools.
     // BrowserWindow.addDevToolsExtension('<location to your react chrome extension>');
     mainWindow.webContents.openDevTools();
+  } else {
+    // Remove menubar that appears by default
+    mainWindow.removeMenu();
   }
   mainWindow.on('closed', () => mainWindow = null);
 }
@@ -284,6 +291,16 @@ const { contextBridge } = require("electron");
 // As an example, here we use the exposeInMainWorld API to expose the browsers
 // and node versions to the main window.
 // They'll be accessible at "window.versions".
+// Other example is that you can build main electron functions that need special NodeJS actions that React doesnt have
+// and use it in React context with window.something
+// For example you can register: 
+//                   contextBridge.exposeInMainWorld("myfunc", () => console.log('Hi'));
+// and call it with "window.myfunc".
+//
+// You can invoke functions in electron.js (main.js) if you need some electron or node modules that here are undefined
+//                   contextBridge.exposeInMainWorld("electronScreen", async () => await ipcRenderer.invoke('electronScreen'));
+// In electron.js (main.js) you need to regiter in ipcMain that handler after webPreferences
+// 
 process.once("loaded", () => {
   contextBridge.exposeInMainWorld("versions", process.versions);
 });

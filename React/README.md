@@ -39,7 +39,7 @@ this.setState(
 
 -------------------------------------------------------------------------------------------------------------------------------
 
-# Nested Routes with template in React Router Dom v6.10
+# Nested Routes with template (using Outlet) in React Router Dom v6.10
 **Overview**
 App.js
 ```
@@ -119,7 +119,7 @@ import MainModule from "./factutabot/main";
 const loginPath = '';
 const facturabotPath = 'facturabot';
 
-const path_modules = {
+export const path_modules = {
     login: {
         label: 'Login',
         path: `${loginPath}`,
@@ -144,7 +144,7 @@ const path_modules = {
     },
 };
 
-const router_modules = [
+export const router_modules = [
     {
         path: `${path_modules.login.path}`,
         component: LoginModule,
@@ -165,7 +165,7 @@ const router_modules = [
     },
 ];
 
-export { router_modules, path_modules };
+//export { router_modules, path_modules };
 ```
 
 **Template for nest route inside Facturabot**

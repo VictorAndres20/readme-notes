@@ -10,7 +10,7 @@ pip install pyinstaller
 
 2. Generate executable
 ```
-pyinstaller --name YourAppName main.py
+pyinstaller --name YourAppName --icon=app.ico main.py
 ```
 *Use --windowed flg to hide console in double click Window exe*
 

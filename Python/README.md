@@ -86,6 +86,11 @@ $ pip3 --version
 python3 -m pip install --upgrade pip
 ```
 
+**Upgrade packages**
+```
+python3 -m pip install package-name --upgrade
+```
+
 **pip errors**
 *pip is configured with locations that require TLS/SSL, however the ssl module in Python is not available.*
 *Could not fetch URL https://pypi.org/simple/pandas/: There was a problem confirming the ssl certificate*
