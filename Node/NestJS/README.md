@@ -456,15 +456,15 @@ import { ApiModule } from './api/api.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost', //process.env.DB_HOST
-      port: 5432, // Number(process.env.DB_PORT)
-      username: 'postgres',
-      password: 'secret',
-      database: 'db_name',
-      //schema: 'ks',
+      type: 'postgres', // change for db you need
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      //schema: process.env.DB_SCHEMA,
       synchronize: false,
-      logging: false,
+      logging: true, // TODO in production put it false
       autoLoadEntities: true,
     }),
     ApiModule,
@@ -496,6 +496,31 @@ async function bootstrap() {
 bootstrap();
 
 ´´´
+
+- .env
+```
+SERVER_PORT=8001
+JWT_SECRET=4425c016ba2b445cb29af8f1465b121c533572c687c21db90fcd7b04a5e8be13
+JWT_LICENSE=4425g016ba2b445cb29af8p1465b121c533522c687c21db90fcd8b04a5e8be27
+
+# ------------------------- DEVELOP ----------------------------------------
+# ------------ Database variables ------------
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASS=calabaza
+DB_NAME=my_db
+DB_SCHEMA=ks
+
+# ------------------------- PRODUCTION ----------------------------------------
+# ------------ Database variables ------------
+#DB_HOST=234.235.236.237
+#DB_PORT=5433
+#DB_USER=postgres
+#DB_PASS=secret
+#DB_NAME=my_db
+#DB_SCHEMA=ks
+```
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 

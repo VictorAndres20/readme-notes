@@ -151,7 +151,7 @@ export const router_modules = [
     },
     {
         path: `${path_modules.facturabot.path}`,
-        component: AppTemplate,
+        component: FactorabotTemplate,
         children: [
             {                
                 path: `${path_modules.facturabot.children.main.path}`,
@@ -175,7 +175,7 @@ import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import { path_modules } from "./app_modules";
 
-const AppTemplate = () => {
+const FacturabotTemplate = () => {
 
     return(
         <>
@@ -215,7 +215,7 @@ const AppTemplate = () => {
     );
 };
 
-export default AppTemplate;
+export default FacturabotTemplate;
 ```
 
 **App js for main BrowserRouter regiter all modules in app_modules file**
