@@ -1139,7 +1139,7 @@ If you want to expose those containers only by proxy, change '-p 8000:80' to '--
 
 ## Create nginx container to configure as a reverse proxy
 ```
-docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.9
+docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.25
 ```
 
 ## Create www/html folders inside nginx_proxy container
@@ -1215,7 +1215,7 @@ server {
 
     # Path for SSL config/key/certificate
     #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/site1.key;
+    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem;
     #include /etc/nginx/includes/ssl.conf;
 
     #if ($scheme != "https") {
@@ -1244,7 +1244,7 @@ server {
 
     # Path for SSL config/key/certificate
     #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/site1.key;
+    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem;
     #include /etc/nginx/includes/ssl.conf;
 
     #if ($scheme != "https") {
@@ -1367,11 +1367,10 @@ vi /etc/nginx/includes/ssl.conf
 
 Write
 ```
-ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
-ssl_ecdh_curve              secp384r1;
-ssl_ciphers                 "ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384 OLD_TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 OLD_TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256";
-ssl_prefer_server_ciphers   on;
-ssl_session_timeout         10m;
+ssl_protocols               TLSv1.2 TLSv1.3; 
+ssl_ciphers                 "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384";
+ssl_prefer_server_ciphers   off;
+ssl_session_timeout         1440m;
 ssl_session_cache           shared:SSL:10m;
 ssl_session_tickets         off;
 ```
