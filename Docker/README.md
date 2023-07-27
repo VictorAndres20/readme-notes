@@ -368,11 +368,21 @@ $ sudo docker run -i -t --name phpmyadmin-name -d --link <MySQL Container NAME>:
 
 ## MySQL container
 ```
-$ sudo docker run -i -t --name mysql-name -v /my/own/datadir:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 mysql:5.7
+$ sudo docker run -i -t --name mysql-name -v /my/own/datadir:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=password -d -p 3306:3306 mysql:8-debian
 ```
 **Execute MySQL container**
 ```
 $ sudo docker exec -it <RUNNING CONATINER ID> mysql -u root -p 
+```
+
+**Backup**
+```
+docker exec <RUNNING CONATINER> /usr/bin/mysqldump -u root --password=root <DATABASE> > backup.sql
+```
+
+**Restore**
+```
+cat backup.sql | docker exec -i <RUNNING CONATINER> /usr/bin/mysql -u root --password=root <DATABASE>
 ```
 
 ## Postgres container

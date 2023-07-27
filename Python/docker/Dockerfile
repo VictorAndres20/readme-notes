@@ -5,7 +5,6 @@ WORKDIR /usr/src/app
 # Add project files
 COPY . .
 
-# Show versions. Need to be Python 3.6
 RUN pip install --upgrade pip
 RUN pip --version
 RUN python --version
