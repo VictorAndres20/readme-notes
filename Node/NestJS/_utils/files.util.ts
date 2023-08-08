@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 
+//let path = `${__dirname}`;
+
 export const getRandomFileName = () => {
     return crypto.randomUUID();
 }

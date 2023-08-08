@@ -7,8 +7,8 @@ from email.mime.base import MIMEBase
 def test_ssl():
     host = "smtp.gmail.com"
     port = 587
-    user = "pinnos@unbosque.edu.co"
-    password = "UNBosque2023**"
+    user = "my@domain.edu.co"
+    password = "password"
     name_from = "PINNOS 2023"
     smtp = SMTPSender(host, port, user, password, name_from)
     recipients = ["vpedraza@unbosque.edu.co"]
@@ -18,8 +18,8 @@ def test_ssl():
 def test_ssl_attachments():
     host = "smtp.gmail.com"
     port = 587
-    user = "viti.dev.test@gmail.com"
-    password = "VitiDevTest123*"
+    user = "viti@gmail.com"
+    password = "password"
     name_from = "RPA - M & G"
     smtp = SMTPSender(host, port, user, password, name_from)
     recipients = ["vpedraza@unbosque.edu.co"]
@@ -37,8 +37,8 @@ def test_ssl_attachments():
 def download_att():
     host = "smtp.gmail.com"
     port = 465
-    user = "viti.dev.test@gmail.com"
-    password = "VitiDevTest123*"
+    user = "viti@gmail.com"
+    password = "password"
     download_folder = "/usr/local/tomcat/data/data/comprimidos"
     imap = IMAPReader(host, port, user, password, download_folder)
     imap.verify_download_folder()
