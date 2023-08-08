@@ -222,6 +222,29 @@ sudo docker build /path/Dockerfile/ -t app_name
 sudo docker run --name app_name -p 9002:9002 -d app_name
 ```
 
+----------------------------------------------------------------------------------
+# Fetch or request API
+```
+pip install requests
+```
+
+```
+import requests
+import json
+
+
+def fetch_api():
+    data = None
+    try:
+        response_api = requests.get('http://127.0.0.1:8000/organization/all/notify')
+        data = json.loads(response_api.text)
+    except Exception as e:
+        print(str(e))
+    finally:
+        return data
+
+```
+
 
 ----------------------------------------------------------------------------------
 # Send mail
@@ -829,10 +852,11 @@ if(__name__ == "__main__"):
 
 ----------------------------------------------------------------------------------
 
-# Scheduled or crontab with fastapi 
+# Repeat Every seconds with fastapi 
 ```
 pip install fastapi
 pip install uvicorn[standard]
+pip install fastapi-utils
 ``` 
 
 **project-name/main.py**
@@ -854,6 +878,47 @@ def integration_task_scheduled():
 
 if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=9002, reload=True)
+
+```
+
+----------------------------------------------------------------------------------
+
+# Schedule or crontab
+```
+pip install schedule
+pip install pytz
+``` 
+
+**project-name/main.py**
+```
+import schedule
+import time
+
+def job():
+    # Very important to handle error inside job function
+    # beacause if an error raise the shcedule restart execution an enter in an infinite loop
+    try:
+        print("I'm working...")
+    except Exception as e:
+        print(str(e))
+
+
+schedule.every(10).minutes.do(job)
+schedule.every().hour.do(job)
+schedule.every().day.at("10:30").do(job)
+schedule.every().monday.do(job)
+schedule.every().wednesday.at("13:15").do(job)
+schedule.every().day.at("12:42", "Europe/Amsterdam").do(job)
+schedule.every().minute.at(":17").do(job)
+
+
+if __name__ == '__main__':
+    while True:
+        try:
+            schedule.run_pending()
+            time.sleep(1)
+        except Exception as e:
+            print(str(e))
 
 ```
 
