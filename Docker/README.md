@@ -348,6 +348,29 @@ $ sudo docker load -i <path to image tar file>
 
 ------------------------------------------------------------------------------------------------
 
+# Set Timezone in container
+**Building image**
+Add this in Dockerfile
+```
+RUN apt-get update && apt-get install -y tzdata
+# ENV TZ=Your/Timezone
+ENV TZ=America/Bogota
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+```
+
+**Inside running container**
+execute
+```
+apt-get update && apt-get install -y tzdata
+export TZ=America/Bogota
+exec
+echo $TZ
+ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+cat /etc/timezone
+```
+
+------------------------------------------------------------------------------------------------
+
 # Specific containers
 
 ## Ubuntu container
@@ -549,7 +572,7 @@ venv
 
 - Add Dockerfile to project
 ```
-FROM python:3.6
+FROM python:3.10
 
 WORKDIR /usr/src/app
 
@@ -558,8 +581,9 @@ RUN pip --version
 RUN python --version
 RUN pip install -r requirements.txt
 
-
 CMD [ "python", "./main.py" ]
+# If prints are not logged in docker logs
+# CMD [ "python", "-u", "./main.py" ]
 ```
 
 - Build image
