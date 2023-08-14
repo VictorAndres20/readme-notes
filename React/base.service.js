@@ -1,4 +1,4 @@
-import { API_HOST } from '../_config/api';
+import { MAIN_API_HOST } from '../_config/api';
 import { getToken } from '../_utils/storage_handler';
 
 export const HEADERS_OPTIONS = {
@@ -16,10 +16,15 @@ export const POST_OPTIONS = {
     headers: HEADERS_OPTIONS
 };
 
+export const PUT_OPTIONS = {
+    method: "PUT",
+    headers: HEADERS_OPTIONS
+};
+
 export const sendFetch = (path, options, body=null) => {
     if(body !== null) options.body = JSON.stringify(body);
     return new Promise((resolve, reject) => {
-        fetch(`${API_HOST}${path}`,options)
+        fetch(`${MAIN_API_HOST}${path}`,options)
         .then(res => {
             // console.log("Response: " + res);
             return res.json();
@@ -27,4 +32,10 @@ export const sendFetch = (path, options, body=null) => {
         .then(json => resolve(json))
         .catch(err => reject(err));
     });
+}
+
+export const handleFetch = async (path, options, body) => {
+    let json = await sendFetch(path, options, body);
+    if(! json.ok) throw new Error(json.error);
+    return json;
 }
