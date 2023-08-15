@@ -446,6 +446,19 @@ export default App;
 
 -------------------------------------------------------------------------------------------------------------------------------
 
+# history.push or Navigate in React Router Dom V6
+```
+import { useNavigate } from 'react-router-dom';
+
+functio Component(){
+    let navigate = useNavigate();
+
+    navigate('/full/path');
+}
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
 # React Router Dom V6
 Yarn
 ```
