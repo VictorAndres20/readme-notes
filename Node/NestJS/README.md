@@ -77,6 +77,35 @@ https://github.com/typeorm/typeorm/blob/master/docs/find-options.md
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 # Use createQueryBuilder TypeORM to complex queries
+Finds many to one relations
+```
+    findByCodWithAnswersByOrganization(cod: string, organization: string): Promise<IMQuestion>{
+        try{
+            return this.repo.createQueryBuilder('im_question')
+            .where('im_question.cod = :cod', {cod})
+            .orderBy('hych')
+            .innerJoinAndSelect('im_question.im_answers', 'answers')
+            .innerJoinAndSelect('answers.innovation_management', 'many')
+            .andWhere('many.organization = :organization', { organization })
+            .getOne();
+        } catch(err){
+            throw new Error(err.message);
+        }
+    }
+
+    findAllByOrganization(organization: string): Promise<IMQuestion[]>{
+        try{
+            return this.repo.createQueryBuilder('im_question')
+            .orderBy('im_question.hych', 'ASC')
+            .innerJoinAndSelect('im_question.im_answers', 'answers')
+            .innerJoinAndSelect('answers.innovation_management', 'many')
+            .andWhere('many.organization = :organization', { organization })
+            .getMany();
+        } catch(err){
+            throw new Error(err.message);
+        }
+    }
+```
 
 Group By
 ```
@@ -720,7 +749,7 @@ category: Category;
 
 ```
 async findAllPagedByCompany(company: string, page: number = 0, limit: number = 8): Promise<[PocketBalance[], number]> {
-    return await this.repo.findAndCount({ where: { company }, skip: page, take: limit});
+    return await this.repo.findAndCount({ where: { company }, skip: page * limit, take: limit});
 }
 ```
 
