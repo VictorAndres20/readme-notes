@@ -1,6 +1,15 @@
 # NODE JS
 ----------------------------------------------------------------------------------------
-## Prefered version 12.10.0
+## Prefered version 18.17.0
+## Install
+https://www.hostinger.co/tutoriales/instalar-node-js-ubuntu/
+```
+sudo apt-get install wget
+wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.39.0/install.sh | bash
+source ~/.profile
+nvm ls-remote
+nvm install 18.17.0
+```
 ----------------------------------------------------------------------------------------
 ## Update npm
 ```
