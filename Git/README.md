@@ -30,11 +30,24 @@ $ sudo git push -u origin master
 
 # Clone Repo 
 ```
-$ sudo git clone http://url/project.git
+$ sudo git clone http://<url.com>/<repo>.git
 $ sudo git fetch
 $ sudo git branch --all
 $ sudo git checkout develop
 ```
+
+# Clone private Repo using access token 
+```
+$ sudo git clone https://<username>:<token>@<url.com>/<repo>.git
+$ sudo git fetch
+$ sudo git branch --all
+$ sudo git checkout develop
+```
+
+you can get "https://<username>:<token>@<url.com>"
+with
+```
+$ cat ~/.git-credentials
 
 
 -------------------------------------------------------------------------------------------------

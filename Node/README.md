@@ -9,6 +9,9 @@ wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.39.0/install.sh | 
 source ~/.profile
 nvm ls-remote
 nvm install 18.17.0
+nvm install 16.14.0
+nvm ls
+nvm use 18.17.0
 ```
 ----------------------------------------------------------------------------------------
 ## Update npm
