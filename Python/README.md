@@ -159,6 +159,15 @@ pip install -r requirements.txt
 
 **NOTE: Be sure to use same python versions**
 
+Maybe need to upgrade packages
+```
+cat requirements.txt | cut -f1 -d= | xargs pip install -U
+```
+After that update requirements.txt
+```
+pip freeze > requirements.txt
+```
+
 ----------------------------------------------------------------------------------
 
 # Modules
