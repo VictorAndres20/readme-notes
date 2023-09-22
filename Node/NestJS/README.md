@@ -280,6 +280,9 @@ export class User {
   
   @Column({ select: false })
   password: string
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  value: number;
   
   @ManyToOne(() => UserState, userState => userState.users, {
     onDelete: "CASCADE",
