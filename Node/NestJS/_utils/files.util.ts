@@ -8,6 +8,10 @@ export const getRandomFileName = () => {
     return crypto.randomUUID();
 }
 
+export const fileExists = (filePath: string): boolean => {
+  return fs.existsSync(filePath);
+}
+
 export const writeInternalFile = (pathFile: string, fileName: string, jsonContent: string) => {
   try {
     fs.writeFileSync(path.join(pathFile, fileName), jsonContent, 'utf8');

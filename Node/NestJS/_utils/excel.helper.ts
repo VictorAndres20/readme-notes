@@ -10,6 +10,43 @@ export const buildWorksheet = (workbook: Excel.Workbook, name: string): Excel.Wo
 }
 
 /**
+ * 
+ * @param worksheet Sheet to work in
+ * @param name Simple name of table
+ * @param columns Columns as array of object table properties,
+ * Example
+ *      columns: [
+          {name: 'Date', totalsRowLabel: 'Totals:', filterButton: true},
+          {name: 'Amount', totalsRowFunction: 'sum', filterButton: false},
+        ]
+ * 
+ * @param rows Rows as matrix
+ * Example
+ *      rows: [
+          [new Date('2019-07-20'), 70.10],
+          [new Date('2019-07-21'), 70.60],
+          [new Date('2019-07-22'), 70.10],
+        ]
+ * 
+ * @returns Sheet working in
+ */
+export const buildTable = (worksheet: Excel.Worksheet, name: string, columns: Excel.TableColumnProperties[], rows: any[][]): Excel.Worksheet => {
+    worksheet.addTable({
+        name,
+        ref: 'A1',
+        headerRow: true,
+        totalsRow: true, // maybe false
+        style: {
+          theme: 'TableStyleDark3',
+          showRowStripes: true,
+        },
+        columns,
+        rows,
+    });
+    return worksheet;
+}
+
+/**
  * Generate Columns of worksheet
  * @param worksheet Sheet to work in
  * @param columns Columns like [{header: 'Id', key: 'id', width: 10},{header: 'Name', key: 'name', width: 32 }]
