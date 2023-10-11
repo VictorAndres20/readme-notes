@@ -431,6 +431,12 @@ $ cat backup.sql | sudo docker exec -i <postgres_container_name> psql -U postgre
 $ sudo docker exec -it <postgres_container_name> psql -U <user>
 ```
 
+**Version**
+```
+$ sudo docker exec -it <postgres_container_name> psql --version
+```
+
+
 ## MongoDB
 ```
 $ sudo docker run -i -t --name mongo-name -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=secret -d -p 27017-27019:27017-27019 mongo --auth
@@ -829,7 +835,7 @@ service apache2 restart
 
 
 
-## Node Web App container
+## Native Node Web App container
 https://nodejs.org/de/docs/guides/nodejs-docker-webapp/
 
 1. Write scripts to start on package.json
@@ -900,6 +906,62 @@ $ sudo docker run -i -t --name node-app-name -d -p 8000:<LISTEN-PORT-ON-DOCKERFI
 ```
 
 ------------------------------------------------------------------------------------------------
+
+# Nest JS App Container
+**Dockerfile in root project**
+```
+FROM node:18.17.0-slim AS development
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install glob rimraf
+
+RUN npm install --only=development
+
+COPY . .
+
+RUN npm run build
+
+FROM node:18.17.0-slim as production
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install --only=production
+
+COPY . .
+
+COPY --from=development /usr/src/app/dist ./dist
+
+CMD ["node", "dist/main"]
+```
+
+**Tar project and upload to server**
+```
+tar -cvf api-project.tar --exclude='api-project/db' --exclude='api-project/node_modules' --exclude='api-project/.git' --exclude='api-project/scripts' api-project/
+```
+
+**Build docker image**
+```
+docker build api-project/ -t api_project:x.x
+```
+
+**Create docker container**
+```
+docker run --restart always --network network-project --ip 172.124.0.5 --name api_project -p 8001:8001 -d api_project:x.x
+```
+
+
+
+
+------------------------------------------------------------------------------------------------
+
 
 **IMPORTANT**
 1. To connect container to other container, you need Docker IP Container.
@@ -1258,7 +1320,7 @@ server {
 
     location / {
         include /etc/nginx/includes/proxy.conf;
-                   #http://container-name
+                   #http://container-name:port-inside-container
         proxy_pass http://apache;
     }
 
