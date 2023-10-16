@@ -398,6 +398,14 @@ $ sudo docker run -i -t --name mysql-name -v /my/own/datadir:/var/lib/mysql -e M
 $ sudo docker exec -it <RUNNING CONATINER ID> mysql -u root -p 
 ```
 
+**Error Access denied for user 'root'@'localhost'**
+Enter with client
+```
+SELECT user,authentication_string,plugin,host FROM mysql.user;
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'Current-Root-Password';
+FLUSH PRIVILEGES;
+```
+
 **Backup**
 ```
 docker exec <RUNNING CONATINER> /usr/bin/mysqldump -u root --password=root <DATABASE> > backup.sql

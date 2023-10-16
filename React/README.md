@@ -18,7 +18,19 @@ Then open http://localhost:3000/ to see your app on development server.
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
 
+-------------------------------------------------------------------------------------------------------------------------------
 
+# Warning
+One of your dependencies, babel-preset-react-app, is importing the
+"@babel/plugin-proposal-private-property-in-object" package without
+declaring it in its dependencies. This is currently working because
+"@babel/plugin-proposal-private-property-in-object" is already in your
+node_modules folder for unrelated reasons, but it may break at any time.
+
+```
+npm install --save-dev @babel/plugin-proposal-private-property-in-object
+npm install --save-dev @babel/plugin-transform-private-property-in-object
+```
 
 -------------------------------------------------------------------------------------------------------------------------------
 
@@ -35,6 +47,192 @@ this.setState(
    	this.setState({time:this.state.times[0].nom_time});
    }
 );
+```
+-------------------------------------------------------------------------------------------------------------------------------
+
+# Structure for ROUTING with template (using Outlet) in React Router Dom v6.10
+
+**Create conf files in pages folder**
+1. src/pages/path_pages.js
+```
+export const login_path = {
+    path: '',
+    full_path: `/`,
+}
+
+export const facturabot_template_path = {
+    path: 'facturabot',
+    full_path: `/facturabot`,
+}
+
+export const facturabot_template_path = {
+    path: '',
+    full_path: `${facturabot_template_path.full_path}/`,
+}
+
+export const facturabot_info_path = {
+    path: 'info',
+    full_path: `${facturabot_template_path.full_path}/info`,
+}
+```
+
+2. src/pages/router_pages.js
+```
+import LoginModule from "./login";
+import FactorabotTemplate from "./facturabot";
+import MainModule from "./facturabot/home";
+import InfoModule from "./facturabot/info";
+import { 
+    login_path, 
+    facturabot_template_path, 
+    facturabot_home_path, 
+    facturabot_info_path 
+} from "./path_pages";
+
+export const router_pages = [
+    {
+        path: `${login_path.path}`,
+        component: LoginModule,
+    },
+    {
+        path: `${facturabot_template_path.path}`,
+        component: FactorabotTemplate,
+        children: [
+            {                
+                path: `${facturabot_home_path.path}`,
+                component: MainModule,
+            },
+            {                
+                path: `${facturabot_info_path.path}`,
+                component: InfoModule,
+            },
+        ],
+    },
+];
+```
+
+3. App.js for routing
+src/App.js
+```
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes as Switch,
+  Route
+} from "react-router-dom";
+import { router_pages } from './pages/router_pages';
+
+function App() {
+
+  const renderRoutes = (modules) => {
+    return modules.map((module, key) =>{
+      if(module.children){
+        return(
+          <Route exact path={`${module.path}`} element={<module.component />} key={`route_${module.path}_${key}`}>
+            {
+              renderRoutes(module.children)
+            }
+          </Route>
+        );
+      }
+      return(
+        <Route exact path={`${module.path}`} element={<module.component />} key={`route_${module.path}_${key}`} />
+      );
+    });
+  }
+
+  return (
+    <Router>
+        <Switch>
+          {
+            renderRoutes(router_pages)
+          }
+          <Route path='*' element={<NotFound />} />
+        </Switch>
+    </Router>
+  );
+}
+
+function NotFound() {
+  return(
+    <>Not found</>
+  );
+}
+
+export default App;
+```
+
+
+**OPTIONAL if you need menu**
+src/pages/menu_pages.js
+```
+import {
+    facturabot_home_path, 
+    facturabot_info_path 
+} from "./path_pages";
+
+export const facturabot_menu = {
+    main: { 
+        label: 'Home',
+        path: `${facturabot_home_path.path}`,
+        fullPath: `${facturabot_home_path.full_path}`,
+    },
+    info: { 
+        label: 'Information',
+        path: `${facturabot_info_path.path}`,
+        fullPath: `${facturabot_info_path.full_path}`,
+    }
+}
+```
+
+Template
+src/pages/facturabot/index.js
+```
+import React from "react";
+import { Link, Outlet } from "react-router-dom";
+import { facturabot_menu } from "./menu_pages";
+
+const FacturabotTemplate = () => {
+
+    return(
+        <>
+            <ul>
+            {
+                Object.entries(facturabot_menu).map((module, key) => {
+                    if(module[1].children){
+                        return(
+                            <div key={`nav_key_${module[1].path}_${key}`} >
+                                {module[1].label}
+                                <ul>
+                                    {
+                                        Object.entries(module[1].children).map((m, key) => (
+                                            <li key={`nav_key_${m[1].path}_${key}`} >
+                                                <Link to={`${m[1].fullPath}`}>
+                                                    {m[1].label}
+                                                </Link>
+                                            </li>
+                                        ))
+                                    }
+                                </ul>
+                            </div>
+                        );
+                    }
+                    return(
+                        <li key={`nav_key_${module[1].path}_${key}`} >
+                            <Link to={`${module[1].fullPath}`}>
+                                {module[1].label}
+                            </Link>
+                        </li>
+                    );
+                })
+            }
+            </ul>
+            <Outlet />
+        </>
+    );
+};
+
+export default FacturabotTemplate;
 ```
 
 -------------------------------------------------------------------------------------------------------------------------------
@@ -227,7 +425,7 @@ import {
   Routes as Switch,
   Route
 } from "react-router-dom";
-import { router_modules } from './modules/app_modules';
+import { router_modules } from './pages/app_modules';
 
 function App() {
 
