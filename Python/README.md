@@ -487,6 +487,26 @@ class IMAPReader(Mail):
 
 ----------------------------------------------------------------------------------
 
+# Connect to printer with socket
+```
+import socket
+
+
+def send_to_zebra(payload):
+    zebra_addr = ('192.0.0.84', 6101)
+    s = socket.socket()
+    try:
+        s.connect(zebra_addr)
+        s.send(payload)
+    except Exception as e:
+        print(str(e))
+    finally:
+        if s is not None:
+            s.close()
+```
+
+----------------------------------------------------------------------------------
+
 # Iterate pandas dataframe
 ```
 for index, row in df.iterrows():
@@ -1053,49 +1073,96 @@ class MyMapper:
         #USE pydantic for this. checkout https://pydantic-docs.helpmanual.io/usage/exporting_models/
 ```
 
+**project-name/src/api/controllers/rest_controller.py
+
+```
+from src.api.models.response import Response
+
+
+class RestController:
+
+    @staticmethod
+    def build_ok_response() -> Response:
+        return Response(ok=True, message='Process Finished')
+
+    @staticmethod
+    def build_ok_response_with_data(data) -> Response:
+        return Response(ok=True, message='Process Finished', data=data)
+
+    @staticmethod
+    def build_error_response(error: str) -> Response:
+        return Response(ok=False, error=error)
+
+```
+
 **project-name/src/api/controllers/my_controller.py**
 ```
 from src.api.services.my_service import MyService
 from src.api.mappers.my_mapper import MyMapper
+from src.api.controller.rest_controller import RestController
 
 
-class MyController:
+class MyController(RestController):
     def __init__(self):
         self.service = MyService()
 
     def controller_action():
-        return MyMapper,entity_to_model(self.service.service_action())
+		try:
+            return self.build_ok_response_with_data(MyMapper.entity_to_model(self.service.service_action()))
+        except Exception as e:
+            return self.build_error_response(str(e))
 
 ```
+
+**src/api/models/response.py**
+
+```
+from pydantic import BaseModel
+from typing import Generic, TypeVar, Optional
+
+T = TypeVar('T')
+
+
+class Response(BaseModel, Generic[T]):
+    ok: bool = True
+    error: str = ''
+    message: str = ''
+    data: Optional[T] = None
+
+```
+
 
 **project-name/src/api/entry_points/my_entry_point.py**
 ```
 from fastapi import APIRouter
-from src.api.models.reponse import ResponseDictionary
-from src.api.models.email_fact_conf_domain import EmailFactConfDomain
-from src.api.controllers import email_fact_controller
+
+from src.api.models.request import DataStorageRequest, DataCaptureRequest
+from src.api.models.response import Response
+from src.api.controllers.my_controller import MyController
+
+controller = MyController()
 
 router = APIRouter(
-    prefix="/email-fact",
+    prefix="/data-storage",
     responses={
         404: {"Description": "Not found"}
     }
 )
 
 
-@router.get("/all")
-async def find() -> ResponseDictionary:
-    return email_fact_controller.find_configuration()
+@router.post("/list-files")
+async def list_files() -> Response:
+    return controller.list_files()
 
 
-@router.post("/save")
-async def save(body: EmailFactConfDomain) -> ResponseDictionary:
-    return email_fact_controller.save_configuration(body)
+@router.post("/get-data")
+async def get_data(req: DataCaptureRequest) -> Response:
+    return controller.get_data(req)
 
 
-@router.get("/test")
-async def test() -> ResponseDictionary:
-    return email_fact_controller.test_configuration()
+@router.post("/get-iterations")
+async def get_data(req: DataCaptureRequest) -> Response:
+    return controller.get_iterations(req)
 
 ```
 
@@ -1287,6 +1354,26 @@ class PocketBalanceService:
             data_obj = []
             raise Exception('No bytes')
         return data_obj
+
+```
+
+----------------------------------------------------------------------------------
+
+# Django and pyinstaller
+
+main.py
+
+```
+import os
+from django.core.management import execute_from_command_line
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_test.settings")
+
+def run_server():
+    execute_from_command_line(["manage.py", "runserver", "--noreload"])
+
+if __name__ == "__main__":
+    run_server()
 
 ```
 

@@ -1411,7 +1411,7 @@ openssl genrsa -des3 -out /root/certs-auto/private/pro.centos.com.key 4096
 
 You will need to set a password
 
-## Generate digital sign RSA
+## Generate digital sign RSA to remove passphrase
 ```
 openssl rsa -in /root/certs-auto/private/centos.com.key -out /root/certs-auto/private/centos.com.pem
 openssl rsa -in /root/certs-auto/private/pro.centos.com.key -out /root/certs-auto/private/pro.centos.com.pem
