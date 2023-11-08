@@ -29,6 +29,135 @@ npm run dev
 
 -----------------------------------------------------------------------------------------------------
 
+## Streaming or Parallel render
+If your requests are independient and doesnt need reponses for some conditional, 
+dont use request waterfall, implement streaming
+
+There are two ways you implement streaming in Next.js:
+
+- At the page level, with the loading.tsx file.
+- For specific components, with <Suspense>.
+
+For this two ways, you need to separate fetching in components
+
+For example, change this:
+```
+export default async function Page() {
+
+  const revenue = await fetchRevenue();
+  const latestInvoices = await fetchLatestInvoices();
+  const cardData = await fetchCardData();
+
+  // MORE CODE
+  return(
+    <div>
+      <Compoent1 revenue={revenue} />
+      <Compoent2 latestInvoices={latestInvoices} />
+      <Compoent3 cardData={cardData} />
+    </div>
+  );
+}
+```
+
+To this:
+page
+```
+export default async function Page() {
+  return(
+    <div>
+      <Component1 />
+      <Component2 />
+      <Component3 />
+    </div>
+  );
+}
+```
+
+Component1
+```
+export default async function Component1() {
+
+  const revenue = await fetchRevenue();
+
+  return(
+    <div>
+      {revenue}
+    </div>
+  );
+}
+```
+
+Component2
+```
+export default async function Component2() {
+
+  const latestInvoices = await fetchLatestInvoices();
+
+  return(
+    <div>
+      {latestInvoices}
+    </div>
+  );
+}
+```
+
+Component3
+```
+export default async function Component3() {
+
+  const cardData = await fetchCardData();
+
+  return(
+    <div>
+      {cardData}
+    </div>
+  );
+}
+```
+
+---------------
+
+#### Using loading.tsx file
+create a loading.tsx file inside you folder compoennt you need it
+/app/dashboard/loading.tsx
+```
+import DashboardSkeleton from '@/app/ui/skeletons';
+ 
+export default function Loading() {
+  return <DashboardSkeleton />;
+}
+```
+
+or 
+/app/dashboard/(overview)/loading.tsx
+/app/dashboard/(overview)/page.tsx
+To not use it in children components
+
+---------------
+
+#### Using Suspense
+```
+export default async function Page() {
+  return(
+    <div>
+      <Suspense fallback={<>Loading...</>}>
+        <Component1 />
+      </Suspense>
+      <Suspense fallback={<>Loading...</>}>
+        <Component2 />
+      </Suspense>
+      <Suspense fallback={<>Loading...</>}>
+        <Component3 />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+
+
+-----------------------------------------------------------------------------------------------------
+
 ## Routing
 NextJS has file-system routing!
 
@@ -354,6 +483,253 @@ export default function Page() {
       </div>
   );
 }
+```
+
+-----------------------------------------------------------------------------------------------------
+
+## Database connection using node-postgres and migrate Database
+https://node-postgres.com/
+
+- Install modules
+```
+npm install pg dotenv --save
+```
+
+- Create app/lib/db.js file
+```
+// db.js
+
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    password: process.env.DB_PASSWORD,
+    user: process.env.DB_USER,
+    database: process.env.DB_DATABASE,
+    max: 20,
+    idleTimeoutMillis: 5000,
+    connectionTimeoutMillis: 2000,
+    allowExitOnIdle: true,
+  })
+
+module.exports = pool;
+```
+
+- Create .env in project root
+```
+DB_HOST="localhost"
+DB_PORT=5432
+DB_USER="postgres"
+DB_PASSWORD="calabaza"
+DB_DATABASE="nextjs"
+
+# `openssl rand -base64 32`
+AUTH_SECRET=
+AUTH_URL=http://localhost:3000/api/auth
+``` 
+
+- Now you can use db to create queries, for example seed file
+/scripts/seed.js
+```
+const db = require('../app/lib/db.js');
+const {
+  invoices,
+  customers,
+  revenue,
+  users,
+} = require('../app/lib/placeholder-data.js');
+const bcrypt = require('bcrypt');
+
+async function seedUsers(client) {
+  try {
+    await client.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+    // Create the "invoices" table if it doesn't exist
+    const createTable = await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      )
+    `);
+
+    console.log(`Created "users" table`);
+
+    // Insert data into the "users" table
+    const insertedUsers = await Promise.all(
+      users.map(async (user) => {
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+        return client.query(`
+        INSERT INTO users (id, name, email, password)
+        VALUES ('${user.id}', '${user.name}', '${user.email}', '${hashedPassword}')
+        ON CONFLICT (id) DO NOTHING
+      `);
+      }),
+    );
+
+    console.log(`Seeded ${insertedUsers.length} users`);
+
+    return {
+      createTable,
+      users: insertedUsers,
+    };
+  } catch (error) {
+    console.error('Error seeding users:', error);
+    throw error;
+  }
+}
+
+async function seedInvoices(client) {
+  try {
+    await client.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+
+    // Create the "invoices" table if it doesn't exist
+    const createTable = await client.query(`
+    CREATE TABLE IF NOT EXISTS invoices (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    customer_id UUID NOT NULL,
+    amount INT NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    date DATE NOT NULL
+  )
+`);
+
+    console.log(`Created "invoices" table`);
+
+    // Insert data into the "invoices" table
+    const insertedInvoices = await Promise.all(
+      invoices.map(
+        (invoice) => client.query(`
+        INSERT INTO invoices (customer_id, amount, status, date)
+        VALUES ('${invoice.customer_id}', ${invoice.amount}, '${invoice.status}', '${invoice.date}')
+        ON CONFLICT (id) DO NOTHING
+      `),
+      ),
+    );
+
+    console.log(`Seeded ${insertedInvoices.length} invoices`);
+
+    return {
+      createTable,
+      invoices: insertedInvoices,
+    };
+  } catch (error) {
+    console.error('Error seeding invoices:', error);
+    throw error;
+  }
+}
+
+async function seedCustomers(client) {
+  try {
+    await client.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+
+    // Create the "customers" table if it doesn't exist
+    const createTable = await client.query(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        image_url VARCHAR(255) NOT NULL
+      )
+    `);
+
+    console.log(`Created "customers" table`);
+
+    // Insert data into the "customers" table
+    const insertedCustomers = await Promise.all(
+      customers.map(
+        (customer) => client.query(`
+        INSERT INTO customers (id, name, email, image_url)
+        VALUES ('${customer.id}', '${customer.name}', '${customer.email}', '${customer.image_url}')
+        ON CONFLICT (id) DO NOTHING
+      `),
+      ),
+    );
+
+    console.log(`Seeded ${insertedCustomers.length} customers`);
+
+    return {
+      createTable,
+      customers: insertedCustomers,
+    };
+  } catch (error) {
+    console.error('Error seeding customers:', error);
+    throw error;
+  }
+}
+
+async function seedRevenue(client) {
+  try {
+    // Create the "revenue" table if it doesn't exist
+    const createTable = await client.query(`
+      CREATE TABLE IF NOT EXISTS revenue (
+        month VARCHAR(4) NOT NULL UNIQUE,
+        revenue INT NOT NULL
+      )
+    `);
+
+    console.log(`Created "revenue" table`);
+
+    // Insert data into the "revenue" table
+    const insertedRevenue = await Promise.all(
+      revenue.map(
+        (rev) => client.query(`
+        INSERT INTO revenue (month, revenue)
+        VALUES ('${rev.month}', ${rev.revenue})
+        ON CONFLICT (month) DO NOTHING
+      `),
+      ),
+    );
+
+    console.log(`Seeded ${insertedRevenue.length} revenue`);
+
+    return {
+      createTable,
+      revenue: insertedRevenue,
+    };
+  } catch (error) {
+    console.error('Error seeding revenue:', error);
+    throw error;
+  }
+}
+
+async function main() {
+  const client = await db.connect();
+
+  await seedUsers(client);
+  await seedCustomers(client);
+  await seedInvoices(client);
+  await seedRevenue(client);
+
+  await client.end();
+}
+
+main().catch((err) => {
+  console.error(
+    'An error occurred while attempting to seed the database:',
+    err,
+  );
+});
+```
+
+
+#### Execute seed.js from scripts
+
+- package.json add command
+```
+"scripts": {
+  "build": "next build",
+  "dev": "next dev",
+  "start": "next start",
+  "seed": "node -r dotenv/config ./scripts/seed.js" ------> This
+},
+```
+
+- Execute
+```
+npm run seed
 ```
 
 -----------------------------------------------------------------------------------------------------
