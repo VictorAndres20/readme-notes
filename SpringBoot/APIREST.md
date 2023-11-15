@@ -13,23 +13,43 @@ At END of this document
 2. SAME STEPS ABOVE
 3. Import project on IDE
 
+# Install dependencys with Maven
+```
+mvn clean install
+```
+
+# If your Application doesn't need to connect a database
+Add this configuration to you Main application
+```
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+``` 
+
 # application.properties config src/main/resources
+```
+# Base server configuration
 server.port=8090
 server.error.whitelabel.enabled=false
+
+# Database configuration
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-												org.postgresql.Driver
+												org.postgresql.Driver // https://mvnrepository.com/artifact/org.postgresql/postgresql
 spring.datasource.url=jdbc:mysql://localhost:3306/agendamiento?useSSL=false // Maybe change SSL true
-							 jdbc:postgresql://localhost:5432/agendamiento?useSSL=false
+							 jdbc:postgresql://localhost:5432/agendamiento?useSSL=false&currentSchema=myschema
 spring.datasource.username=root
 spring.datasource.password=pass
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
 													 org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.show-sql=true
 spring.jpa.hibernate.ddl-auto=update
+# spring.jpa.properties.hibernate.default_schema=dbo
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
--#Hibernate<4.x>
+#Hibernate<4.x>
 spring.jpa.hibernate.naming.strategy=org.hibernate.cfg.ImproveNamingStrategy
+```
 
 # Package structure
 
@@ -43,7 +63,14 @@ src/
 				entity
 				model
 				repository
-				service			
+				service
+
+------------------------------------------------------------------------------------------------------------------------
+
+# Database drivers
+
+**PostgreSQL**
+<!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->	
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -51,6 +78,7 @@ src/
 Always create Entity with his Model, VERY IMPORTANT
 
 1. Entity
+```
 package com.vitisystems.SpringBootAPIexample.entity;
 
 import java.io.Serializable;
@@ -109,8 +137,10 @@ public class Profesion implements Serializable {
 		this.valorHora = valorHora;
 	}	
 }
+```
 
 2. Model
+```
 package com.vitisystems.SpringBootAPIexample.model;
 
 import com.vitisystems.SpringBootAPIexample.entity.Profesion;
@@ -161,8 +191,10 @@ public class ProfesionModel {
 	}
 	
 }
+```
 
 # Create Repository Interface. Here is the Bridge to App - ORM - DB
+```
 package com.vitisystems.SpringBootAPIexample.repository;
 
 import java.io.Serializable;
@@ -177,8 +209,10 @@ public interface ProfesionRepo extends JpaRepository<Profesion, Serializable>{
 	public abstract List<Profesion> findByValorHora(double valorHora);
 	public abstract Profesion findByValorHoraAndNombre (double valorHora,String nombre);
 }
+```
 
 # Create Converter
+```
 package com.vitisystems.SpringBootAPIexample.converter;
 
 import java.util.ArrayList;
@@ -189,18 +223,18 @@ import com.vitisystems.SpringBootAPIexample.model.ProfesionModel;
 
 @Component("profesionconvert")
 public class ProfesionConverter {
-	public List<ProfesionModel> convertList(List<Profesion> profesiones)
-	{
-		List<ProfesionModel> profesionesm=new ArrayList<>();
-		for(Profesion profesion : profesiones)
-		{
-			profesionesm.add(new ProfesionModel(profesion));
-		}
-		return profesionesm;
-	}
+	public ProfesionModel map(Profesion entity){
+        return new ProfesionModel(entity);
+    }
+
+    public List<ProfesionModel> mapList(List<Profesion> list) {
+        return list.stream().map(this::map).collect(Collectors.toList());
+    }
 }
+```
 
 # Create service, Where you develop queries and all retrives and interection with database
+```
 package com.vitisystems.SpringBootAPIexample.service;
 
 import java.util.List;
@@ -307,8 +341,10 @@ public class ProfesionService {
 		
 	}
 }
+```
 
 # Create Controller
+```
 package com.vitisystems.SpringBootAPIexample.controller;
 
 import java.util.List;
@@ -385,6 +421,7 @@ public class ProfesionController {
 	}
 
 }
+```
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -1583,59 +1620,70 @@ public class Adhdfl5Application {
 ------------------------------------------------------------------------------------------------------------------------
 
 # Example ResponserRest
-
+```
 import java.util.List;
-import org.springframework.stereotype.Component;
 
-@Component("responserest")
-public class ResponseRest<T> {
-	
-	private int codigoRes;
-	private String name;
-	private T object;
-	private List<T> list;
-	
-	public int getCodigoRes() {
-		return codigoRes;
-	}
-	public void setCodigoRes(int codigoRes) {
-		this.codigoRes = codigoRes;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public T getObject() {
-		return object;
-	}
-	public void setObject(T object) {
-		this.object = object;
-	}
-	public List<T> getList() {
-		return list;
-	}
-	public void setList(List<T> list) {
-		this.list = list;
-	}
-	
-	public void reset(String name)
-	{
-		this.codigoRes=-1;
-		this.name=name;
-		this.object=null;
-		this.list=null;
-	}
-	
-	public void reset(int codigo,String name)
-	{
-		this.codigoRes=codigo;
-		this.name=name;
-		this.object=null;
-		this.list=null;
-	}
+public class RestResponse<M> {
+
+    private boolean ok;
+
+    private M data;
+    private List<M> list;
+    private String error;
+
+    public RestResponse(){
+        this.ok = true;
+    }
+
+    public RestResponse<M> buildError(String error){
+        this.ok = false;
+        this.error = error;
+        return this;
+    }
+
+    public RestResponse<M> buildData(M data){
+        this.data = data;
+        return this;
+    }
+
+    public RestResponse<M> buildList(List<M> data){
+        this.list = data;
+        return this;
+    }
+
+    public boolean isOk() {
+        return ok;
+    }
+
+    public void setOk(boolean ok) {
+        this.ok = ok;
+    }
+
+    public M getData() {
+        return data;
+    }
+
+    public void setData(M data) {
+        this.data = data;
+    }
+
+    public List<M> getList() {
+        return list;
+    }
+
+    public void setList(List<M> list) {
+        this.list = list;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
 }
+```
 
 ------------------------------------------------------------------------------------------------------------------------
 
