@@ -204,7 +204,7 @@ import org.springframework.stereotype.Repository;
 import com.vitisystems.SpringBootAPIexample.entity.Profesion;
 
 @Repository("profesionrepo")
-public interface ProfesionRepo extends JpaRepository<Profesion, Serializable>{
+public interface ProfesionRepo extends JpaRepository<Profesion, Integer>{
 	public abstract Profesion findByCodigo(int codigo);
 	public abstract List<Profesion> findByValorHora(double valorHora);
 	public abstract Profesion findByValorHoraAndNombre (double valorHora,String nombre);
@@ -848,7 +848,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository("adultorepository")
-public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
+public interface AdultoRepository extends JpaRepository<Adulto, Integer>{
 	
 	public abstract Adulto findByCodigo(int codigo);
 	
@@ -867,6 +867,60 @@ public interface AdultoRepository extends JpaRepository<Adulto, Serializable>{
 	@Query("SELECT p FROM Adulto p WHERE p.direccion LIKE :direccion%")
 	public List<Adulto> findByDireccionStarts(String direccion);
 }
+
+------------------------------------------------------------------------------------------------------------------------
+
+## Handler @Autowired injection in abstract class using Contructor Injection
+We can’t use @Autowired on a constructor of an abstract class.
+Spring doesn’t evaluate the @Autowired annotation on a constructor of an abstract class.
+Example: abstract class for Service in API Rest
+
+**WITHOUT Abstraction**
+```
+@Service()
+public class ProfesionService {
+	
+	@Autowired
+	@Qualifier()
+	private ProfesionRepo repo;
+	
+	@Autowired
+	@Qualifier()
+	private ProfesionConverter converter;
+	
+	// Methods
+}
+```
+
+**WITH Abstraction**
+
+```
+public abstract class UserServiceAbstraction {
+	
+	protected UserRepo repo;
+	
+	protected UserMapper mapper;
+
+	public UserServiceAbstraction(UserRepo repo, UserMapper mapper){
+		this.repo = repo;
+		this.mapper = mapper;
+	}
+	
+	// Methods
+}
+
+```
+
+```
+@Service()
+public class UserService extends UserServiceAbstraction<User, String, UserModel> {
+
+    @Autowired()
+    public UserService(UserRepo repo, UserMapper mapper){
+        super(repo, mapper);
+    }
+}
+```
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -1326,7 +1380,7 @@ import org.springframework.stereotype.Repository;
 import com.vitisystems.SpringBootAPIexample.entity.Usuario;
 
 @Repository("usuariorepo")
-public interface UsuarioRepository extends JpaRepository<Usuario, Serializable>{
+public interface UsuarioRepository extends JpaRepository<Usuario, Integer>{
 	public abstract Usuario findByUsuario(String usuario);
 }
 
@@ -1710,7 +1764,7 @@ import org.springframework.stereotype.Repository;
 import com.vitisystems.SpringBootAPIexample.entity.Profesion;
 
 @Repository("profesionrepo")
-public interface ProfesionRepo extends JpaRepository<Profesion, Serializable>,+ PagingAndSortingRepository<Profesion, Serializable>{
+public interface ProfesionRepo extends JpaRepository<Profesion, Integer>,+ PagingAndSortingRepository<Profesion, Integer>{
 	public abstract Profesion findByCodigo(int codigo);
 	public abstract List<Profesion> findByValorHora(double valorHora);
 	public abstract Profesion findByValorHoraAndNombre (double valorHora,String nombre);
