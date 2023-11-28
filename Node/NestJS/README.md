@@ -496,7 +496,7 @@ import { ApiModule } from './api/api.module';
       database: process.env.DB_NAME,
       //schema: process.env.DB_SCHEMA,
       synchronize: false,
-      logging: true, // TODO in production put it false
+      logging: process.env.ORM_LOG, // In production put it false
       autoLoadEntities: true,
     }),
     ApiModule,
@@ -543,6 +543,7 @@ DB_USER=postgres
 DB_PASS=calabaza
 DB_NAME=my_db
 DB_SCHEMA=ks
+ORM_LOG=1
 
 # ------------------------- PRODUCTION ----------------------------------------
 # ------------ Database variables ------------
@@ -552,6 +553,7 @@ DB_SCHEMA=ks
 #DB_PASS=secret
 #DB_NAME=my_db
 #DB_SCHEMA=ks
+#ORM_LOG=
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------
