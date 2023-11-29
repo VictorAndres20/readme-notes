@@ -373,6 +373,11 @@ cat /etc/timezone
 
 # Specific containers
 
+## Set timezone
+```
+docker run -e TZ=America/New_York your_image
+```
+
 ## Ubuntu container
 ```
 $ sudo docker run -i -t --name ubuntu_vitolo ubuntu:16.04
