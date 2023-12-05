@@ -771,12 +771,19 @@ package.json
 ```
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "TZ=UTC nest build", // ===================================> THIS
+    "build": "TZ=UTC+5 nest build", // ===================================> THIS
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "TZ=UTC nest start", // ===================================> THIS
+    "start": "TZ=UTC+5 nest start", // ===================================> THIS
 ```
 
 ####### Option 2
+**.env variable**
+```
+TZ=UTC+5
+```
+
+
+####### Option 3
 **install third party library**
 ```
 npm i set-tz @types/set-tz
