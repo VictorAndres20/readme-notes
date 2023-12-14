@@ -549,10 +549,10 @@ $ sudo docker run --name my-prestashop -v /usr/docker/volumes/prestashop/html:/v
 
 ## React in Apache container
 ```
-sudo docker run -it --name apache_react -v /usr/local/docker/vols/apache_react/:/var/www/html/ -p 3001:80 -d php:7.3-apache
+sudo docker run -it --name apache_react -v /usr/local/docker/vols/apache_react/build:/var/www/html -p 3001:80 -d php:7.3-apache
 ```
 
-Changes in virtual host to use build as root directory
+[OPTIONAL] Changes in virtual host to use build as root directory
 
 ```
 sudo vi 000-default.conf
@@ -576,10 +576,14 @@ sudo vi 000-default.conf
 
 
 sudo docker cp 000-default.conf apache_react:/etc/apache2/sites-available/000-default.conf
-sudo docker exec apache_react chown -R www-data:www-data /var/www/html/build
+sudo rm -rf 000-default.conf
+```
+
+Prepare a2enmod
+```
+sudo docker exec apache_react chown -R www-data:www-data /var/www/html
 sudo docker exec apache_react a2enmod rewrite
 sudo docker exec apache_react service apache2 restart
-sudo rm -rf 000-default.conf
 ```
 
 
@@ -1363,6 +1367,7 @@ server {
     location / {
         include /etc/nginx/includes/proxy.conf;
         proxy_pass http://apache1;
+        proxy_read_timeout 600s;
     }
 
     access_log off;

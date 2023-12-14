@@ -35,7 +35,7 @@ INSTALLED_APPS = [
 ```
 
 6. Init application project
-This will create applications files
+This will create applications for specific features that need to be plugged into django project
 
 
 ```
@@ -158,10 +158,10 @@ class Person(models.Model):
 	objects = models.Manager() # has default CRUD
 	
 	# attributes
-    name: models.CharField(blank=False)
-    email: models.CharField(max_length=200)
-    nickname: models.CharField(blank=True)
-    active: models.BooleanField(default=True)
+    name = models.CharField(blank=False)
+    email = models.CharField(max_length=200)
+    nickname = models.CharField(blank=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return {"name": self.name}
@@ -261,7 +261,7 @@ Set username and password
 python manage.py createsuperuser
 ```
 
-Add django app to admin console
+Add django app model to admin console
 django_app/admin.py
 
 ```
