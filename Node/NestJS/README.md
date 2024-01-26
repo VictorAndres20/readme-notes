@@ -930,11 +930,11 @@ export class OrderService {
       await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      newOrder.uuid = null;
+	  throw new Error(err.message);
     } finally {
       await queryRunner.release();
-      return newOrder;
     }
+    return newOrder;
   }
 
   createOne(dto: OrderDTO): Promise<Order>{
