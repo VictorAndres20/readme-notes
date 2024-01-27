@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model demand {
+  uuid                                           String       @id(map: "pk_demand") @default(dbgenerated("gen_random_uuid()")) @db.VarChar(40)
+  warp                                           String?      @db.VarChar(70)
+  weft_quantity                                  Int?         @db.SmallInt
+  date_created                                   DateTime     @default(now()) @db.Timestamp(6)
+  date_closed                                    DateTime     @default(now()) @db.Timestamp(6)
+  user_create                                    String       @db.VarChar(40)
+  user_close                                     String       @db.VarChar(40)
+  demand_state                                   String       @db.VarChar(5)
+  error_detail                                   String       @db.VarChar(5)
+  loom                                           String       @db.VarChar(40)
+  demand_state_obj demand_state @relation("demand_state_obj_relation", fields: [demand_state], references: [cod], onDelete: NoAction, onUpdate: NoAction, map: "fk_demand__demand_state")
+}
+
+model demand_state {
+  cod                                      String   @id(map: "pk_demand_state") @db.VarChar(5)
+  name                                     String   @db.VarChar(70)
+  demands demand[] @relation("demand_state_obj_relation")
+}
+
+model error_detail {
+  cod  String @id(map: "pk_error_detail") @db.VarChar(5)
+  name String @db.VarChar(70)
+  type String @db.VarChar(5)
+}
+
+model error_type {
+  cod         String @id(map: "pk_error_type") @db.VarChar(5)
+  name        String @db.VarChar(70)
+  render_type String @db.VarChar(5)
+}
+
+model loom {
+  uuid   String @id(map: "pk_loom") @default(dbgenerated("gen_random_uuid()")) @db.VarChar(40)
+  number String @db.VarChar(70)
+}
+
+model render_type {
+  cod  String @id(map: "pk_render_type") @db.VarChar(5)
+  name String @db.VarChar(20)
+}
+
+model user_type {
+  cod  String @id(map: "pk_user_type") @db.VarChar(5)
+  name String @db.VarChar(70)
+}
+
+model users {
+  uuid     String @id(map: "pk_users") @default(dbgenerated("gen_random_uuid()")) @db.VarChar(40)
+  name     String @db.VarChar(300)
+  login    String @db.VarChar(100)
+  password String @db.VarChar(200)
+  state    Int    @default(1) @db.SmallInt
+  type     String @db.VarChar(5)
+}
