@@ -48,25 +48,33 @@ npx prisma init --datasource-provider postgresql
 Set the DATABASE_URL in the .env file to point to your existing database
 https://www.prisma.io/docs/orm/reference/connection-urls
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/dbname[?schema=ks&connect_timeout=10]
+DATABASE_URL=postgresql://user:password@localhost:5432/dbname[?schema=ks&connection_limit=5&pool_timeout=2&connect_timeout=100]
 ```
 
 prisma/schema.prisma where models or entityes are located
 ```
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+generator client {
+  provider = "prisma-client-js"
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model post {
+  uuid                                           String       @id(map: "pk_post") @default(dbgenerated("gen_random_uuid()")) @db.VarChar(40)
+  name                                           String?      @db.VarChar(70)
+  date_created                                   DateTime     @default(now()) @db.Timestamp(6)
+  date_closed                                    DateTime     @default(now()) @db.Timestamp(6)
+  user_id                                        String       @db.VarChar(5)
+  owner user @relation("user_post_relation", fields: [user_id], references: [cod], onDelete: NoAction, onUpdate: NoAction, map: "fk_post_user")
+}
+
+model user {
+  cod                                      String   @id(map: "pk_user") @db.VarChar(5)
+  name                                     String   @db.VarChar(70)
+  posts post[] @relation("user_post_relation")
 }
 ```
 
