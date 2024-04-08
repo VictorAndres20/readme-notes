@@ -52,8 +52,17 @@ $ cat ~/.git-credentials
 
 -------------------------------------------------------------------------------------------------
 
-# Pull specific branch
+# Pull from specific branch
 pull [REMOTE] [BRANCH]
+```
+$ sudo git branch -f remote_branch_name origin/remote_branch_name
+$ sudo git checkout remote_branch_name
+```
+
+-------------------------------------------------------------------------------------------------
+
+# Pull specific branch and create it in other local branch
+branch -f [BEANCH] [REMOTE] [BRANCH]
 ```
 $ sudo git pull origin master
 ```
