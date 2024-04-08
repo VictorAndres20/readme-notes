@@ -170,8 +170,9 @@ import MyComponent from './MyComponent';
 describe('LoginForm', () => {
   it('should redirect to welcome screen when creds are correct', () => {
    cy.mount(<App />);
-    cy.contains('Username').find('input').type('testuser');
+    cy.get('#name').type('testuser');
     cy.contains('Password').find('input').type('testpassword');
+    cy.get("#dropdown").select("Technical Team");
     cy.intercept('POST', '/auth', {
       statusCode: 200,
       body: {
@@ -184,7 +185,7 @@ describe('LoginForm', () => {
 
   it('should show error message when creds are incorrect', () => {
     cy.mount(<App />);
-    cy.contains('Username').find('input').type('baduser');
+    cy.get('#name').type('baduser');
     cy.contains('Password').find('input').type('badpassword');
     cy.intercept('POST', '/auth', {
       statusCode: 401,

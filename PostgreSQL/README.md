@@ -86,6 +86,7 @@ After this, /var/lib/postgresql/ only be the lasted version
 
 $ psql -h <host> -p <5900> -U <username>
 $ psql -h localhost -p 5432 -U postgres
+$ PGPASSWORD=<password> psql -U <username> <dbname>
 
 # psql commands
 http://www.postgresqltutorial.com/psql-commands/

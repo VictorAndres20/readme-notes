@@ -218,6 +218,11 @@ You can use one volume in many containers
 $ sudo docker volume ls
 ```
 
+**Delete volumnes**
+```
+$ sudo docker volume rm volume-name
+```
+
 **List Dangling volumes**
 Volumes that are create but are not referenced by any container
 ```
@@ -1305,6 +1310,7 @@ proxy_buffering off;
 proxy_request_buffering off;
 proxy_http_version 1.1;
 proxy_intercept_errors on;
+client_max_body_size 20M;
 ```
 
 ## Set /etc/nginx/conf.d/default.conf inside nginx_proxy container
