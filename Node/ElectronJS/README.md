@@ -214,7 +214,7 @@ npm install --save-dev electron@18.2.0 electron-builder@23.0.3
 4. Install some other develop libraries
 ```
 npm install --save-dev wait-on concurrently
-npm install electron-is-dev
+npm install electron-is-dev@2.0.0
 ```
 **or**
 ```
@@ -248,7 +248,6 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,
-      contextIsolation: false,
     },
   });
   // Register some variables and functions to invoke in preloads.js
