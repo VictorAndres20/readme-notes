@@ -248,10 +248,9 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: true,
+      contextIsolation: false
     },
   });
-  // Register some variables and functions to invoke in preloads.js
-  //electron.ipcMain.handle('electronScreen', () => (electron.screen.getCursorScreenPoint()));
   // Maximize window
   mainWindow.maximize();
   mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
@@ -279,6 +278,27 @@ app.on('activate', () => {
     createWindow();
   }
 });
+
+// If you have some backend operations and want to execute in frontend, register here
+/*
+ipcMain.handle('readProductsExcel', readProductsExcel);
+ipcMain.handle('getPrintPDF', async (event, parameters) => getPrintPDF(parameters));
+*/
+
+// To execute then, in frontend import icpRender from electron like this
+/*
+const { ipcRenderer } = window.require('electron');
+*/
+// Then, invoke them
+/*
+export const readExcel = async () => {
+    return await ipcRenderer.invoke('readProductsExcel');
+}
+
+export const getPDF = async (data) => {
+    return await ipcRenderer.invoke('getPrintPDF', data);
+}
+*/
 ```
 
 ```
@@ -288,7 +308,7 @@ vi public/preload.js
 ```
 // All of the Node.js APIs are available in the preload process.
 // It has the same sandbox as a Chrome extension.
-const { contextBridge } = require("electron");
+//const { contextBridge } = require("electron");
 
 // As an example, here we use the exposeInMainWorld API to expose the browsers
 // and node versions to the main window.
@@ -303,9 +323,9 @@ const { contextBridge } = require("electron");
 //                   contextBridge.exposeInMainWorld("electronScreen", async () => await ipcRenderer.invoke('electronScreen'));
 // In electron.js (main.js) you need to regiter in ipcMain that handler after webPreferences
 // 
-process.once("loaded", () => {
-  contextBridge.exposeInMainWorld("versions", process.versions);
-});
+//process.once("loaded", () => {
+//  contextBridge.exposeInMainWorld("versions", process.versions);
+//});
 ```
 
 6. Add main tag in package.json
