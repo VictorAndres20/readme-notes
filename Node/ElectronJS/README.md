@@ -333,7 +333,7 @@ vi public/preload.js
 {
 ...
   "dependencies": {
-    "electron-is-dev": "^1.0.1",
+    "electron-is-dev": "^2.0.0",
     "react": "^16.8.3",
     "react-dom": "^16.8.3",
     "react-scripts": "2.1.5"
