@@ -1334,7 +1334,7 @@ server {
 
     # Path for SSL config/key/certificate
     #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem;
+    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem; #-----BEGIN PRIVATE KEY-----
     #include /etc/nginx/includes/ssl.conf;
 
     #if ($scheme != "https") {
@@ -1363,7 +1363,7 @@ server {
 
     # Path for SSL config/key/certificate
     #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem;
+    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem; #-----BEGIN PRIVATE KEY-----
     #include /etc/nginx/includes/ssl.conf;
 
     #if ($scheme != "https") {
@@ -1500,7 +1500,11 @@ ssl_session_tickets         off;
 vi /etc/nginx/conf.d/default.conf
 ```
 
-Uncomment SSL in proxy conf you need and rename certs .key->.pem .crt
+Uncomment SSL in proxy conf.
+certificate_key is: -----BEGIN PRIVATE KEY-----
+certificate is: -----BEGIN CERTIFICATE-----
+Maybe you need and rename certs .key->.pem .crt
+
 ```
 #Web Service 1 config
 upstream centos{
