@@ -7,7 +7,7 @@ https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl
 https://www.alcancelibre.org/staticpages/index.php/como-apache-ssl
 ## Generate RSA password
 ```
-openssl genrsa -des3 -out /root/certs-auto/private/centos.com.key 4096
+openssl genrsa -des3 -out /root/certs-auto/private/centos.com.key 2048
 ```
 
 You will need to set a password
@@ -35,9 +35,9 @@ Dirección de correo electrónico válida del administrador del sistema. vpedraz
 De manera opcional se puede añadir otra contraseña y nuevamente el nombre de la empresa. Poco recomendado, a menos que quiera ingresar ésta cada vez que se inicie o reinicie el servicio httpd.
 
 
-## Generate autosigned cert for 5 years
+## Generate autosigned cert for 1 year
 ```
-openssl x509 -sha256 -req -days 1825 -in /root/certs-auto/certs/centos.com.csr -signkey /root/certs-auto/private/centos.com.key -out /root/certs-auto/certs/centos.com.crt
+openssl x509 -sha256 -req -days 365 -in /root/certs-auto/certs/centos.com.csr -signkey /root/certs-auto/private/centos.com.key -out /root/certs-auto/certs/centos.com.crt
 ```
 You will need to enter password
 

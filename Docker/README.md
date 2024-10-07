@@ -1246,14 +1246,14 @@ https://www.freecodecamp.org/news/docker-nginx-letsencrypt-easy-secure-reverse-p
 sudo docker network create -d bridge --subnet 172.124.10.0/24 --gateway 172.124.10.1 network_proxy
 ```
 
-## Create yor web service containers inside network proxy.
+## Create your web service containers inside network proxy.
 Example:
 ```
 docker run --restart always --network network_proxy --ip 172.124.10.10 --name apache -v /usr/local/docker/vols/apache:/var/www/html -d -p 8000:80 php:7.3-apache
 docker run --restart always --network network_proxy --ip 172.124.10.11 --name apache1 -v /usr/local/docker/vols/apache1:/var/www/html -d -p 8001:80 php:7.3-apache
 ```
 
-If you want to expose those containers only by proxy, change '-p 8000:80' to '--expose 80' or port that container expose.
+If you want to expose those containers only by proxy, change '-p 8000:80' to '--expose 80' or port that the container exposes.
 
 ## Create nginx container to configure as a reverse proxy
 ```
@@ -1310,7 +1310,7 @@ proxy_buffering off;
 proxy_request_buffering off;
 proxy_http_version 1.1;
 proxy_intercept_errors on;
-client_max_body_size 20M;
+client_max_body_size 50M;
 ```
 
 ## Set /etc/nginx/conf.d/default.conf inside nginx_proxy container
