@@ -1405,6 +1405,11 @@ server {
 
 ```
 
+## Test configuration
+```
+nginx -t
+```
+
 ## Exit from nginx_proxy container and restart nginx_proxy container
 ```
 exit

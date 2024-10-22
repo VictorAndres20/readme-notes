@@ -77,3 +77,19 @@ vi /etc/nginx/default.d/ssl-redirect.conf
 ```
 return 301 https://$host$request_uri/;
 ```
+
+---------------------------------------------------------------------------------------------------------
+
+# View certificate info
+```
+openssl x509 -text -noout -in my-ssl-certificate.crt
+```
+
+---------------------------------------------------------------------------------------------------------
+# Check if private key and certificate match
+
+```
+openssl x509 -noout -modulus -in my-ssl-certificate.crt | openssl md5
+openssl rsa -noout -modulus -in my-private-key.key | openssl md5
+```
+
