@@ -25,7 +25,7 @@ docker run --restart always --network network_proxy --ip 172.124.10.11 --name ap
 ### Create nginx container to configure as a reverse proxy
 
 ```
-docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.25
+docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.27.2
 ```
 
 --------
@@ -92,7 +92,7 @@ proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 proxy_set_header X-Forwarded-Proto $scheme;
 proxy_buffering off;
 proxy_request_buffering off;
-proxy_http_version 1.1;
+#proxy_http_version 1.1;
 proxy_intercept_errors on;
 client_max_body_size 40M;
 ```
