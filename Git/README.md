@@ -7,6 +7,17 @@ git add .gitignore
 git commit -m '.DS_Store banished!'
 ```
 
+# Delete multiple local branches with branch name starts with
+
+
+```
+git branch -d `git branch | grep -E 'vic/name-branch'`
+```
+
+```
+git branch -D `git branch | grep -E 'vic/name-branch'`
+```
+
 -------------------------------------------------------------------------------------------------
 
 # Create new Repo and add Remote
