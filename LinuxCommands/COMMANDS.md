@@ -1,3 +1,11 @@
+# Execute commands in remote server
+
+```
+read -s fullname && ssh -p 22222 user@remote.com "echo $fullname | sudo -S sh /usr/local/db/gen-backup.sh"
+```
+
+---------------------
+
 # Manual of packages
 man <package>
 
