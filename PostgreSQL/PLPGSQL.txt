@@ -334,3 +334,52 @@ SELECT * FROM factura;
 SELECT * FROM vs_vista1;
 
 --#########################################################################################
+
+CREATE OR REPLACE PROCEDURE update_with_array_loops(aId TEXT)
+LANGUAGE plpgsql AS $$
+DECLARE
+    ids TEXT[];
+    id  TEXT;
+    idDs   TEXT[];
+    idD     TEXT;
+BEGIN
+    SELECT array_agg(id)
+    	INTO ids
+    	FROM "TABLE1" 
+		WHERE eId = aId;
+
+    SELECT array_agg("A")
+    	INTO idDs
+    	FROM "TABLE2" 
+		WHERE "B" = aId;
+
+    -- To start a transaction here
+    SAVEPOINT sp_id;
+	
+    FOREACH id IN ARRAY ids
+    LOOP
+        RAISE NOTICE 'Updating id: %', id;
+	DELETE FROM "TABLE2"
+	    WHERE "B" = id;
+
+	FOREACH datasetId IN ARRAY datasetsIds
+	LOOP
+	    -- SOME INSERTS HERE
+	END LOOP;
+
+    END LOOP;
+
+    -- Release savepoint if everything is successful
+    RELEASE SAVEPOINT sp_id;
+
+    EXCEPTION WHEN others THEN
+        -- Roll back to savepoint on error
+        RAISE NOTICE 'Error processing ID: %, rolling back to savepoint', id;
+       	ROLLBACK TO SAVEPOINT sp_id;
+    END;
+END;
+$$;
+
+CALL update_assessment_datasets('ddsrk7b9q00005fb6vi2y5108');
+
+--#########################################################################################

@@ -914,27 +914,25 @@ export class OrderService {
   }
 
   async createOrderAndDetails(order: Order, details: OrderDetail[]): Promise<Order> {
-    let newOrder = order;
     const queryRunner = this.connection.createQueryRunner();
-  
     // await queryRunner.connect(); // Not neccesary since Connection change to DataSource
     await queryRunner.startTransaction();
+
     try {
-      let orderCreated = await queryRunner.manager.save(order);
-      newOrder = orderCreated;
+      const orderCreated = await queryRunner.manager.save(order);
       for(let i = 0; i < details.length; i++){
         let element = details[i];        
         element.order = orderCreated;
         await queryRunner.manager.save(element);
       }
       await queryRunner.commitTransaction();
+      return orderCreated;
     } catch (err) {
       await queryRunner.rollbackTransaction();
 	  throw new Error(err.message);
     } finally {
       await queryRunner.release();
     }
-    return newOrder;
   }
 
   createOne(dto: OrderDTO): Promise<Order>{
