@@ -1,3 +1,11 @@
+# Create React app with Vite
+
+```
+npm create vite@latest my-app
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
 # Intalation commands
 link -> https://github.com/facebook/create-react-app
 
