@@ -982,7 +982,7 @@ class User(Base):
 # Structure for API with fastapi 
 ```
 pip install fastapi
-pip install uvicorn[standard]
+pip install "uvicorn[standard]"
 pip install pydantic
 pip install SQLAlchemy
 pip install python-dotenv
@@ -1007,23 +1007,12 @@ pip install psycopg2-binary
 
 **project-name/src/api/models/response.py**
 ```
-from pydantic import BaseModel
-from typing import List, Optional
-
-
-class ResponseList(BaseModel):
-    code: int
+class RestResponse(BaseModel):
+    code: Optional[int] = 200
     ok: bool
-    msg: str
-    error: str
-    data: List = []
-
-
-class ResponseDictionary(BaseModel):
-    code: int
-    ok: bool
-    msg: str
-    error: str
+    msg: Optional[str] = None
+    error: Optional[str] = None
+    data_list: Optional[List] = []
     data: Optional[dict] = None
 
 ```
