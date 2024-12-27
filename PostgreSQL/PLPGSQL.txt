@@ -383,3 +383,27 @@ $$;
 CALL update_assessment_datasets('ddsrk7b9q00005fb6vi2y5108');
 
 --#########################################################################################
+
+# Generate random CUID
+
+```
+CREATE OR REPLACE FUNCTION generate_cuid()
+RETURNS TEXT AS $$
+DECLARE
+    cuid TEXT;
+BEGIN
+    cuid := 'c' || encode(gen_random_bytes(15), 'hex');
+    RETURN cuid;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+Then we can create a table like this:
+```
+CREATE TABLE users (
+  cuid text DEFAULT generate_cuid(), -- Use 'text' or a larger varchar length
+  name varchar(100) NOT NULL
+);
+```
+
+--#########################################################################################
