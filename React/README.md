@@ -42,6 +42,18 @@ npm install --save-dev @babel/plugin-transform-private-property-in-object
 
 -------------------------------------------------------------------------------------------------------------------------------
 
+# Fix SVG inside a div
+
+Set the SVG width and height to be the size of its container, and set preserveAspectRatio = none.
+
+```
+<div height="50" width="100">
+  <svg preserveAspectRatio="none" viewBox="0 0 300 200"></svg>
+</div>
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
 # Multiple setState
 ```
 this.setState(
