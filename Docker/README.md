@@ -534,6 +534,11 @@ $ sudo docker run -i -t --name container-nginx-name -v /local/path:/usr/share/ng
 $ sudo docker run -i -t --name spoon -v /local/path:/home/pentaho -d -p 8080:8080 hiromuhota/webspoon
 ```
 
+## Metabase
+```
+docker run -d -p 3001:3000 -e "MB_DB_TYPE=postgres" -e "MB_DB_DBNAME=metabaseappdb" -e "MB_DB_PORT=5432" -e "MB_DB_USER=name" -e "MB_DB_PASS=password" -e "MB_DB_HOST=my-database-host" --name metabase metabase/metabase:latest
+```
+
 ## Wordpress
 ```
 $ sudo docker network create -d bridge --subnet 172.18.0.0/24 --gateway 172.18.0.1 wordpress-net
