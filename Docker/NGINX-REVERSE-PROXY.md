@@ -94,7 +94,7 @@ proxy_buffering off;
 proxy_request_buffering off;
 #proxy_http_version 1.1;
 proxy_intercept_errors on;
-client_max_body_size 40M;
+client_max_body_size 50M;
 ```
 
 --------
