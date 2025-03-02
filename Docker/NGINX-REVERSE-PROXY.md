@@ -95,6 +95,9 @@ proxy_request_buffering off;
 #proxy_http_version 1.1;
 proxy_intercept_errors on;
 client_max_body_size 50M;
+proxy_connect_timeout 2000;
+proxy_send_timeout 2000;
+send_timeout 2000;
 ```
 
 --------
