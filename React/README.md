@@ -6,7 +6,37 @@ npm create vite@latest my-app
 
 -------------------------------------------------------------------------------------------------------------------------------
 
-# Intalation commands
+# Use .env in React + Vite
+
+Create .env file where variables have prefix 'VITE_'
+
+```
+# Development
+VITE_API_URL=localhost
+VITE_IS_PROD=
+
+## Production
+#VITE_API_URL=domain.com
+#VITE_IS_PROD=1
+```
+
+Use env variables like this
+
+```
+const apiUrl = import.meta.env.VITE_API_URL;
+const isProd = import.meta.env.VITE_IS_PROD;
+
+export const IP = apiUrl;
+export const API_PREFIX_PATH = '/api';
+export const DEV_API_HOST = `http://${IP}:8000${API_PREFIX_PATH}`;
+export const PROD_API_HOST = `https://${IP}${API_PREFIX_PATH}`;
+
+export const MAIN_API_HOST = isProd ? PROD_API_HOST : DEV_API_HOST;
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+# DEPRECATED Intalation commands
 link -> https://github.com/facebook/create-react-app
 
 # Quick over view
