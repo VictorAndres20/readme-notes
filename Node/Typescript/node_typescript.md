@@ -13,6 +13,7 @@ npm init
 ### Install and configure typescrypt
 ```bash
 npm install -D typescript @types/express @types/node ts-node nodemon
+npm install tslib
 # generate tsconfig.json
 npx tsc --init
 # uncomment and change "outDir": "./dist",
