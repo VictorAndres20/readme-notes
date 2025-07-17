@@ -1,3 +1,9 @@
+# Replace foo with bar in a file
+
+```
+sed -i 's/foo/bar/g' file.txt
+```
+
 # Execute commands in remote server
 
 ```
