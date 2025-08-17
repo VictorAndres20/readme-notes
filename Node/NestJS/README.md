@@ -548,7 +548,7 @@ ORM_LOG=1
 # ------------------------- PRODUCTION ----------------------------------------
 # ------------ Database variables ------------
 #DB_HOST=234.235.236.237
-#DB_PORT=5433
+#DB_PORT=5432
 #DB_USER=postgres
 #DB_PASS=secret
 #DB_NAME=my_db
@@ -1498,52 +1498,20 @@ export class OrderModule{}
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 
+# Generate .tar to upload in server
+
+```
+tar -cvf my-project.tar --exclude='my-project/db' --exclude='my-project/node_modules' --exclude='my-project/.git' --exclude='my-project/scripts' my-project/
+```
+
 # Deploy docker container
-https://dev.to/erezhod/setting-up-a-nestjs-project-with-docker-for-back-end-development-30lg
 
-1. Dockerfile in root project dir
-```
-FROM node:18.17.0-slim AS development
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-
-RUN npm install glob rimraf
-
-RUN npm install --only=development
-
-COPY . .
-
-RUN mkdir /opt/files-ascun
-
-RUN npm run build
-
-FROM node:18.17.0-slim as production
-
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-#ARG TZ=UTC+5
-#ENV TZ=UTC+5
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-
-RUN npm install --only=production
-
-COPY . .
-
-COPY --from=development /usr/src/app/dist ./dist
-
-RUN mkdir /opt/files-ascun
-
-CMD ["node", "dist/main"]
-```
+1. Dockerfile and .dockerignore in root project dir
+See `Docker` foler.
 
 2. Tar project with some excludes
 ```
-tar -cvf api-project.tar --exclude='api-project/db' --exclude='api-project/node_modules' --exclude='api-project/.git' --exclude='api-project/scripts' api-project/
+tar -cvf api-project.tar --exclude='api-project/db' --exclude='api-project/node_modules' --exclude='api-project/.git' --exclude='api-project/scripts' --exclude='api-project/*.DS_Store' api-project/
 ```
 
 3. Upload in server and create image
@@ -1554,7 +1522,7 @@ docker build api-project/ -t image_name:x.x
 
 4. Create container
 ```
-docker run --restart always [--network network-name] [--ip 172.124.0.5] --name nest_project -p 9001:9001 -d image_name:x.x
+docker run --restart always [--network network-name] [--ip 172.124.0.5] --name api_project -p 8000:8000 -d image_name:x.x
 ```
 
 ---------------------------------------------------------------------------------------------------------------------------------------

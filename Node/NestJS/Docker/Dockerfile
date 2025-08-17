@@ -1,36 +1,45 @@
-FROM node:22.12.0-slim AS development
+# -------------------------
+# Base image.
+# Install stage
+# -------------------------
+FROM node:20.18.2-slim AS base
 
 WORKDIR /usr/src/app
-
 COPY package*.json ./
 
-RUN npm install glob rimraf
+# -------------------------
+# Build stage
+# -------------------------
+FROM base AS build
 
-RUN npm install --only=development
-
+RUN npm ci --include=dev
 COPY . .
-
-#RUN mkdir /opt/files-ascun
-
 RUN npm run build
 
-FROM node:22.12.0-slim AS production
+# -- remove dev deps
+RUN npm prune --omit=dev
 
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-#ARG TZ=UTC+5
-#ENV TZ=UTC+5
+# -------------------------
+# Production stage
+# -------------------------
+FROM base AS production
 
-WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-COPY package*.json ./
+# -- Copy only production env [!IMPORTANT] SPECIAL ATTENTION
+COPY --from=build /usr/src/app/.env.production .env
 
-RUN npm install --only=production
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/node_modules ./node_modules
 
-COPY . .
+# -- Copy assets or public files that your code uses [!IMPORTANT] SPECIAL ATTENTION
+COPY --from=build /usr/src/app/public-files ./public-files
+COPY --from=build /usr/src/app/pdf-images ./pdf-images
 
-COPY --from=development /usr/src/app/dist ./dist
+# -- Create folders for volumes if you need to.
+#RUN mkdir -p /opt/files-ascun
 
-#RUN mkdir /opt/files-ascun
+# -- Expose only the port that the app uses.
+#EXPOSE 8000
 
 CMD ["node", "dist/main"]
