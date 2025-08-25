@@ -85,6 +85,10 @@ module.exports = {
 };
 ```
 
+5. `.env` file should be inside the root nest application folder
+
+6. To use images or fonts like for PDF generator, create `api-assets` folder at root monorepo project
+
 ### Create React apps
 
 1. Add `@nx/react` plugin
@@ -267,6 +271,12 @@ To run all applications you can use
 npx nx run-many --target=serve
 ```
 
+To run all applications you can use and see all logs
+
+```
+npx nx run-many --target=serve --output-style=stream
+```
+
 ------------------------------------------------------------------------------------------------
 
 ## Build projects
@@ -292,8 +302,8 @@ Useful update for your package.json
 ```
   "scripts": {
     "build": "npx nx run-many --target=build",
-    "serve": "npx nx run-many --target=serve",
-    "serve:high-mem": "NODE_OPTIONS=--max-old-space-size=8192 npx serve",
+    "serve": "npx nx run-many --target=serve --output-style=stream",
+    "serve:high-mem": "NODE_OPTIONS=--max-old-space-size=8192 npm run serve",
     "test": "pnpm nx run-many --targets=test --parallel=10"
   },
 ```
@@ -301,3 +311,5 @@ Useful update for your package.json
 ------------------------------------------------------------------------------------------------
 
 ## Deployment phase
+
+
