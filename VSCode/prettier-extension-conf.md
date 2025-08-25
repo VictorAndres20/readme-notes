@@ -7,7 +7,7 @@ We need to add this data to .vscode files:
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "editor.tabSize": 4,
+  "editor.tabSize": 2,
   "eslint.workingDirectories": ["."],
 }
 ```
