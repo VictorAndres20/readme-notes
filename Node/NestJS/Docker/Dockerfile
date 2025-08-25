@@ -33,8 +33,7 @@ COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/node_modules ./node_modules
 
 # -- Copy assets or public files that your code uses [!IMPORTANT] SPECIAL ATTENTION
-COPY --from=build /usr/src/app/public-files ./public-files
-COPY --from=build /usr/src/app/pdf-images ./pdf-images
+COPY --from=build /usr/src/app/api-assets ./api-assets
 
 # -- Create folders for volumes if you need to.
 #RUN mkdir -p /opt/files-ascun

@@ -1,23 +1,22 @@
-// npm install @nestjs/websockets @nestjs/platform-socket.io socket.io
-
-import { 
-    WebSocketGateway, 
-    WebSocketServer, 
-    SubscribeMessage, 
-    MessageBody,
-    OnGatewayConnection 
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  MessageBody,
+  OnGatewayConnection,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: true })  // Enable CORS if required
+@WebSocketGateway({ cors: true }) // Enable CORS if required
 export class SocketGateway implements OnGatewayConnection {
   @WebSocketServer()
-  private server: Server;
+  private server!: Server;
 
   // Listening for an event called 'message'
   @SubscribeMessage('message')
   handleMessage(@MessageBody() message: string, client: Socket): void {
     console.log('Message received:', message);
+    console.log('Client:', client);
     // Broadcast message to all clients
     this.server.emit('message', message);
   }
