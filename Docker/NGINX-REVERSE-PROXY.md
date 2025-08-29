@@ -95,9 +95,10 @@ proxy_request_buffering off;
 #proxy_http_version 1.1;
 proxy_intercept_errors on;
 client_max_body_size 50M;
-proxy_connect_timeout 2000;
-proxy_send_timeout 2000;
-send_timeout 2000;
+proxy_connect_timeout 300s;   # time to connect to the service
+proxy_send_timeout 300s;      # time to send request to the service
+proxy_read_timeout 300s;      # time to wait for a response
+send_timeout 300s;            # time client has to read response
 ```
 
 --------

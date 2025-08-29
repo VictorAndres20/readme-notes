@@ -64,13 +64,17 @@ npx nx g @nx/nest:app apps/my-api --linter=eslint --unitTestRunner=jest
 npx nx g @nx/nest:app apps/my-worker
 ```
 
-3. Since we update tsconfig.base.json to have `"moduleResolution": "bundler"` we need to tell web pack to resolve paths by tsconfig paths, to do this lets install `tsconfig-paths-webpack-plugin`
+3. `.env` file should be inside the root nest application folder
+
+4. To use images or fonts like for PDF generator, create `api-assets` folder at root monorepo project
+
+5. If we don't have "moduleResolution" specified on nest tscofnig.app.json, since we update tsconfig.base.json to have `"moduleResolution": "bundler"` we will need to tell web pack to resolve paths by tsconfig paths, to do this lets install `tsconfig-paths-webpack-plugin`
 
 ```
 npm install -D tsconfig-paths-webpack-plugin
 ```
 
-4. Add the resolver inside nest `app webpack.config.js`
+then add the resolver inside nest `app webpack.config.js`
 
 ```
 ...
@@ -85,9 +89,22 @@ module.exports = {
 };
 ```
 
-5. `.env` file should be inside the root nest application folder
+6. Disable debugger inspector. Go to your app `package.json` file. Under `nx -> targets -> serve` locate "options". Here add `inspect: false`:
 
-6. To use images or fonts like for PDF generator, create `api-assets` folder at root monorepo project
+```
+{
+  ...
+  "nx": {
+    "targets": {
+      ...
+      "serve": {
+        "options": {
+          "buildTarget": "@advances-app/api:build",
+          "runBuildTargetDependencies": false,
+          "inspect": false -> THIS
+        },
+...
+```
 
 ### Create React apps
 
@@ -100,7 +117,7 @@ npx nx add @nx/react
 2. Now you can create React applications
 
 ```
-npx nx g @nx/react:app apps/my-web --bundler=vite
+npx nx g @nx/react:app apps/my-web --bundler=vite 
 ```
 
 3. We need to check if include property is added in `@nx/vite/plugin` in `nx.json`.
@@ -109,9 +126,7 @@ npx nx g @nx/react:app apps/my-web --bundler=vite
     {
       "plugin": "@nx/vite/plugin",
 -----------------------------------> Add this to just serve react apps and not libraries
-      "include": [
-        "apps/**/*"
-      ],
+      "include": ["apps/**/*"],
 ----------------------------------->
       "options": {
         "buildTargetName": "build",
@@ -158,21 +173,32 @@ npx nx g @nx/nest:lib packages/api/api-commons --linter=eslint --unitTestRunner=
 Maybe with unit tests runner
 
 ```
-npx nx g @nx/nest:lib packages/api/feat-users --linter=eslint --unitTestRunner=jest --buildable=false
+npx nx g @nx/nest:lib packages/api/feat-api-users --linter=eslint --unitTestRunner=jest --buildable=false
 ```
 
-2. Add your new libs to a global path in `tsconfig.base.json` using `path` key
+2. Add your new libs to a global path in `tsconfig.base.json` using `paths` key. 
+**IMPORTANT**
+`@your-app/folders` should match your library `package.json` name!!
 
 ```
     "paths": {
       ...
-      "@my-app/api/api-commons": ["packages/api/api-commons/src/index.ts"],
-      "@my-app/api/feat-users": ["packages/api/feat-users/src/index.ts"], 
+      "@my-app/api-commons": ["packages/api/api-commons/src/index.ts"],
+      "@my-app/feat-api-users": ["packages/api/feat-api-users/src/index.ts"], 
       ...
     }
 ```
 
-3. To import nest libraries inside your nest applications, you need to update your nest application `tsconfig.app.json` file referencing your libraries `tsconfig.lib.json` files like:
+3. Sometimes these libraries don't have available decorators so you can enable them on `tsconfig.lib.json` file
+
+```
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+```
+
+4. To import nest libraries inside your nest applications, you need to update your nest application `tsconfig.app.json` file referencing your libraries `tsconfig.lib.json` files like:
 
 ```
 {
@@ -182,21 +208,28 @@ npx nx g @nx/nest:lib packages/api/feat-users --linter=eslint --unitTestRunner=j
       "path": "../../packages/api/api-commons/tsconfig.lib.json"
     },
     {
-      "path": "../../packages/api/feat-users/tsconfig.lib.json"
+      "path": "../../packages/api/feat-api-users/tsconfig.lib.json"
     }
   ]
 }
 ```
 
-4. Sometimes these libraries don't have available decorators so you can enable them on `tsconfig.lib.json` file
+And update your nest application `tsconfig.json` file referencing your libraries folders like:
 
 ```
-  "compilerOptions": {
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
-```
+{
+  ...
+  "references": [
+    {
+      "path": "../../packages/api/api-commons"
+    },
+    {
+      "path": "../../packages/api/feat-api-users"
+    }
+  ]
+}
 
+```
 
 ### Create React libraries
 
@@ -211,6 +244,8 @@ npx nx g @nx/react:lib packages/web/users-page --bundler=vite --linter=eslint --
 ```
 
 2. Add your new libs to a global path in `tsconfig.base.json` using `path` key
+**IMPORTANT**
+`@your-app/folders` should match your library `package.json` name!!
 
 ```
     "paths": {
@@ -232,6 +267,22 @@ npx nx g @nx/react:lib packages/web/users-page --bundler=vite --linter=eslint --
     },
     {
       "path": "../../packages/web/users-page/tsconfig.lib.json"
+    }
+  ]
+}
+```
+
+And update your react application `tsconfig.json` file referencing your libraries folders like:
+
+```
+{
+  ...
+  "references": [
+    {
+      "path": "../../packages/web/ui-components"
+    },
+    {
+      "path": "../../packages/web/users-page"
     }
   ]
 }
