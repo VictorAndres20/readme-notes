@@ -1,6 +1,6 @@
 # DEPLOY
 
-Put these files in your nx nest app root folder
+Put files near this README in your NX Nest application root folder, then
 
 ## Tar project and upload to server
 
@@ -12,11 +12,11 @@ tar -cvf [monorepo-project].tar --exclude='[monorepo-project]/db' --exclude='[mo
 
 ```bash
 sh [monorepo-project]/apps/[nest-app]/pre-build.sh
-docker build [monorepo-project]/ -t [nest_app_container]:x.x
+docker build [monorepo-project]/ -t [nest_app_image]:x.x
 ```
 
 ## Create docker container
 
 ```bash
-docker run --restart always --network [network_app] --ip 172.124.0.5 --name [nest_app_container] -e TZ=UTC+5 -p 8000:8000 -d [nest_app_container]:x.x
+docker run --restart always --network [network_app] --ip 172.124.0.5 --name [nest_app_container] -e TZ=UTC+5 -p [env-port]:[env-port] -d [nest_app_image]:x.x
 ```

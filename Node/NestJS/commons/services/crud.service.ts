@@ -16,13 +16,17 @@ export abstract class BasicCrudService<T extends ObjectLiteral, ID, D> {
 
   abstract findById(id?: ID | null): Promise<T | null>;
 
-  abstract buildBaseCreation(dto: D): T;
+  abstract dtoTransformBeforeCreate(dto: D): D;
+
+  abstract buildBaseEntityToCreate(dto: D): T;
 
   abstract dataValidationBeforeCreate(dto: D): Promise<void>;
 
-  abstract buildBaseEdition(entity: T, dto: D): T;
+  abstract dtoTransformBeforeEdit(dto: D): D;
 
-  abstract dataValidationBeforeEdit(entity: T, dto: D): Promise<void>;
+  abstract buildBaseEntityToUpdate(entity: T, dto: D): T;
+
+  abstract dataValidationBeforeUpdate(entity: T, dto: D): Promise<void>;
 
   findAll(): Promise<T[]> {
     try {
@@ -50,21 +54,23 @@ export abstract class BasicCrudService<T extends ObjectLiteral, ID, D> {
 
   async createOne(dto: D): Promise<T> {
     try {
-      await this.dataValidationBeforeCreate(dto);
-      return this.repo.save(this.buildBaseCreation(dto));
+      const dtoToCreate = this.dtoTransformBeforeCreate(dto);
+      await this.dataValidationBeforeCreate(dtoToCreate);
+      return this.repo.save(this.buildBaseEntityToCreate(dtoToCreate));
     } catch (err) {
       throw new Error((err as Error).message);
     }
   }
 
-  async editOne(dto: D, id: ID): Promise<T> {
+  async updateOne(dto: D, id: ID): Promise<T> {
     try {
       const entity = await this.findById(id);
       if (entity == null) {
         throw new Error('Entity not found for edition');
       }
-      await this.dataValidationBeforeEdit(entity, dto);
-      return this.repo.save(this.buildBaseEdition(entity, dto));
+      const dtoToUpdate = this.dtoTransformBeforeEdit(dto);
+      await this.dataValidationBeforeUpdate(entity, dtoToUpdate);
+      return this.repo.save(this.buildBaseEntityToUpdate(entity, dtoToUpdate));
     } catch (err) {
       throw new Error((err as Error).message);
     }

@@ -68,7 +68,7 @@ npx nx g @nx/nest:app apps/my-worker
 
 4. To use images or fonts like for PDF generator, create `api-assets` folder at root monorepo project
 
-5. If we don't have "moduleResolution" specified on nest tscofnig.app.json, since we update tsconfig.base.json to have `"moduleResolution": "bundler"` we will need to tell web pack to resolve paths by tsconfig paths, to do this lets install `tsconfig-paths-webpack-plugin`
+5. Since we update tsconfig.base.json to have `"moduleResolution": "bundler"` we will need to tell web pack to resolve paths by tsconfig paths, to do this lets install `tsconfig-paths-webpack-plugin`. Very important when create docker image.
 
 ```
 npm install -D tsconfig-paths-webpack-plugin
@@ -142,7 +142,7 @@ npx nx g @nx/react:app apps/my-web --bundler=vite
     },
 ```
 
-4. Tell vite to resolve your future library imports using tsconfig paths. Update your react app `vite.config.ts` plugins:
+4. Try to don't, but maybe tell vite to resolve your future library imports using tsconfig paths. Update your react app `vite.config.ts` plugins:
 
 ```
 ...
@@ -363,4 +363,4 @@ Useful update for your package.json
 
 ## Deployment phase
 
-
+See folders near this file
