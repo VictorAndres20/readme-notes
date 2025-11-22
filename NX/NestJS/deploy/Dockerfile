@@ -1,6 +1,6 @@
 ##########################################################################
 #
-#   !!!! IMPORTANT ----> UPDATE YOU NX APP NAME [nest-app] <---- IMPORTANT !!!!
+# !!!! IMPORTANT ----> UPDATE [nest-app] TO YOUR NX APP NAME <---- IMPORTANT !!!!
 #
 #         THIS SHOULD BE MOVED TO THE ROOT OF THE MONOREPO PROJECT
 #                      Don't forget `.dockerignore`
