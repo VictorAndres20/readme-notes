@@ -1,0 +1,29 @@
+# Security npm notes
+
+## Install only packages versions that are published before specific time
+
+Install packages that were published before a specific date
+
+```
+npm install --before=2024-12-01
+```
+
+Or use a relative time format
+
+```
+npm install --before=5d  # 5 days ago
+npm install --before=1w  # 1 week ago
+npm install --before=1m  # 1 month ago
+```
+
+This is useful to install latest versions that can be checked and tested with no hack attacks
+
+## Good practice, remove caret "^" in versions
+
+```
+   {
+     "dependencies": {
+       "some-package": "1.2.3"  // exact version, not ^1.2.3
+     }
+   }
+```
