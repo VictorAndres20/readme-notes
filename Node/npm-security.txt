@@ -18,6 +18,8 @@ npm install --before=1m  # 1 month ago
 
 This is useful to install latest versions that can be checked and tested with no hack attacks
 
+------------------------------------------------------------------------------------------
+
 ## Good practice, remove caret "^" in versions
 
 ```
@@ -27,3 +29,18 @@ This is useful to install latest versions that can be checked and tested with no
      }
    }
 ```
+
+------------------------------------------------------------------------------------------
+
+## In production use "npm ci" (also good for setting up a fresh development environment)
+
+Use `npm ci` (Clean Install) for production build, like in a Dockerfile step or something like that. 
+This because:
+
+- Uses: package-lock.json as the absolute source of truth
+- Lock file behavior: Never modifies package-lock.json, fails if lock file is out of sync
+- Installation: Installs exact versions specified in the lock file
+- node_modules: Deletes entire node_modules folder before installing
+- Use case: CI/CD pipelines, production builds, ensuring reproducible installs
+- Speed: Faster (no dependency resolution needed)
+- Behavior: Strict and deterministic
