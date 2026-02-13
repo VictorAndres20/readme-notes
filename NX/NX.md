@@ -18,7 +18,7 @@ npm add --global nx
 You can create a new NX workspace with default config using `create-nx-workspace` command
 
 ```
-npx create-nx-workspace@latest --name="my-app-name" --preset=ts --formatter=prettier
+npx create-nx-workspace@[same-nx-version] --name="my-app-name" --preset=ts --formatter=prettier
 ```
 
 OR to add NX to an existing repo use
