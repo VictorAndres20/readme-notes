@@ -1,3 +1,47 @@
+# Use SSH key for secure authentication
+
+Create ssh key running
+
+```bash
+ssh-keygen
+```
+
+This prompts config like:
+- Specify the key file name, e.g.: ~/.ssh/id_gh
+- Specify and confirm your passphrase
+
+Two files should be created after this:
+~/.ssh/id_gh # Private key
+~/.ssh/id_gh.pub # Public key
+
+Now, you should create a SSH key in github. Settings > SSH and GPG keys , hit "New SSH key".
+Paste Public key content, `.pub` file content.
+
+Lets config git to use ssh key.
+
+Create or update ssh config file
+
+```bash
+vi ~/.ssh/config
+```
+
+Use this configuration:
+
+```
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_gh
+  IdentitiesOnly yes
+```
+
+Now you can use git operations and clone repositories using ssh and not https
+
+-------------------------------------------------------------------------------------------------
+
+
 # Delete file from the repo and add it to the .gitignore
 
 ```
