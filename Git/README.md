@@ -37,7 +37,40 @@ Host github.com
   IdentitiesOnly yes
 ```
 
-Now you can use git operations and clone repositories using ssh and not https
+Now you can use git operations and clone repositories using ssh and not https!
+
+## More than one account?
+
+If you have two accounts, you can generate two SSH keys, configure them in the accounts, and then configure your ssh config like:
+
+```bash
+vi ~/.ssh/config
+```
+
+Use this configuration:
+
+```
+Host personal-github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/personal_id_gh
+  IdentitiesOnly yes
+
+Host work-github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/work_id_gh
+  IdentitiesOnly yes
+```
+
+Now, Note that 'Host' name has an alias, so you should switch remote host from `github.com` to `host as confgiured`, like:
+
+personal: `git@personal-github.com:your-username/repo.git`
+work: `git@pwork-github.com:your-org/repo.git`
 
 -------------------------------------------------------------------------------------------------
 
