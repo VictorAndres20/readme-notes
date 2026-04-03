@@ -35,8 +35,7 @@ After this maybe you will need to update your `tsconfig.base.json` adding and up
     "module": "esnext",
     "moduleResolution": "bundler",
     "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {} // To register your libraries paths
+    "paths": {} // To register your libraries paths, like "@my-app-name/api-core": ["./packages/api/api-core/src/index.ts"]
   }
 }
 ```
@@ -183,8 +182,8 @@ npx nx g @nx/nest:lib packages/api/feat-api-users --linter=eslint --unitTestRunn
 ```
     "paths": {
       ...
-      "@my-app/api-commons": ["packages/api/api-commons/src/index.ts"],
-      "@my-app/feat-api-users": ["packages/api/feat-api-users/src/index.ts"], 
+      "@my-app/api-commons": ["./packages/api/api-commons/src/index.ts"],
+      "@my-app/feat-api-users": ["./packages/api/feat-api-users/src/index.ts"], 
       ...
     }
 ```
@@ -250,8 +249,8 @@ npx nx g @nx/react:lib packages/web/users-page --bundler=vite --linter=eslint --
 ```
     "paths": {
       ...
-      "@my-app/web/ui-components": ["packages/web/ui-components/src/index.ts"],
-      "@my-app/web/users-page": ["packages/web/users-page/src/index.ts"], 
+      "@my-app/web/ui-components": ["./packages/web/ui-components/src/index.ts"],
+      "@my-app/web/users-page": ["./packages/web/users-page/src/index.ts"], 
       ...
     }
 ```
@@ -301,7 +300,7 @@ npx nx g @nx/js:lib packages/web/api-client --bundler=tsc --linter=eslint --unit
 ```
     "paths": {
       ...
-      "@my-app/web/api-client": ["packages/web/api-client/src/index.ts"],
+      "@my-app/web/api-client": ["./packages/web/api-client/src/index.ts"],
       ...
     }
 ```
