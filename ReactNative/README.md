@@ -179,7 +179,7 @@ Then in `buildTypes.release`, change:
 !debug.keystore
 ```
 
-#### Create debug APK
+#### Create debug APK (Need the Metro server running)
 
 ```bash
 cd android && ./gradlew assembleDebug
@@ -190,11 +190,23 @@ The APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
 #### Create release APK
 
 ```bash
-rm -rf android/app/build/generated/assets android/app/build/generated/res
+# Tip: `npm run android` to build test and then build
+rm -rf android/app/build/outputs
 cd android && ./gradlew assembleRelease -x externalNativeBuildCleanDebug
 ```
 
 The APK will be at: `android/app/build/outputs/apk/release/app-release.apk`
+
+#### Generate a Signed Release APK/AAB
+
+Google Play requires an AAB (Android App Bundle) instead of APK. Build it with:
+
+```bash
+cd android && ./gradlew bundleRelease
+```
+
+Output will be at: `android/app/build/outputs/bundle/release/app-release.aab`
+
 
 #################################################################################
 
