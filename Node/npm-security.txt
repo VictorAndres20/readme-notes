@@ -4,7 +4,7 @@
 
 ```plain
 ignore-scripts=true
-min-release-age=10
+min-release-age=10 # Needs npm 11.10.0+
 ```
 
 ignore-scripts: Prevent to run malicious post install scripts
