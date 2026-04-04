@@ -1,16 +1,26 @@
 # Security npm notes
 
+## npmrc file configs:
+
+```plain
+ignore-scripts=true
+min-release-age=10
+```
+
+ignore-scripts: Prevent to run malicious post install scripts
+min-release-age: prevents the installation of versions published within a specified window, reducing the risk of "zero-day" supply chain attacks
+
 ## Install only packages versions that are published before specific time
 
 Install packages that were published before a specific date
 
-```
+```bash
 npm install --before=2024-12-01
 ```
 
 Or use a relative time format
 
-```
+```bash
 npm install --before=5d  # 5 days ago
 npm install --before=1w  # 1 week ago
 npm install --before=1m  # 1 month ago
