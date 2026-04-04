@@ -1,69 +1,84 @@
-# IMPORTANT!!!!!!
-MAY BE ALWAYS USE sudo, like sudo react-native run-android
-
 # Open Android SDK Manager and update Android SDK
 
-$ Open Android Studio and Open SDK Manager
+Open Android Studio and Open SDK Manager
 
-# Get started
+# Create App
 
-# CREATE APP
+**Using React Native CLI**
+
 ```
-$ npx react-native init ProjectName 
-```
-**OR** 
-```
-$ npx react-native init newproject --version react-native@0.57.8
+$ npx @react-native-community/cli@latest init my-app
 ```
 
-CODE WITH SERVER STARTED 
+**Using Expo**
+ 
 ```
-$ yarn start
-```
-```
-$ npm start
+$ npx create-expo-app@latest my-app
 ```
 
-# adb configure
+## Build and start debug server
 
-## Your divice On Developer Options
+**Using React Native CLI**
+
+```bash
+npx react-native run-android
+```
+
+```bash
+npx react-native run-ios
+```
+
+**Using Expo**
+
+```bash
+npx expo run:android
+```
+
+```bash
+npx expo run:ios
+```
+
+## adb configure
+
+### Your divice On Developer Options
+
 1. Make sure Depuracion USB 					enabled
 2. Make sure Install apps via USB 			enabled
 3. Depuracion USB (Ajustes de seguridad) 	enabled
 
-## Make sure your divece is authorized with adb /Android/Sdk/platform-tools/adb
-```
-$ adb devices
+### Make sure your divece is authorized with adb /Android/Sdk/platform-tools/adb
+
+```bash
+adb devices
 ```
 
 if the device is shown as unauthorized, go 
 to the developer options on the phone and click 
 "Revoke USB debugging authorization"
-```
+
+```bash
 $ adb kill-server
 $ adb start-server
 ```
 
 The device will ask if you are agree to connect the computer id
 
-## Enablibng debugging via USB
-RUN JS server first before run-android
-https://facebook.github.io/react-native/docs/getting-started
-https://facebook.github.io/react-native/docs/running-on-device
-
 ## Connecting to the development server
-```
-$ adb -s <device name> reverse tcp:8081 tcp:8081
+
+```bash
+adb -s <device name> reverse tcp:8081 tcp:8081
 ```
 
 # Delete app from device
-```
-$ adb uninstall com.projectname
+
+```bash
+adb uninstall com.projectname
 ```
 
 # Reload via Terminal
 https://stackoverflow.com/questions/44170991/reload-a-react-native-app-on-an-android-device-manually-via-command-line
-```
+
+```bash
 $ adb shell input text "RR"
 ```
 
@@ -86,6 +101,100 @@ inside react-project/android create local.properties set path to Android SDK:
 	sdk.dir = /home/victorandres/Android/Sdk
 ```
 
+------------------------------------------------------------------------------------------------
+
+## Build app for distribution
+
+### Android
+
+#### Signature to release (If is the first time and you haven't done this)
+
+Steps to sign the release APK
+
+- Generate a keystore
+
+```bash
+keytool -genkeypair -v \
+  -storetype PKCS12 \
+  -keystore android/app/[my-app]-release.keystore \
+  -alias [my-app]-key \
+  -keyalg RSA -keysize 2048 \
+  -validity 10000
+```
+
+It will ask for a password and some identity fields (name, org, etc.).
+
+> [!NOTE] Validity Flag.
+> The -validity 10000 flag sets how many days the keystore certificate will be  
+> valid — in this case, ~27 years.
+> Google Play requires the certificate to be valid beyond October 22, 2033, so  
+> 10000 days is a common safe choice.
+
+**Remember the password and alias or save it safety if you need to build in other machine.**
+
+**Copy and save the `.keystore` file generated safety if you need to build in other machine.**
+
+- Store credentials in `android/gradle.properties`
+
+Add these lines (don't commit this file with real passwords):
+
+```plain
+# Release sign key store variables
+ADVANCES_RELEASE_STORE_FILE=[my-app]-release.keystore
+ADVANCES_RELEASE_KEY_ALIAS=[my-app]-key
+ADVANCES_RELEASE_STORE_PASSWORD=your_password_here
+ADVANCES_RELEASE_KEY_PASSWORD=your_password_here # Same as above
+```
+
+- Update `android/app/build.gradle`
+
+Add a release signing config and reference it in the release build type.
+Update the `signingConfigs` and `buildTypes` blocks:
+
+```plain
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            storeFile file(ADVANCES_RELEASE_STORE_FILE)
+            storePassword ADVANCES_RELEASE_STORE_PASSWORD
+            keyAlias ADVANCES_RELEASE_KEY_ALIAS
+            keyPassword ADVANCES_RELEASE_KEY_PASSWORD
+        }
+    }
+```
+
+Then in `buildTypes.release`, change:
+`signingConfig signingConfigs.debug` to:
+`signingConfig signingConfigs.release`
+
+- Add the keystore and credentials to `.gitignore`:
+
+```plain
+*.keystore
+!debug.keystore
+```
+
+#### Create debug APK
+
+```bash
+cd android && ./gradlew assembleDebug
+```
+
+The APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+#### Create release APK
+
+```bash
+rm -rf android/app/build/generated/assets android/app/build/generated/res
+cd android && ./gradlew assembleRelease -x externalNativeBuildCleanDebug
+```
+
+The APK will be at: `android/app/build/outputs/apk/release/app-release.apk`
 
 #################################################################################
 
