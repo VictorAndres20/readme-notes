@@ -1,0 +1,12 @@
+Upload file example for prod
+---------------------------------------------------
+
+1. Create a "upload" file in your root React project folder
+
+2. Create your .env.production file following same .env.development.local file variables bur for prod
+
+3. In your "upload" file, put something like:
+
+```bash
+nvm use && rm -rf dist/ && npx tsc -b && npx vite build --mode production && tar -cvf dist.tar dist && scp -P [your ssh port] dist.tar [admin-user]@[IP]:/your/path/. && rm -rf dist.tar
+```

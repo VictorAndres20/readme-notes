@@ -1,0 +1,1 @@
+docker stop [container-name] && rm -rf dist && tar -xvf dist.tar && chown -R www-data:www-data dist && docker start [container-name] && rm -rf dist.tar && docker ps

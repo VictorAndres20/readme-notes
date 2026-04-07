@@ -84,7 +84,246 @@ Set the SVG width and height to be the size of its container, and set preserveAs
 
 -------------------------------------------------------------------------------------------------------------------------------
 
-# Multiple setState
+## Run the app under custom BASEPATH
+
+Specify your custom path basename in the Router
+
+```jsx
+    <Router basename="/my-route">
+      <Switch>
+        ...
+        <Route path="*" element={<NotFound />} />
+      </Switch>
+    </Router>
+```
+
+Configure vite.config.ts to be like
+
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+// https://vite.dev/config/
+export default defineConfig({
+  // ----------------------------------------------------------
+  // Need this for correct routing in production, since the app is served from a subdirectory
+  base: "/practicum2/",
+  build: {
+    outDir: "dist/practicum2",
+  },
+  // ----------------------------------------------------------
+  server: {
+    port: 3000,
+  },
+  preview: {
+    port: 3000,
+  },
+  plugins: [
+    react({
+      babel: {
+        plugins: [["babel-plugin-react-compiler"]],
+      },
+    }),
+    tailwindcss(),
+  ],
+});
+```
+
+And the `public/.htaccess` should be:
+
+```plain
+Options -MultiViews
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /practicum2/index.html [QSA,L]
+```
+
+Use the normal build container in the server.
+If still using Apache2 container, point the volume normal like:
+`-v /path/to/dist:/var/www/html`
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+# DEPLOYMENTS
+
+## Run in Docker container - Apache2
+
+1. Add .htaccess in your app `public/` folder:
+
+```plain
+        Options -MultiViews
+        RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^ index.html [QSA,L]
+``` 
+
+2. Build you app using vite and using `.env.production` variables:
+
+```bash
+npx tsc -b && npx vite build --mode production
+```
+
+3. Tar your dist/ folder and upload it to the server:
+
+```bash
+tar -cvf dist.tar dist && scp -P 22 user@IP:/my/app/volume/.
+```
+
+4. Enter in the server and decompress tar file
+
+5. Create docker container in the server
+
+```bash
+docker run --restart always --network my-network --ip 172.124.0.5 --name my-app -d -p 80:80 -v /my/app/volume/dist:/var/www/html php:7.3-apache
+```
+
+6. Set web permissions
+
+```bash
+chown -R www-data:www-data /my/app/volume/dist
+```
+
+7. Enter in the container and enable a2enmod rewrite
+
+```bash
+a2enmod rewrite && service apache2 restart
+```
+
+## Apache 2 in ubuntu 16.04
+
+1. Config Apache for .htaccess
+
+- 1. Mod rewrite ON
+    ```
+    $ sudo a2enmod rewrite
+    ```
+- 2. /etc/apache2/sites-enabled/000-default.conf
+```
+<VirtualHost *:80>
+    # The ServerName directive sets therequest scheme, hostname and port that
+    # the server uses to identify itself.This is used when creating
+    # redirection URLs. In the context ofvirtual hosts, the ServerName
+    # specifies what hostname must appear inthe request's Host: header to
+    # match this virtual host. For thedefault virtual host (this file) this
+    # value is not decisive as it is used asa last resort host regardless.
+    # However, you must set it for anyfurther virtual host explicitly.
+    #ServerName www.example.com
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+
+    <Directory "/var/www/html">     |
+         AllowOverride All           | ---->THIS
+    </Directory>                    |
+    # Available loglevels: trace8, ...,trace1, debug, info, notice, warn,
+    # error, crit, alert, emerg.
+    # It is also possible to configure theloglevel for particular
+    # modules, e.g.
+    #LogLevel info ssl:warn
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.logcombined
+    # For most configuration files fromconf-available/, which are
+    # enabled or disabled at a global level,it is possible to
+    # include a line for only one particularvirtual host. For example the
+    # following line enables the CGIconfiguration for this host only
+    # after it has been globally disabledwith "a2disconf".
+    #Include conf-availableserve-cgi-bin.conf
+</VirtualHost>
+        # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+```
+- 3. headers ->
+```
+        $ sudo cd /etc/apache2/mods-enabled/
+        $ sudo ln -s ../mods-available/headers.load headers.load
+        $ sudo service apache2 restart
+```
+2. React app config -> https://facebook.github.io/create-react-app/docs/deployment
+    
+- 1. .htaccess on /public folder
+``` 
+        Options -MultiViews
+        RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^ index.html [QSA,L]
+```
+- 2. /public/manifest.json
+```
+        "start_url": ".",
+```
+- 3. package.json -> This if you want to use yout project name for root URL like http://host.com/project/
+```
+        "homepage": "http://mywebsite.com/YOUR_APP_NAME",
+```
+
+## Deploy on Tomcat
+
+0. Create structure
+```
+/project_folder
+    /WEB-INF
+        /classes
+        /src
+```
+1. /main_folder/WEB-INF/web.xml
+```
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+          http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+          version="2.4">
+
+  <display-name>create-react-app-servlet</display-name>
+
+  <error-page>
+    <error-code>404</error-code>
+    <location>/index.html</location>
+  </error-page>
+
+</web-app>
+```
+
+2. Put on /project_folder all files and folders inside build folder when react app build 
+
+# If you want to deploy on main URL rename or use project_folder to ROOT
+
+## Deploy on IIS
+
+0. In React App, create 'web.config' file in 'public folder'
+```
+<?xml version="1.0"?>
+<configuration>
+ <system.webServer>
+ <rewrite>
+ <rules>
+ <rule name="React Routes" stopProcessing="true">
+ <match url=".*" />
+ <conditions logicalGrouping="MatchAll">
+ <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+ <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+ <add input="{REQUEST_URI}" pattern="^/(api)" negate="true" />
+ </conditions>
+ <action type="Rewrite" url="/" />
+ </rule>
+ </rules>
+ </rewrite>
+ </system.webServer>
+</configuration>
+```
+
+1. Install URL Rewrite module
+https://www.iis.net/downloads/microsoft/url-rewrite
+
+2. Create App in IIS
+Enter IIS on Windows with 
+```
+Windows + R
+inetmgr
+```
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+# DEPRECATED Multiple setState
 ```
 this.setState(
 	{times:[
@@ -1337,145 +1576,6 @@ npm
 ```
 $ sudo npm install mdbreact --save
 ```
-
-
-
-
--------------------------------------------------------------------------------------------------------------------------------
-
-# DEPLOYMENTS
-
-## Apache 2 - ubuntu 16.04
-
-1. Config Apache for .htaccess
-
-- 1. Mod rewrite ON
-    ```
-	$ sudo a2enmod rewrite
-    ```
-- 2. /etc/apache2/sites-enabled/000-default.conf
-```
-<VirtualHost *:80>
-	# The ServerName directive sets therequest scheme, hostname and port that
-	# the server uses to identify itself.This is used when creating
-	# redirection URLs. In the context ofvirtual hosts, the ServerName
-	# specifies what hostname must appear inthe request's Host: header to
-	# match this virtual host. For thedefault virtual host (this file) this
-	# value is not decisive as it is used asa last resort host regardless.
-	# However, you must set it for anyfurther virtual host explicitly.
-	#ServerName www.example.com
-	ServerAdmin webmaster@localhost
-	DocumentRoot /var/www/html
-
-	<Directory "/var/www/html">     |
-		 AllowOverride All           | ---->THIS
-  	</Directory>                    |
-	# Available loglevels: trace8, ...,trace1, debug, info, notice, warn,
-	# error, crit, alert, emerg.
-	# It is also possible to configure theloglevel for particular
-	# modules, e.g.
-	#LogLevel info ssl:warn
-	ErrorLog ${APACHE_LOG_DIR}/error.log
-	CustomLog ${APACHE_LOG_DIR}/access.logcombined
-	# For most configuration files fromconf-available/, which are
-	# enabled or disabled at a global level,it is possible to
-	# include a line for only one particularvirtual host. For example the
-	# following line enables the CGIconfiguration for this host only
-	# after it has been globally disabledwith "a2disconf".
-	#Include conf-availableserve-cgi-bin.conf
-</VirtualHost>
-		# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
-```
-- 3. headers ->
-```
-		$ sudo cd /etc/apache2/mods-enabled/
-		$ sudo ln -s ../mods-available/headers.load headers.load
-		$ sudo service apache2 restart
-```
-2. React app config -> https://facebook.github.io/create-react-app/docs/deployment
-	
-- 1. .htaccess on /public folder
-```	
-		Options -MultiViews
-		RewriteEngine On
-		RewriteCond %{REQUEST_FILENAME} !-f
-		RewriteRule ^ index.html [QSA,L]
-```
-- 2. /public/manifest.json
-```
-		"start_url": ".",
-```
-- 3. package.json -> This if you want to use yout project name for root URL like http://host.com/project/
-```
-		"homepage": "http://mywebsite.com/YOUR_APP_NAME",
-```
-
-## Deploy on Tomcat
-
-0. Create structure
-```
-/project_folder
-	/WEB-INF
-	    /classes
-	    /src
-```
-1. /main_folder/WEB-INF/web.xml
-```
-<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
-	      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	      xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
-	      http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
-	      version="2.4">
-
-  <display-name>create-react-app-servlet</display-name>
-
-  <error-page>
-    <error-code>404</error-code>
-    <location>/index.html</location>
-  </error-page>
-
-</web-app>
-```
-
-2. Put on /project_folder all files and folders inside build folder when react app build 
-
-# If you want to deploy on main URL rename or use project_folder to ROOT
-
-## Deploy on IIS
-
-0. In React App, create 'web.config' file in 'public folder'
-```
-<?xml version="1.0"?>
-<configuration>
- <system.webServer>
- <rewrite>
- <rules>
- <rule name="React Routes" stopProcessing="true">
- <match url=".*" />
- <conditions logicalGrouping="MatchAll">
- <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
- <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
- <add input="{REQUEST_URI}" pattern="^/(api)" negate="true" />
- </conditions>
- <action type="Rewrite" url="/" />
- </rule>
- </rules>
- </rewrite>
- </system.webServer>
-</configuration>
-```
-
-1. Install URL Rewrite module
-https://www.iis.net/downloads/microsoft/url-rewrite
-
-2. Create App in IIS
-Enter IIS on Windows with 
-```
-Windows + R
-inetmgr
-```
-
--------------------------------------------------------------------------------------------------------------------------------
 
 ## React Redux app
 

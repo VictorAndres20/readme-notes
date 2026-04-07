@@ -490,6 +490,7 @@ $ docker cp dump <CONTAINER ID>:/restore-mongo/
 $ sudo docker exec -it <container-id> bash
 $ mongorestore --port 27017 --drop --db <DB NAME> /restore-mongo/db_name/
 $ exit
+```
 
 ## SQL Server
 ```
@@ -781,6 +782,7 @@ RUN service apache2 restart
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+```
 
 **This adding SoapClient extension**
 ```
@@ -828,10 +830,13 @@ $ sudo docker run -i -t --name php-apache-name -d -p 80:80 php-apache-name
 
 ##### Os Ticket DB
 
+```
 docker run -i -t --restart=always --network net-os-ticket --ip 172.124.10.10 --name mysql-os-ticket -v /opt/os-ticket-db:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=passwd -d -p 3306:3306 mysql:5.7
+```
 
 ##### Os Ticket PHP
 
+```
 docker run -i -t --restart=always --network net-os-ticket --ip 172.124.10.11 --name prod-os-ticket -v /opt/os-ticket/html:/var/www/html -d -p 8080:80 php:7.3-apache
 docker exec -it prod-os-ticket bash
 
@@ -859,7 +864,7 @@ php -m
 chown -R www-data:www-data /var/www/html
 a2enmod rewrite
 service apache2 restart
-
+```
 
 
 ## Native Node Web App container
