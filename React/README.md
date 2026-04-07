@@ -108,9 +108,9 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   // ----------------------------------------------------------
   // Need this for correct routing in production, since the app is served from a subdirectory
-  base: "/practicum2/",
+  base: "/my-route/",
   build: {
-    outDir: "dist/practicum2",
+    outDir: "dist/my-route",
   },
   // ----------------------------------------------------------
   server: {
@@ -137,7 +137,7 @@ Options -MultiViews
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ /practicum2/index.html [QSA,L]
+RewriteRule ^ /my-route/index.html [QSA,L]
 ```
 
 Use the normal build container in the server.
