@@ -1,44 +1,43 @@
-# -------------------------
-# Base image.
-# Install stage
-# -------------------------
-FROM node:20.18.2-slim AS base
-
+#########################################################################
+#########################################################################
+# Stage 1: Builder stage
+FROM node:24.11.0-slim AS builder
 WORKDIR /usr/src/app
-COPY package*.json ./
 
-# -------------------------
-# Build stage
-# -------------------------
-FROM base AS build
+# Copy dependency files
+COPY package.json package-lock.json ./
 
-RUN npm ci --include=dev
+# Install all dependencies (dev deps needed for tsc/nest build)
+RUN npm ci
+
+# Copy source code
 COPY . .
+
+# Build the NestJS application
 RUN npm run build
 
-# -- remove dev deps
-RUN npm prune --omit=dev
-
-# -------------------------
-# Production stage
-# -------------------------
-FROM base AS production
-
+#########################################################################
+#########################################################################
+# Stage 2: Production stage
+FROM node:24.11.0-slim AS production
+WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
-# -- Copy only production env [!IMPORTANT] SPECIAL ATTENTION
-COPY --from=build /usr/src/app/.env.production .env
+# Copy dependency files
+COPY package.json package-lock.json ./
 
-COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build /usr/src/app/node_modules ./node_modules
+# Install only production dependencies using exact locked versions
+RUN npm ci --omit=dev
 
-# -- Copy assets or public files that your code uses [!IMPORTANT] SPECIAL ATTENTION
-COPY --from=build /usr/src/app/api-assets ./api-assets
+# Copy build output from builder
+COPY --from=builder /usr/src/app/dist ./dist
 
-# -- Create folders for volumes if you need to.
-#RUN mkdir -p /opt/files-ascun
+# Set production env
+COPY --from=builder /usr/src/app/.env.production .env
 
-# -- Expose only the port that the app uses.
-#EXPOSE 8000
+# Copy api assets
+COPY --from=builder /usr/src/app/api-assets ./api-assets
+
+# EXPOSE 8000
 
 CMD ["node", "dist/main"]

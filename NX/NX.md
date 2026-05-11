@@ -33,8 +33,8 @@ After this maybe you will need to update your `tsconfig.base.json` adding and up
 {
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "bundler",
-    "rootDir": ".",
+    "moduleResolution": "bundler", DEPRECATED
+    "rootDir": ".", DEPRECATED
     "paths": {} // To register your libraries paths, like "@my-app-name/api-core": ["./packages/api/api-core/src/index.ts"]
   }
 }
@@ -67,6 +67,7 @@ npx nx g @nx/nest:app apps/my-worker
 
 4. To use images or fonts like for PDF generator, create `api-assets` folder at root monorepo project
 
+DEPRECATED
 5. Since we update tsconfig.base.json to have `"moduleResolution": "bundler"` we will need to tell web pack to resolve paths by tsconfig paths, to do this lets install `tsconfig-paths-webpack-plugin`. Very important when create docker image.
 
 ```
@@ -213,21 +214,33 @@ npx nx g @nx/nest:lib packages/api/feat-api-users --linter=eslint --unitTestRunn
 }
 ```
 
-And update your nest application `tsconfig.json` file referencing your libraries folders like:
+5. Also check your Nest applications `tsconfig.app.json` file to don't use `rootDir`:
+
+```
+    "rootDir": "src", RMOVE IT
+```
+
+And update your NX project `tsconfig.json` file referencing your libraries folders like:
 
 ```
 {
   ...
   "references": [
     {
-      "path": "../../packages/api/api-commons"
+      "path": "./packages/api/api-commons"
     },
     {
-      "path": "../../packages/api/feat-api-users"
+      "path": "./packages/api/feat-api-users"
     }
   ]
 }
 
+```
+
+Now we can import these libraries inside Nest Applications like:
+
+```
+import { ApiModule } from '@my-app/api-commons';
 ```
 
 ### Create React libraries
