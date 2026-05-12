@@ -8,7 +8,7 @@ https://nx.dev/getting-started/intro
 If you want to have it globally you can do it, but also you can use NX with `npx`
 
 ```
-npm add --global nx
+npm add --global nx --ignore-scripts
 ```
 
 ------------------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ npx create-nx-workspace@[same-nx-version] --name="my-app-name" --preset=ts --for
 OR to add NX to an existing repo use
 
 ```
-nx init
+npx nx@x.x.x init
 ```
 
 After this maybe you will need to update your `tsconfig.base.json` adding and updating:
