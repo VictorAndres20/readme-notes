@@ -26,6 +26,7 @@ docker run --restart always --network network_proxy --ip 172.124.10.11 --name ap
 
 ```
 docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.27.2
+# 1.31.2 to fix vulnerabilities
 ```
 
 --------
