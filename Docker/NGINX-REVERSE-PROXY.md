@@ -25,8 +25,8 @@ docker run --restart always --network network_proxy --ip 172.124.10.11 --name ap
 ### Create nginx container to configure as a reverse proxy
 
 ```
-docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.27.2
-# 1.31.2 to fix vulnerabilities
+docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.31.3
+# 1.31.3 to fix vulnerabilities
 ```
 
 --------
@@ -144,7 +144,7 @@ server {
     #location /api/ {
     #    include /etc/nginx/includes/proxy.conf;
     #    proxy_pass http://api_container:8000;
-    #    proxy_read_timeout 600s;
+    #    #proxy_read_timeout 600s;
     #}
 
     access_log off;
@@ -174,7 +174,7 @@ server {
     location / {
         include /etc/nginx/includes/proxy.conf;
         proxy_pass http://api_container:8000;
-        proxy_read_timeout 600s;
+        #proxy_read_timeout 600s;
     }
 
     access_log off;
