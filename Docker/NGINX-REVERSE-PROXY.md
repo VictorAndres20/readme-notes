@@ -113,77 +113,87 @@ vi /etc/nginx/conf.d/default.conf
 Configure 
 
 ```
-#Web Service 1 config
-upstream web{
-      #container-name:port-inside-container
-      server container_apache_name:80;
+######################################################
+#
+# Configure services to route
+#
+
+upstream front {
+    # container-name:port-inside-container
+    server apache:80;
 }
-#Web Service 1 config proxy
+
+upstream api {
+    server apache1:8000;
+}
+
+######################################################
+
+######################################################
+#
+# Configure proxy
+#
+
+# Configure proxy entry point
 server {
     listen 80;
-    #listen 443 ssl http2;
-    #domain.com to use
+    server_name domain.com;
+    # HTTP -> HTTPS redirect
+    # UNCOMMENT to use SSL
+    # return 301 https://$host$request_uri;
+}
+
+# Configure proxy for 1 domain
+server {
+    # UNCOMMENT to use SSL
+    # listen 443 ssl;
+    http2 on;
+
+    # domain.com to use
     server_name domain.com;
 
     # Path for SSL config/key/certificate
-    #ssl_certificate /etc/ssl/certs/nginx/domain.com.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/domain.com.pem;
-    #include /etc/nginx/includes/ssl.conf;
-
-    #if ($scheme != "https") {
-    #    return 301 https://$host$request_uri;
-    #}
+    # UNCOMMENT to use SSL
+    # ssl_certificate     /etc/ssl/certs/nginx/domain.com.crt;
+    # ssl_certificate_key /etc/ssl/certs/nginx/domain.com.pem;
+    # include /etc/nginx/includes/ssl.conf;
 
     location / {
         include /etc/nginx/includes/proxy.conf;
-        #http://container-name:port-inside-container
-        proxy_pass http://container_apache_name:80;
+        # Use upstream name configured
+        proxy_pass http://front;
     }
 
-    # YOU CAN PROXY MANY CONTAINERS WITH THE SAME DOMAIN:
-    #location /api/ {
-    #    include /etc/nginx/includes/proxy.conf;
-    #    proxy_pass http://api_container:8000;
-    #    #proxy_read_timeout 600s;
-    #}
-
-    access_log off;
-    error_log  /var/log/nginx/error.log error;
-}
-
-# OR PROXY OTHER CONTAINER WITH OTHER DOMAIN 
-#Web Service 2 config
-upstream api{
-      server api_container:8000;
-}
-#Web Service 2 config proxy
-server {
-    listen 80;
-    #listen 443 ssl http2;
-    server_name api.domain.com;
-
-    # Path for SSL config/key/certificate
-    #ssl_certificate /etc/ssl/certs/nginx/api.domain.com.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/api.domain.com.pem;
-    #include /etc/nginx/includes/ssl.conf;
-
-    #if ($scheme != "https") {
-    #    return 301 https://$host$request_uri;
-    #}
-
-    location / {
+    location /api {
         include /etc/nginx/includes/proxy.conf;
-        proxy_pass http://api_container:8000;
-        #proxy_read_timeout 600s;
+        # Use upstream name configured
+        proxy_pass http://api;
     }
 
     access_log off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
 
-#Default
+######################################################
+
+# You can configure more proxies for more subdomains like api.centos.com
+# You just need to do the same thing as above updating:
+# - server_name 
+# - ssl_certificate
+# - ssl_certificate_key
+# - location + proxy_pass upstream services
+# as needed
+
+######################################################
+# Default
 server {
     listen 80 default_server;
+    # UNCOMMENT to use SSL
+    # listen 443 ssl default_server;
+
+    # Drops the TLS handshake for unknown hostnames, so no cert is needed here
+    # UNCOMMENT to use SSL
+    # ssl_reject_handshake on;
 
     server_name _;
     root /var/www/html;
@@ -192,7 +202,7 @@ server {
 
     error_page 404 /backend-not-found.html;
     location = /backend-not-found.html {
-        allow   all;
+        allow all;
     }
     location / {
         return 404;
@@ -200,7 +210,7 @@ server {
 
     access_log off;
     log_not_found off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
 ```
 
@@ -209,6 +219,30 @@ server {
 ### Test configuration
 
 ```
+nginx -t
+```
+
+## IF THIS ERRORS APPEAR AFTER `nginx -t`
+
+### server_names_hash_bucket_size
+
+**Issue**
+
+```bash
+2026/09/14 13:28:59 [emerg] 72#72: could not build server_names_hash, you should increase server_names_hash_bucket_size: 32
+nginx: [emerg] could not build server_names_hash, you should increase server_names_hash_bucket_size: 32
+nginx: configuration file /etc/nginx/nginx.conf test failed
+```
+
+**Fix**
+
+The fix is inside `etc/nginx/nginx.conf`. We should have `server_names_hash_bucket_size 64;`.
+You can run
+
+```bash
+grep -n "server_names_hash" /etc/nginx/nginx.conf
+sed -i '/^http {/a \    server_names_hash_bucket_size 64;' /etc/nginx/nginx.conf
+grep -n "server_names_hash" /etc/nginx/nginx.conf
 nginx -t
 ```
 
@@ -335,77 +369,82 @@ certificate_key is: -----BEGIN PRIVATE KEY-----
 certificate is: -----BEGIN CERTIFICATE----- 
 
 ```
-#Web Service 1 config
-upstream web{
-      #container-name:port-inside-container
-      server container_apache_name:80;
+######################################################
+#
+# Configure services to route
+#
+
+upstream front {
+    # container-name:port-inside-container
+    server apache:80;
 }
-#Web Service 1 config proxy
+
+upstream api {
+    server apache1:8000;
+}
+
+######################################################
+
+######################################################
+#
+# Configure proxy
+#
+
+# Configure proxy entry point
 server {
     listen 80;
-    listen 443 ssl http2;
-    #domain.com to use
+    server_name domain.com;
+    # HTTP -> HTTPS redirect
+    return 301 https://$host$request_uri;
+}
+
+# Configure proxy for 1 domain
+server {
+    listen 443 ssl;
+    http2 on;
+
+    # domain.com to use
     server_name domain.com;
 
     # Path for SSL config/key/certificate
-    ssl_certificate /etc/ssl/certs/nginx/domain.com.crt;
+    ssl_certificate     /etc/ssl/certs/nginx/domain.com.crt;
     ssl_certificate_key /etc/ssl/certs/nginx/domain.com.pem;
     include /etc/nginx/includes/ssl.conf;
 
-    if ($scheme != "https") {
-        return 301 https://$host$request_uri;
-    }
-
     location / {
         include /etc/nginx/includes/proxy.conf;
-        #http://container-name:port-inside-container
-        proxy_pass http://container_apache_name:80;
+        # Use upstream name configured
+        proxy_pass http://front;
     }
 
-    # YOU CAN PROXY MANY CONTAINERS WITH THE SAME DOMAIN:
-    #location /api/ {
-    #    include /etc/nginx/includes/proxy.conf;
-    #    proxy_pass http://api_container:8000;
-    #    proxy_read_timeout 600s;
-    #}
-
-    access_log off;
-    error_log  /var/log/nginx/error.log error;
-}
-
-# OR PROXY OTHER CONTAINER WITH OTHER DOMAIN 
-#Web Service 2 config
-upstream api{
-      server api_container:8000;
-}
-#Web Service 2 config proxy
-server {
-    listen 80;
-    listen 443 ssl http2;
-    server_name api.domain.com;
-
-    # Path for SSL config/key/certificate
-    ssl_certificate /etc/ssl/certs/nginx/api.domain.com.crt;
-    ssl_certificate_key /etc/ssl/certs/nginx/api.domain.com.pem;
-    include /etc/nginx/includes/ssl.conf;
-
-    if ($scheme != "https") {
-        return 301 https://$host$request_uri;
-    }
-
-    location / {
+    location /api {
         include /etc/nginx/includes/proxy.conf;
-        proxy_pass http://api_container:8000;
-        proxy_read_timeout 600s;
+        # Use upstream name configured
+        proxy_pass http://api;
     }
 
     access_log off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
 
-#Default
+######################################################
+
+# You can configure more proxies for more subdomains like api.centos.com
+# You just need to do the same thing as above updating:
+# - server_name 
+# - ssl_certificate
+# - ssl_certificate_key
+# - location + proxy_pass upstream services
+# as needed
+
+######################################################
+# Default
 server {
     listen 80 default_server;
+    listen 443 ssl default_server;
+
+    # Drops the TLS handshake for unknown hostnames, so no cert is needed here
+    ssl_reject_handshake on;
 
     server_name _;
     root /var/www/html;
@@ -414,7 +453,7 @@ server {
 
     error_page 404 /backend-not-found.html;
     location = /backend-not-found.html {
-        allow   all;
+        allow all;
     }
     location / {
         return 404;
@@ -422,7 +461,7 @@ server {
 
     access_log off;
     log_not_found off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
 ```
 

@@ -1267,7 +1267,7 @@ If you want to expose those containers only by proxy, change '-p 8000:80' to '--
 
 ## Create nginx container to configure as a reverse proxy
 ```
-docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.25
+docker run --restart always --name nginx_proxy --network network_proxy --ip 172.124.10.9 -p 80:80 -p 443:443 -d nginx:1.31.3
 ```
 
 ## Create www/html folders inside nginx_proxy container
@@ -1330,70 +1330,107 @@ vi /etc/nginx/conf.d/default.conf
 
 To create proxy you need to edit this file like this
 ```
-#Web Service 1 config
-upstream centos{
-             #container-name:port-inside-container
-      server apache:80;
+######################################################
+#
+# Configure services to route
+#
+
+upstream front {
+    # container-name:port-inside-container
+    server front_react:80;
 }
-#Web Service 1 config proxy
+
+upstream front2 {
+    server front_react2:80;
+}
+
+upstream api {
+    server api_nest:8001;
+}
+
+upstream api2 {
+    server api_nest2:8001;
+}
+
+######################################################
+
+######################################################
+#
+# Configure proxy
+#
+
+# Configure proxy entry point
 server {
     listen 80;
-    #listen 443 ssl http2;
-                #domain.com to use
+    server_name centos.com;
+    # HTTP -> HTTPS redirect
+    # UNCOMMENT to use SSL
+    # return 301 https://$host$request_uri;
+}
+
+# Configure proxy for 1 domain
+server {
+	# UNCOMMENT to use SSL
+    # listen 443 ssl;
+    http2 on;
+
+    # domain.com to use
     server_name centos.com;
 
     # Path for SSL config/key/certificate
-    #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem; #-----BEGIN PRIVATE KEY-----
-    #include /etc/nginx/includes/ssl.conf;
-
-    #if ($scheme != "https") {
-    #    return 301 https://$host$request_uri;
-    #}
+    # UNCOMMENT to use SSL
+    # ssl_certificate     /etc/ssl/certs/nginx/centos.com.crt;
+    # ssl_certificate_key /etc/ssl/certs/nginx/centos.com.pem;
+    # include /etc/nginx/includes/ssl.conf;
 
     location / {
         include /etc/nginx/includes/proxy.conf;
-                   #http://container-name:port-inside-container
-        proxy_pass http://apache;
+        # Use upstream name configured
+        proxy_pass http://front;
     }
 
-    access_log off;
-    error_log  /var/log/nginx/error.log error;
-}
-
-#Web Service 2 config
-upstream pro{
-      server apache1:80;
-}
-#Web Service 2 config proxy
-server {
-    listen 80;
-    #listen 443 ssl http2;
-    server_name pro.centos.com;
-
-    # Path for SSL config/key/certificate
-    #ssl_certificate /etc/ssl/certs/nginx/site1.crt;
-    #ssl_certificate_key /etc/ssl/certs/nginx/site1.pem; #-----BEGIN PRIVATE KEY-----
-    #include /etc/nginx/includes/ssl.conf;
-
-    #if ($scheme != "https") {
-    #    return 301 https://$host$request_uri;
-    #}
-
-    location / {
+    location /my-react2 {
         include /etc/nginx/includes/proxy.conf;
-        proxy_pass http://apache1;
-        proxy_read_timeout 600s;
+        # Use upstream name configured
+        proxy_pass http://front2;
+    }
+
+    location /api {
+        include /etc/nginx/includes/proxy.conf;
+        # Use upstream name configured
+        proxy_pass http://api;
+    }
+
+    location /api2 {
+        include /etc/nginx/includes/proxy.conf;
+        # Use upstream name configured
+        proxy_pass http://api2;
     }
 
     access_log off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
 
+######################################################
 
-#Default
+# You can configure more proxies for more subdomains like api.centos.com
+# You just need to do the same thing as above updating:
+# - server_name 
+# - ssl_certificate
+# - ssl_certificate_key
+# - location + proxy_pass upstream services
+# as needed
+
+######################################################
+# Default
 server {
     listen 80 default_server;
+    # UNCOMMENT to use SSL
+    # listen 443 ssl default_server;
+
+    # Drops the TLS handshake for unknown hostnames, so no cert is needed here
+    # UNCOMMENT to use SSL
+    # ssl_reject_handshake on;
 
     server_name _;
     root /var/www/html;
@@ -1402,7 +1439,7 @@ server {
 
     error_page 404 /backend-not-found.html;
     location = /backend-not-found.html {
-        allow   all;
+        allow all;
     }
     location / {
         return 404;
@@ -1410,13 +1447,36 @@ server {
 
     access_log off;
     log_not_found off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
-
 ```
 
 ## Test configuration
 ```
+nginx -t
+```
+
+## IF THIS ERRORS APPEAR AFTER `nginx -t`
+
+### server_names_hash_bucket_size
+
+**Issue**
+
+```bash
+2026/09/14 13:28:59 [emerg] 72#72: could not build server_names_hash, you should increase server_names_hash_bucket_size: 32
+nginx: [emerg] could not build server_names_hash, you should increase server_names_hash_bucket_size: 32
+nginx: configuration file /etc/nginx/nginx.conf test failed
+```
+
+**Fix**
+
+The fix is inside `etc/nginx/nginx.conf`. We should have `server_names_hash_bucket_size 64;`.
+You can run
+
+```bash
+grep -n "server_names_hash" /etc/nginx/nginx.conf
+sed -i '/^http {/a \    server_names_hash_bucket_size 64;' /etc/nginx/nginx.conf
+grep -n "server_names_hash" /etc/nginx/nginx.conf
 nginx -t
 ```
 
@@ -1427,6 +1487,7 @@ docker restart nginx_proxy
 ``` 
 
 TEST IT
+
 
 ---------------
 
@@ -1521,69 +1582,102 @@ certificate is: -----BEGIN CERTIFICATE-----
 Maybe you need and rename certs .key->.pem .crt
 
 ```
-#Web Service 1 config
-upstream centos{
-             #container-name:port-inside-container
-      server apache:80;
+######################################################
+#
+# Configure services to route
+#
+
+upstream front {
+    # container-name:port-inside-container
+    server front_react:80;
 }
-#Web Service 1 config proxy
+
+upstream front2 {
+    server front_react2:80;
+}
+
+upstream api {
+    server api_nest:8001;
+}
+
+upstream api2 {
+    server api_nest2:8001;
+}
+
+######################################################
+
+######################################################
+#
+# Configure proxy
+#
+
+# Configure proxy entry point
 server {
     listen 80;
-    listen 443 ssl http2;
-                #domain.com to use
+    server_name centos.com;
+    # HTTP -> HTTPS redirect
+    return 301 https://$host$request_uri;
+}
+
+# Configure proxy for 1 domain
+server {
+    listen 443 ssl;
+    http2 on;
+
+    # domain.com to use
     server_name centos.com;
 
     # Path for SSL config/key/certificate
-    ssl_certificate /etc/ssl/certs/nginx/centos.com.crt;
+    ssl_certificate     /etc/ssl/certs/nginx/centos.com.crt;
     ssl_certificate_key /etc/ssl/certs/nginx/centos.com.pem;
     include /etc/nginx/includes/ssl.conf;
 
-    if ($scheme != "https") {
-        return 301 https://$host$request_uri;
-    }
-
     location / {
         include /etc/nginx/includes/proxy.conf;
-                   #http://container-name
-        proxy_pass http://apache;
+        # Use upstream name configured
+        proxy_pass http://front;
+    }
+
+    location /my-react2 {
+        include /etc/nginx/includes/proxy.conf;
+        # Use upstream name configured
+        proxy_pass http://front2;
+    }
+
+    location /api {
+        include /etc/nginx/includes/proxy.conf;
+        # Use upstream name configured
+        proxy_pass http://api;
+    }
+
+    location /api2 {
+        include /etc/nginx/includes/proxy.conf;
+        # Use upstream name configured
+        proxy_pass http://api2;
     }
 
     access_log off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
 
-#Web Service 2 config
-upstream pro{
-      server apache1:80;
-}
-#Web Service 2 config proxy
-server {
-    listen 80;
-    listen 443 ssl http2;
-    server_name pro.centos.com;
+######################################################
 
-    # Path for SSL config/key/certificate
-    ssl_certificate /etc/ssl/certs/nginx/pro.centos.com.crt;
-    ssl_certificate_key /etc/ssl/certs/nginx/pro.centos.com.pem;
-    include /etc/nginx/includes/ssl.conf;
+# You can configure more proxies for more subdomains like api.centos.com
+# You just need to do the same thing as above updating:
+# - server_name 
+# - ssl_certificate
+# - ssl_certificate_key
+# - location + proxy_pass upstream services
+# as needed
 
-    if ($scheme != "https") {
-        return 301 https://$host$request_uri;
-    }
-
-    location / {
-        include /etc/nginx/includes/proxy.conf;
-        proxy_pass http://apache1;
-    }
-
-    access_log off;
-    error_log  /var/log/nginx/error.log error;
-}
-
-
-#Default
+######################################################
+# Default
 server {
     listen 80 default_server;
+    listen 443 ssl default_server;
+
+    # Drops the TLS handshake for unknown hostnames, so no cert is needed here
+    ssl_reject_handshake on;
 
     server_name _;
     root /var/www/html;
@@ -1592,7 +1686,7 @@ server {
 
     error_page 404 /backend-not-found.html;
     location = /backend-not-found.html {
-        allow   all;
+        allow all;
     }
     location / {
         return 404;
@@ -1600,13 +1694,13 @@ server {
 
     access_log off;
     log_not_found off;
-    error_log  /var/log/nginx/error.log error;
+    error_log /var/log/nginx/error.log error;
 }
-
 ```
 
 ## Exit from nginx_proxy container and restart nginx_proxy container
 ```
+nginx -t
 exit
 docker restart nginx_proxy
 ``` 
