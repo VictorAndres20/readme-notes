@@ -376,6 +376,43 @@ cat /etc/timezone
 
 ------------------------------------------------------------------------------------------------
 
+# Docker restarting but you need to update a file inside it
+Happening with this error:
+
+```plain
+Error response from daemon: Container 3af108e13b8a4b85d93ce5457ed5f2f388b731c7644ddd1ca570bc7c678a6ae6 
+is restarting, wait until the container is running
+```
+
+Fix with:
+
+```bash
+# 1. Save the current restart policy so you can restore it later
+docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' 3af108e13b8a
+
+# 2. Stop the restart loop
+docker update --restart=no 3af108e13b8a
+docker stop 3af108e13b8a
+
+# 3. Copy the config out
+docker cp 3af108e13b8a:/etc/nginx/nginx.conf ./nginx.conf
+
+# 4. Edit it on the host (GNU sed / Linux)
+grep -n "server_names_hash" ./nginx.conf
+sed -i '/^http {/a \    server_names_hash_bucket_size 64;' ./nginx.conf
+grep -n "server_names_hash" ./nginx.conf
+
+# 5. Copy it back and start
+docker cp ./nginx.conf 3af108e13b8a:/etc/nginx/nginx.conf
+docker start 3af108e13b8a
+docker logs -f 3af108e13b8a
+
+# 6. Restore the restart policy (use what step 1 printed)
+docker update --restart=always 3af108e13b8a
+```
+
+------------------------------------------------------------------------------------------------
+
 # Specific containers
 
 ## Set timezone
